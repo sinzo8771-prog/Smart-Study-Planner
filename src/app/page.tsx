@@ -5,8 +5,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
+import { getFirebaseAuth } from '@/lib/firebase';
 
 // Custom hook for mounted state to avoid lint issues
 function useMounted() {
@@ -5259,15 +5258,17 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   }, []);
 
   const handleGoogleLogin = async () => {
-    if (!auth || !googleProvider) {
-      setError('Firebase is not initialized. Please check your configuration.');
-      return;
-    }
-    
     setError('');
     setGoogleLoading(true);
     
     try {
+      const { auth, googleProvider } = await getFirebaseAuth();
+      
+      if (!auth || !googleProvider) {
+        throw new Error('Firebase is not initialized. Please check your configuration.');
+      }
+      
+      const { signInWithPopup } = await import('firebase/auth');
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       
