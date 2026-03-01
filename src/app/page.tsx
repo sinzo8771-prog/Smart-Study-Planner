@@ -1106,11 +1106,18 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     color: SUBJECT_COLORS[0],
     examDate: '',
   });
-  const [taskForm, setTaskForm] = useState({
+  const [taskForm, setTaskForm] = useState<{
+    title: string;
+    description: string;
+    status: 'pending' | 'in_progress' | 'completed';
+    priority: 'low' | 'medium' | 'high';
+    dueDate: string;
+    subjectId: string;
+  }>({
     title: '',
     description: '',
-    status: 'pending' as const,
-    priority: 'medium' as const,
+    status: 'pending',
+    priority: 'medium',
     dueDate: '',
     subjectId: '',
   });
@@ -1611,8 +1618,8 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                     }
                   });
                   
-                  const weeks = [];
-                  let days = [];
+                  const weeks: React.ReactNode[] = [];
+                  let days: React.ReactNode[] = [];
                   
                   // Padding for first week
                   for (let i = 0; i < startPadding; i++) {
@@ -1929,11 +1936,18 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'course' | 'module'; id: string } | null>(null);
 
-  const [courseForm, setCourseForm] = useState({
+  const [courseForm, setCourseForm] = useState<{
+    title: string;
+    description: string;
+    category: string;
+    level: 'beginner' | 'intermediate' | 'advanced';
+    duration: number;
+    isPublished: boolean;
+  }>({
     title: '',
     description: '',
     category: '',
-    level: 'beginner' as const,
+    level: 'beginner',
     duration: 0,
     isPublished: false,
   });
@@ -3326,9 +3340,9 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                             D: {String(q.optionD)} {q.correctAnswer === 'D' && '✓'}
                           </p>
                         </div>
-                        {q.explanation && (
+                        {typeof q.explanation === 'string' && q.explanation && (
                           <p className="text-xs text-gray-500 mt-2 italic">
-                            💡 {String(q.explanation)}
+                            💡 {q.explanation}
                           </p>
                         )}
                       </div>
@@ -3455,7 +3469,7 @@ const AnalyticsModule = ({ user }: AnalyticsModuleProps) => {
 
   // Generate monthly trend data
   const generateMonthlyTrend = () => {
-    const months = [];
+    const months: { name: string; tasks: number; completed: number }[] = [];
     const now = new Date();
 
     for (let i = 5; i >= 0; i--) {
@@ -3548,7 +3562,7 @@ const AnalyticsModule = ({ user }: AnalyticsModuleProps) => {
             />
             <StatsCard
               title="Total Courses"
-              value={stats?.courses?.total || stats?.totalCourses || 0}
+              value={stats?.totalCourses || 0}
               subtitle="Published content"
               icon={BookOpen}
               color="from-purple-500 to-purple-600"
@@ -3703,7 +3717,7 @@ const AnalyticsModule = ({ user }: AnalyticsModuleProps) => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <span className="text-sm text-gray-600 dark:text-gray-300">Total Quizzes</span>
-                    <span className="font-semibold">{stats?.quizzes?.total || stats?.totalQuizzes || 0}</span>
+                    <span className="font-semibold">{stats?.totalQuizzes || 0}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <span className="text-sm text-gray-600 dark:text-gray-300">Total Attempts</span>
@@ -3711,7 +3725,7 @@ const AnalyticsModule = ({ user }: AnalyticsModuleProps) => {
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <span className="text-sm text-gray-600 dark:text-gray-300">Recent Attempts (7d)</span>
-                    <span className="font-semibold">{stats?.quizzes?.recentAttempts || 0}</span>
+                    <span className="font-semibold">{stats?.quizzes?.recentAttempts?.length || 0}</span>
                   </div>
                 </div>
               </CardContent>
