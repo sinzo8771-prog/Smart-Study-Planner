@@ -412,7 +412,11 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700">
-          <Logo size="sm" />
+          {isSidebarOpen ? (
+            <Logo size="sm" />
+          ) : (
+            <LogoIcon size="sm" />
+          )}
           <Button
             variant="ghost"
             size="icon"
