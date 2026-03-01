@@ -4067,6 +4067,290 @@ const TestimonialCarousel = () => {
 };
 
 // ============================================
+// DEMO VIDEO MODAL
+// ============================================
+
+const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const demoSlides = [
+    {
+      title: 'Welcome to StudyPlanner',
+      description: 'Your all-in-one smart study companion',
+      content: (
+        <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="text-6xl mb-4">📚</motion.div>
+          <h3 className="text-2xl font-bold mb-2">Smart Study Planner</h3>
+          <p className="opacity-80">Plan, learn, and achieve your academic goals</p>
+        </div>
+      ),
+    },
+    {
+      title: 'Organize Your Subjects',
+      description: 'Create subjects and track your progress',
+      content: (
+        <div className="space-y-4">
+          {[
+            { name: 'Mathematics', color: 'from-blue-500 to-blue-600', progress: 75 },
+            { name: 'Physics', color: 'from-purple-500 to-purple-600', progress: 60 },
+            { name: 'Chemistry', color: 'from-green-500 to-green-600', progress: 45 },
+          ].map((subject, i) => (
+            <motion.div
+              key={i}
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: i * 0.2 }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold">{subject.name}</span>
+                <span className="text-sm text-gray-500">{subject.progress}%</span>
+              </div>
+              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${subject.progress}%` }}
+                  transition={{ delay: i * 0.2 + 0.3, duration: 0.5 }}
+                  className={`h-full bg-gradient-to-r ${subject.color}`}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      title: 'AI Quiz Generator',
+      description: 'Create quizzes automatically with AI',
+      content: (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Brain className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold">AI Quiz Generator</p>
+              <p className="text-sm text-gray-500">Generating questions...</p>
+            </div>
+          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl"
+          >
+            <p className="font-medium mb-3">Q: What is the derivative of x²?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {['A) 2x', 'B) x', 'C) 2', 'D) x²'].map((opt, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.7 + i * 0.1 }}
+                  className={`p-2 rounded-lg text-sm ${
+                    i === 0
+                      ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-500'
+                      : 'bg-gray-100 dark:bg-gray-600'
+                  }`}
+                >
+                  {opt}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      ),
+    },
+    {
+      title: 'Track Your Progress',
+      description: 'Detailed analytics and insights',
+      content: (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="font-semibold">Weekly Progress</h4>
+            <Badge className="bg-green-500">+23%</Badge>
+          </div>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={[
+                { day: 'Mon', tasks: 4, completed: 3 },
+                { day: 'Tue', tasks: 5, completed: 4 },
+                { day: 'Wed', tasks: 3, completed: 3 },
+                { day: 'Thu', tasks: 6, completed: 5 },
+                { day: 'Fri', tasks: 4, completed: 4 },
+                { day: 'Sat', tasks: 2, completed: 2 },
+                { day: 'Sun', tasks: 3, completed: 2 },
+              ]}>
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Bar dataKey="completed" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="tasks" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Get Started Today!',
+      description: 'Join thousands of successful students',
+      content: (
+        <div className="text-center py-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="text-8xl mb-6">🎉</motion.div>
+          <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+            Ready to Transform Your Learning?
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Sign up now and start your journey to academic success
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Button className="bg-gradient-to-r from-blue-500 to-purple-600">
+              Start Free Trial
+            </Button>
+            <Button variant="outline">Learn More</Button>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  const nextSlide = () => {
+    if (currentSlide < demoSlides.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <Play className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Product Demo</h3>
+                <p className="text-sm text-white/80">See StudyPlanner in action</p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mt-4 flex gap-2">
+            {demoSlides.map((_, i) => (
+              <div
+                key={i}
+                className={`flex-1 h-1.5 rounded-full transition-all ${
+                  i < currentSlide ? 'bg-white' : i === currentSlide ? 'bg-white' : 'bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-center mb-6">
+                <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {demoSlides[currentSlide].title}
+                </h4>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">
+                  {demoSlides[currentSlide].description}
+                </p>
+              </div>
+              <div className="min-h-[300px]">
+                {demoSlides[currentSlide].content}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="px-8 pb-8 flex items-center justify-between">
+          <Button
+            variant="outline"
+            onClick={prevSlide}
+            disabled={currentSlide === 0}
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" /> Previous
+          </Button>
+          <div className="flex items-center gap-2">
+            {demoSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentSlide(i)}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  i === currentSlide
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 w-8'
+                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+          {currentSlide < demoSlides.length - 1 ? (
+            <Button
+              onClick={nextSlide}
+              className="bg-gradient-to-r from-blue-500 to-purple-600"
+            >
+              Next <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button
+              onClick={onClose}
+              className="bg-gradient-to-r from-green-500 to-emerald-600"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" /> Get Started
+            </Button>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// ============================================
 // LANDING PAGE COMPONENTS (Continued from before)
 // ============================================
 
@@ -4076,6 +4360,7 @@ const LandingPage = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
 
@@ -4122,6 +4407,11 @@ const LandingPage = () => {
   return (
     <main className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
       <MouseGlow />
+      
+      {/* Demo Video Modal */}
+      <AnimatePresence>
+        {showDemoModal && <DemoVideoModal onClose={() => setShowDemoModal(false)} />}
+      </AnimatePresence>
       
       {/* Payment Success Banner */}
       <AnimatePresence>
@@ -4385,7 +4675,7 @@ const LandingPage = () => {
                 size="lg" 
                 variant="outline" 
                 className="rounded-full px-10 py-7 text-lg font-semibold border-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300" 
-                onClick={() => router.push('/?auth=login')}
+                onClick={() => setShowDemoModal(true)}
               >
                 <Play className="w-5 h-5 mr-2" /> Watch Demo
               </Button>
