@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email configuration
-const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@smartstudyplanner.com';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 const APP_NAME = 'Smart Study Planner';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
