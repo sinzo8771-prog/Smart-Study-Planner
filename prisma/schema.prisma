@@ -65,11 +65,16 @@ model Session {
 }
 
 model VerificationToken {
-  identifier String
+  id         String   @id @default(cuid())
+  identifier String   // Email address
   token      String   @unique
+  type       String   // "email_verification" or "password_reset"
   expires    DateTime
+  createdAt  DateTime @default(now())
 
   @@unique([identifier, token])
+  @@index([identifier])
+  @@index([type])
 }
 
 // ============================================

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createUser, findUserByEmail, generateToken, setAuthCookie } from '@/lib/auth';
+import { createUser, findUserByEmail } from '@/lib/auth';
+import { createVerificationToken } from '@/lib/tokens';
+import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,9 +15,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (password.length < 6) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters long' },
+        { error: 'Please enter a valid email address' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: 'Password must be at least 8 characters long' },
+        { status: 400 }
+      );
+    }
+
+    // Check for password complexity
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      return NextResponse.json(
+        { error: 'Password must contain at least one uppercase letter, one lowercase letter, and one number' },
         { status: 400 }
       );
     }
@@ -29,7 +53,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user
+    // Create user (unverified)
     const user = await createUser({
       name,
       email,
@@ -37,25 +61,28 @@ export async function POST(request: NextRequest) {
       role: role || 'student',
     });
 
-    // Generate token
-    const token = generateToken({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    });
+    // Create verification token
+    const token = await createVerificationToken(email, 'email_verification', 24);
 
-    // Set cookie
-    await setAuthCookie(token);
+    // Send verification email
+    const emailResult = await sendVerificationEmail(email, name, token);
+    
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+      // Still return success but indicate email might need resend
+      return NextResponse.json({
+        success: true,
+        message: 'Account created but verification email could not be sent. Please try resending.',
+        requiresVerification: true,
+        email: email,
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      message: 'Account created successfully! Please check your email to verify your account.',
+      requiresVerification: true,
+      email: email,
     });
   } catch (error) {
     console.error('Registration error:', error);

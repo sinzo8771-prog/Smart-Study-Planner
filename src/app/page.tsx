@@ -6557,9 +6557,9 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
 // ============================================
 
 interface AuthModalProps {
-  mode: 'login' | 'register';
+  mode: 'login' | 'register' | 'forgot-password';
   onClose: () => void;
-  onSwitchMode: (mode: 'login' | 'register') => void;
+  onSwitchMode: (mode: 'login' | 'register' | 'forgot-password') => void;
   onSuccess: (user: User) => void;
   initialError?: string;
 }
@@ -6640,6 +6640,14 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [googleLoading, setGoogleLoading] = useState(false);
   const [firebaseReady, setFirebaseReady] = useState(false);
   
+  // New states for email auth
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [requiresVerification, setRequiresVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  
   // Pre-cache Firebase auth instance
   const firebaseAuthRef = useRef<{ auth: typeof import('firebase/auth').Auth | null; googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null }>({ auth: null, googleProvider: null });
 
@@ -6657,6 +6665,15 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       });
     }
   }, []);
+  
+  // Reset states when mode changes
+  useEffect(() => {
+    setError('');
+    setRegistrationSuccess(false);
+    setForgotPasswordSuccess(false);
+    setRequiresVerification(false);
+    setResendSuccess(false);
+  }, [mode]);
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -6741,6 +6758,144 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       setGoogleLoading(false);
     }
   };
+
+  // Handle email/password login
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setEmailLoading(true);
+    setRequiresVerification(false);
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.requiresVerification) {
+          setRequiresVerification(true);
+          setError('Please verify your email address before logging in.');
+        } else {
+          throw new Error(data.error || 'Login failed');
+        }
+        return;
+      }
+
+      if (!data.success || !data.user) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        onSuccess(data.user);
+      }, 800);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  // Handle email/password registration
+  const handleEmailRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setEmailLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Show success message asking user to check email
+      setRegistrationSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  // Handle forgot password
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setEmailLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send reset email');
+      }
+
+      setForgotPasswordSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  // Handle resend verification email
+  const handleResendVerification = async () => {
+    setError('');
+    setResendLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to resend verification email');
+      }
+
+      setResendSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend verification email');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  // Get password strength info
+  const passwordStrength = calculatePasswordStrength(formData.password);
+  const passwordStrengthInfo = getPasswordStrengthColor(passwordStrength);
 
   // Input field component with floating label effect
   const FloatingInput = ({
@@ -6893,16 +7048,18 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
               >
                 {mode === 'login' ? (
                   <GraduationCap className="w-6 h-6" />
+                ) : mode === 'forgot-password' ? (
+                  <Mail className="w-6 h-6" />
                 ) : (
                   <Sparkles className="w-6 h-6" />
                 )}
               </motion.div>
               <div>
                 <h2 className="text-2xl font-bold">
-                  {mode === 'login' ? 'Welcome Back!' : 'Join StudyPlanner'}
+                  {mode === 'login' ? 'Welcome Back!' : mode === 'forgot-password' ? 'Reset Password' : 'Join StudyPlanner'}
                 </h2>
                 <p className="text-white/80 text-sm">
-                  {mode === 'login' ? 'Sign in to continue learning' : 'Start your learning journey today'}
+                  {mode === 'login' ? 'Sign in to continue learning' : mode === 'forgot-password' ? 'Enter your email to receive a reset link' : 'Start your learning journey today'}
                 </p>
               </div>
             </motion.div>
@@ -6918,51 +7075,337 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         </div>
 
         <div className="p-8 space-y-6">
-          {/* Error Alert */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: -10, height: 0 }}
-                className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-start gap-3"
-              >
-                <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-                <span>{error}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Google Login Button */}
-          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleLogin}
-              disabled={googleLoading}
-              className="w-full py-6 h-auto rounded-xl font-semibold flex items-center justify-center gap-3 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 group"
+          {/* Registration Success Message */}
+          {registrationSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-6"
             >
-              {googleLoading ? (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <Mail className="w-10 h-10 text-white" />
+              </motion.div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Check Your Email</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+                We've sent a verification link to <strong>{formData.email}</strong>. Please check your inbox and click the link to verify your account.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => onSwitchMode('login')}
+                className="mt-2"
+              >
+                Back to Login
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Forgot Password Success Message */}
+          {forgotPasswordSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-6"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <Mail className="w-10 h-10 text-white" />
+              </motion.div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Email Sent!</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+                If an account exists for <strong>{formData.email}</strong>, you'll receive a password reset link shortly.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => onSwitchMode('login')}
+                className="mt-2"
+              >
+                Back to Login
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Show forms only if not in success state */}
+          {!registrationSuccess && !forgotPasswordSuccess && (
+            <>
+              {/* Error Alert */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-start gap-3"
+                  >
+                    <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <span>{error}</span>
+                      {requiresVerification && !resendSuccess && (
+                        <button
+                          type="button"
+                          onClick={handleResendVerification}
+                          disabled={resendLoading}
+                          className="block mt-2 text-blue-500 hover:text-blue-600 font-medium disabled:opacity-50"
+                        >
+                          {resendLoading ? 'Sending...' : 'Resend verification email'}
+                        </button>
+                      )}
+                      {resendSuccess && (
+                        <p className="mt-2 text-green-500">Verification email sent! Check your inbox.</p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Forgot Password Form */}
+              {mode === 'forgot-password' && (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <FloatingInput
+                    id="forgot-email"
+                    label="Email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(v) => setFormData({ ...formData, email: v })}
+                    icon={Mail}
+                    placeholder="Enter your email"
+                  />
+                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                    <Button
+                      type="submit"
+                      disabled={emailLoading || !formData.email}
+                      className="w-full py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
+                    >
+                      {emailLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                          Sending...
+                        </>
+                      ) : (
+                        'Send Reset Link'
+                      )}
+                    </Button>
+                  </motion.div>
+                  <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                    Remember your password?{' '}
+                    <button
+                      type="button"
+                      onClick={() => onSwitchMode('login')}
+                      className="text-blue-500 hover:text-blue-600 font-medium"
+                    >
+                      Back to Login
+                    </button>
+                  </p>
+                </form>
+              )}
+
+              {/* Login and Register Forms */}
+              {mode !== 'forgot-password' && (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                  </svg>
-                  <span>Continue with Google</span>
+                  {/* Google Login Button */}
+                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading}
+                      className="w-full py-6 h-auto rounded-xl font-semibold flex items-center justify-center gap-3 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 group"
+                    >
+                      {googleLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Signing in...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                          </svg>
+                          <span>Continue with Google</span>
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
+
+                  {/* Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-4 bg-white dark:bg-gray-900 text-gray-500">Or continue with email</span>
+                    </div>
+                  </div>
+
+                  {/* Login Form */}
+                  {mode === 'login' && (
+                    <form onSubmit={handleEmailLogin} className="space-y-4">
+                      <FloatingInput
+                        id="login-email"
+                        label="Email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(v) => setFormData({ ...formData, email: v })}
+                        icon={Mail}
+                        placeholder="Enter your email"
+                      />
+                      <div className="relative">
+                        <FloatingInput
+                          id="login-password"
+                          label="Password"
+                          type="password"
+                          value={formData.password}
+                          onChange={(v) => setFormData({ ...formData, password: v })}
+                          icon={Shield}
+                          showPasswordToggle
+                          placeholder="Enter your password"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                          />
+                          <span className="text-gray-500 dark:text-gray-400">Remember me</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => onSwitchMode('forgot-password')}
+                          className="text-blue-500 hover:text-blue-600 font-medium"
+                        >
+                          Forgot Password?
+                        </button>
+                      </div>
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button
+                          type="submit"
+                          disabled={emailLoading || !formData.email || !formData.password}
+                          className="w-full py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
+                        >
+                          {emailLoading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              Signing in...
+                            </>
+                          ) : (
+                            'Sign In'
+                          )}
+                        </Button>
+                      </motion.div>
+                      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                        Don't have an account?{' '}
+                        <button
+                          type="button"
+                          onClick={() => onSwitchMode('register')}
+                          className="text-blue-500 hover:text-blue-600 font-medium"
+                        >
+                          Sign up
+                        </button>
+                      </p>
+                    </form>
+                  )}
+
+                  {/* Register Form */}
+                  {mode === 'register' && (
+                    <form onSubmit={handleEmailRegister} className="space-y-4">
+                      <FloatingInput
+                        id="register-name"
+                        label="Full Name"
+                        type="text"
+                        value={formData.name}
+                        onChange={(v) => setFormData({ ...formData, name: v })}
+                        icon={GraduationCap}
+                        placeholder="Enter your full name"
+                      />
+                      <FloatingInput
+                        id="register-email"
+                        label="Email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(v) => setFormData({ ...formData, email: v })}
+                        icon={Mail}
+                        placeholder="Enter your email"
+                      />
+                      <div className="space-y-2">
+                        <FloatingInput
+                          id="register-password"
+                          label="Password"
+                          type="password"
+                          value={formData.password}
+                          onChange={(v) => setFormData({ ...formData, password: v })}
+                          icon={Shield}
+                          showPasswordToggle
+                          minLength={6}
+                          placeholder="Create a password"
+                        />
+                        {formData.password && (
+                          <div className="px-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs text-gray-500">Password strength</span>
+                              <span className={`text-xs ${passwordStrengthInfo.text}`}>{passwordStrengthInfo.label}</span>
+                            </div>
+                            <div className="flex gap-1">
+                              {[1, 2, 3, 4, 5].map((level) => (
+                                <div
+                                  key={level}
+                                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+                                    passwordStrength >= level ? passwordStrengthInfo.bar : 'bg-gray-200 dark:bg-gray-700'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button
+                          type="submit"
+                          disabled={emailLoading || !formData.name || !formData.email || !formData.password}
+                          className="w-full py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
+                        >
+                          {emailLoading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              Creating account...
+                            </>
+                          ) : (
+                            'Create Account'
+                          )}
+                        </Button>
+                      </motion.div>
+                      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                        Already have an account?{' '}
+                        <button
+                          type="button"
+                          onClick={() => onSwitchMode('login')}
+                          className="text-blue-500 hover:text-blue-600 font-medium"
+                        >
+                          Sign in
+                        </button>
+                      </p>
+                    </form>
+                  )}
                 </>
               )}
-            </Button>
-          </motion.div>
+            </>
+          )}
 
           {/* Features */}
-          <div className="space-y-3 pt-4">
+          <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-800">
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
               By signing in, you agree to our{' '}
               <a href="#" className="text-blue-500 hover:underline">Terms of Service</a>
@@ -6970,7 +7413,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
               <a href="#" className="text-blue-500 hover:underline">Privacy Policy</a>
             </p>
             
-            <div className="flex items-center justify-center gap-4 pt-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <CheckCircle className="w-4 h-4 text-green-500" />
                 <span>Free to use</span>
@@ -7004,13 +7447,255 @@ const QuickLoader = () => (
 // MAIN PAGE COMPONENT
 // ============================================
 
+// Verification Modal Component
+interface VerificationModalProps {
+  token: string;
+  type: 'verify-email' | 'reset-password';
+  onClose: () => void;
+  onSuccess: (user: User) => void;
+}
+
+const VerificationModal = ({ token, type, onClose, onSuccess }: VerificationModalProps) => {
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [error, setError] = useState('');
+  const [resetPasswordData, setResetPasswordData] = useState({ password: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const passwordStrength = calculatePasswordStrength(resetPasswordData.password);
+  const strengthInfo = getPasswordStrengthColor(passwordStrength);
+
+  useEffect(() => {
+    if (type === 'verify-email') {
+      handleVerifyEmail();
+    }
+  }, [type]);
+
+  const handleVerifyEmail = async () => {
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setStatus('success');
+        setTimeout(() => {
+          onSuccess(data.user);
+        }, 2000);
+      } else {
+        setStatus('error');
+        setError(data.error || 'Verification failed');
+      }
+    } catch {
+      setStatus('error');
+      setError('An error occurred during verification');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (resetPasswordData.password !== resetPasswordData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (resetPasswordData.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    setResetLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          password: resetPasswordData.password,
+          confirmPassword: resetPasswordData.confirmPassword,
+        }),
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setStatus('success');
+        setTimeout(() => {
+          onSuccess(data.user);
+        }, 2000);
+      } else {
+        setStatus('error');
+        setError(data.error || 'Password reset failed');
+      }
+    } catch {
+      setError('An error occurred during password reset');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-8 text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              {type === 'verify-email' ? <Mail className="w-6 h-6" /> : <Shield className="w-6 h-6" />}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">
+                {type === 'verify-email' ? 'Verifying Email' : 'Reset Password'}
+              </h2>
+              <p className="text-white/80 text-sm">
+                {type === 'verify-email' ? 'Please wait while we verify your email' : 'Enter your new password'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-8">
+          {status === 'loading' && type === 'verify-email' && (
+            <div className="text-center py-8">
+              <Loader2 className="w-12 h-12 animate-spin mx-auto text-blue-500 mb-4" />
+              <p className="text-gray-500">Verifying your email...</p>
+            </div>
+          )}
+
+          {status === 'loading' && type === 'reset-password' && (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <Label htmlFor="new-password">New Password</Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="new-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={resetPasswordData.password}
+                    onChange={(e) => setResetPasswordData({ ...resetPasswordData, password: e.target.value })}
+                    placeholder="Enter new password"
+                    className="pr-10"
+                    required
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+                {resetPasswordData.password && (
+                  <div className="mt-2">
+                    <div className="flex gap-1 mb-1">
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <div
+                          key={level}
+                          className={`h-1 flex-1 rounded-full transition-all ${
+                            passwordStrength >= level ? strengthInfo.bar : 'bg-gray-200 dark:bg-gray-700'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className={`text-xs ${strengthInfo.text}`}>{strengthInfo.label}</p>
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={resetPasswordData.confirmPassword}
+                  onChange={(e) => setResetPasswordData({ ...resetPasswordData, confirmPassword: e.target.value })}
+                  placeholder="Confirm new password"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              {error && (
+                <p className="text-sm text-red-500">{error}</p>
+              )}
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600"
+                disabled={resetLoading}
+              >
+                {resetLoading ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Resetting...</>
+                ) : (
+                  'Reset Password'
+                )}
+              </Button>
+            </form>
+          )}
+
+          {status === 'success' && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-center py-8"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <CheckCircle className="w-10 h-10 text-white" />
+              </motion.div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                {type === 'verify-email' ? 'Email Verified!' : 'Password Reset!'}
+              </h3>
+              <p className="text-gray-500">
+                {type === 'verify-email' ? 'Your email has been verified successfully.' : 'Your password has been reset successfully.'}
+              </p>
+              <p className="text-sm text-gray-400 mt-2">Redirecting to dashboard...</p>
+            </motion.div>
+          )}
+
+          {status === 'error' && (
+            <div className="text-center py-8">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <XCircle className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error</h3>
+              <p className="text-gray-500 mb-4">{error}</p>
+              <Button variant="outline" onClick={onClose}>
+                Close
+              </Button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 function PageContent() {
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState('dashboard');
-  const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot-password' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [viewLoading, setViewLoading] = useState<string | null>(null);
+  const [verificationToken, setVerificationToken] = useState<{ token: string; type: 'verify-email' | 'reset-password' } | null>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -7038,11 +7723,13 @@ function PageContent() {
     const view = searchParams.get('view');
     const auth = searchParams.get('auth');
     const error = searchParams.get('error');
+    const verifyToken = searchParams.get('verify_token');
+    const resetToken = searchParams.get('reset_token');
 
     if (view) {
       setCurrentView(view);
     }
-    if (auth === 'login' || auth === 'register') {
+    if (auth === 'login' || auth === 'register' || auth === 'forgot-password') {
       setAuthMode(auth);
     } else if (!auth) {
       setAuthMode(null);
@@ -7051,6 +7738,13 @@ function PageContent() {
       setOauthError('Google authentication failed. Please make sure the redirect URI is configured in Google Cloud Console.');
     } else {
       setOauthError('');
+    }
+    
+    // Handle verification tokens
+    if (verifyToken) {
+      setVerificationToken({ token: verifyToken, type: 'verify-email' });
+    } else if (resetToken) {
+      setVerificationToken({ token: resetToken, type: 'reset-password' });
     }
   }, [searchParams]);
 
@@ -7173,6 +7867,25 @@ function PageContent() {
               handleViewChange('dashboard');
             }}
             initialError={oauthError}
+          />
+        )}
+        {verificationToken && (
+          <VerificationModal
+            token={verificationToken.token}
+            type={verificationToken.type}
+            onClose={() => {
+              setVerificationToken(null);
+              // Clear URL params
+              const url = new URL(window.location.href);
+              url.searchParams.delete('verify_token');
+              url.searchParams.delete('reset_token');
+              window.history.replaceState({}, '', url);
+            }}
+            onSuccess={(u) => {
+              setUser(u);
+              setVerificationToken(null);
+              handleViewChange('dashboard');
+            }}
           />
         )}
       </AnimatePresence>

@@ -22,12 +22,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user has a password (OAuth users might not)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'This account uses Google sign-in. Please sign in with Google.' },
+        { status: 401 }
+      );
+    }
+
     // Compare password
     const isValidPassword = await comparePassword(password, user.password);
     if (!isValidPassword) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
+      );
+    }
+
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { 
+          error: 'Please verify your email address before logging in',
+          requiresVerification: true,
+          email: user.email
+        },
+        { status: 403 }
       );
     }
 
@@ -49,6 +69,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role,
+        image: user.image,
       },
     });
   } catch (error) {
