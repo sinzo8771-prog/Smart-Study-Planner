@@ -35,7 +35,8 @@ import {
   ChevronDown, ChevronLeft, PieChart, LineChart, Activity, Layers, FileText,
   Video, Check, XCircle, HelpCircle, RefreshCw, Download, Upload, UserCog,
   LayoutDashboard, ListTodo, GraduationCap as GradCap, Building2, Sparkles,
-  MessageCircle, Send, Bot, Loader2
+  MessageCircle, Send, Bot, Loader2, Twitter, Github, Linkedin, Mail, ArrowUp,
+  Heart, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -4360,8 +4361,35 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
+
+  // Handle scroll for navbar and back-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+      setShowBackToTop(window.scrollY > 500);
+      
+      // Detect active section
+      const sections = ['features', 'how-it-works', 'pricing'];
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -4403,6 +4431,10 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
     setIsMobileMenuOpen(false);
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <main className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
       <MouseGlow />
@@ -4439,32 +4471,59 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled 
+            ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg shadow-black/5 dark:shadow-black/20 border-b border-gray-200/50 dark:border-gray-700/50' 
+            : 'bg-transparent'
+        }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Logo size="md" />
+          <div className="flex items-center justify-between h-16 md:h-20">
+            {/* Logo with animation */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="flex items-center"
+            >
+              <Logo size="md" />
+            </motion.div>
             
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              {['Features', 'How It Works', 'Pricing'].map((item) => (
+            <div className="hidden md:flex items-center gap-1">
+              {[
+                { id: 'features', label: 'Features' },
+                { id: 'how-it-works', label: 'How It Works' },
+                { id: 'pricing', label: 'Pricing' },
+              ].map((item) => (
                 <button
-                  key={item}
-                  onClick={() => scrollToSection(item.toLowerCase().replace(' ', '-'))}
-                  className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`relative px-4 py-2 text-sm font-medium transition-colors rounded-lg ${
+                    activeSection === item.id
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                  }`}
                 >
-                  {item}
+                  {item.label}
+                  {activeSection === item.id && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute inset-0 bg-blue-50 dark:bg-blue-900/20 rounded-lg -z-10"
+                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    />
+                  )}
                 </button>
               ))}
             </div>
             
-            <div className="flex items-center gap-3">
+            {/* Right side buttons */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Theme Toggle */}
               {mounted && (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="hidden sm:flex"
+                  className="hidden sm:flex hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <motion.div
                     initial={false}
@@ -4475,22 +4534,39 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                   </motion.div>
                 </Button>
               )}
-              <Button variant="ghost" onClick={onLogin} className="hidden sm:flex">
+              
+              {/* Login Button */}
+              <Button 
+                variant="ghost" 
+                onClick={onLogin} 
+                className="hidden sm:flex text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+              >
                 Login
               </Button>
-              <Button 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300" 
-                onClick={onRegister}
-              >
-                Get Started
-              </Button>
+              
+              {/* Get Started Button */}
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-medium" 
+                  onClick={onRegister}
+                >
+                  Get Started
+                </Button>
+              </motion.div>
+              
+              {/* Mobile Menu Button */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="md:hidden"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                <motion.div
+                  animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </motion.div>
               </Button>
             </div>
           </div>
@@ -4503,21 +4579,47 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700"
+              className="md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700"
             >
-              <div className="px-4 py-4 space-y-3">
-                {['Features', 'How It Works', 'Pricing'].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => scrollToSection(item.toLowerCase().replace(' ', '-'))}
-                    className="block w-full text-left py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600"
+              <div className="px-4 py-6 space-y-2">
+                {[
+                  { id: 'features', label: 'Features', icon: Sparkles },
+                  { id: 'how-it-works', label: 'How It Works', icon: Target },
+                  { id: 'pricing', label: 'Pricing', icon: Zap },
+                ].map((item, index) => (
+                  <motion.button
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => scrollToSection(item.id)}
+                    className={`flex items-center gap-3 w-full text-left px-4 py-3 rounded-xl transition-colors ${
+                      activeSection === item.id
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
                   >
-                    {item}
-                  </button>
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </motion.button>
                 ))}
-                <Button variant="ghost" onClick={onLogin} className="w-full justify-start">
-                  Login
-                </Button>
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="pt-4 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <Button variant="ghost" onClick={onLogin} className="w-full justify-start gap-3 px-4 py-6 text-lg">
+                    <Users className="w-5 h-5" />
+                    Login
+                  </Button>
+                  <Button 
+                    onClick={onRegister} 
+                    className="w-full mt-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl py-6 text-lg"
+                  >
+                    Get Started Free
+                  </Button>
+                </motion.div>
               </div>
             </motion.div>
           )}
@@ -5102,68 +5204,205 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white pt-16 pb-8 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div className="md:col-span-2">
-              <Logo size="md" className="mb-4" />
-              <p className="text-gray-400 max-w-md leading-relaxed">
-                Your all-in-one smart study planner and learning management system. Plan smarter, learn better, achieve more.
-              </p>
-              <div className="flex gap-4 mt-6">
-                {['twitter', 'github', 'linkedin'].map((social) => (
-                  <motion.div
-                    key={social}
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-blue-500 hover:to-purple-600 rounded-full flex items-center justify-center cursor-pointer transition-colors"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                  </motion.div>
-                ))}
+      <footer className="relative bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
+        </div>
+
+        {/* Main Footer Content */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
+          {/* Newsletter Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-3xl p-8 md:p-12 mb-16 border border-white/10"
+          >
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center md:text-left">
+                <h3 className="text-2xl md:text-3xl font-bold mb-2">Stay Updated</h3>
+                <p className="text-gray-400">Get the latest study tips and feature updates delivered to your inbox.</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <Input 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500 w-full sm:w-72"
+                />
+                <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white whitespace-nowrap">
+                  <Mail className="w-4 h-4 mr-2" />
+                  Subscribe
+                </Button>
               </div>
             </div>
+          </motion.div>
 
-            <div>
-              <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
+          {/* Footer Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
+            {/* Brand Section */}
+            <div className="col-span-2 lg:col-span-2">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="mb-6"
+              >
+                <Logo size="md" className="mb-4" />
+                <p className="text-gray-400 leading-relaxed max-w-sm mb-6">
+                  Your all-in-one smart study planner and learning management system. Plan smarter, learn better, achieve more.
+                </p>
+                {/* Social Links */}
+                <div className="flex gap-3">
+                  {[
+                    { icon: Twitter, href: '#', label: 'Twitter' },
+                    { icon: Github, href: '#', label: 'GitHub' },
+                    { icon: Linkedin, href: '#', label: 'LinkedIn' },
+                  ].map((social) => (
+                    <motion.a
+                      key={social.label}
+                      href={social.href}
+                      whileHover={{ scale: 1.1, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-blue-500 hover:to-purple-600 rounded-xl flex items-center justify-center transition-all duration-300 group"
+                      aria-label={social.label}
+                    >
+                      <social.icon className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                    </motion.a>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Product Links */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-400" />
+                Product
+              </h4>
               <ul className="space-y-3">
-                {['Features', 'Pricing', 'About Us', 'Contact'].map((link) => (
-                  <li key={link}>
-                    <a href={`#${link.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-white transition-colors">
-                      {link}
+                {[
+                  { label: 'Features', href: '#features' },
+                  { label: 'Pricing', href: '#pricing' },
+                  { label: 'Courses', href: '#' },
+                  { label: 'Quizzes', href: '#' },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <a 
+                      href={link.href} 
+                      className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
+                    >
+                      {link.label}
+                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
-            <div>
-              <h3 className="font-semibold text-lg mb-4">Support</h3>
+            {/* Company Links */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-purple-400" />
+                Company
+              </h4>
               <ul className="space-y-3">
-                {['FAQ', 'Resources', 'Privacy Policy', 'Terms of Service'].map((link) => (
-                  <li key={link}>
-                    <a href={`#${link.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-white transition-colors">
-                      {link}
+                {[
+                  { label: 'About Us', href: '#about' },
+                  { label: 'Blog', href: '#blog' },
+                  { label: 'Careers', href: '#careers' },
+                  { label: 'Contact', href: '#contact' },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <a 
+                      href={link.href} 
+                      className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
+                    >
+                      {link.label}
+                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
+
+            {/* Support Links */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+            >
+              <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-green-400" />
+                Support
+              </h4>
+              <ul className="space-y-3">
+                {[
+                  { label: 'Help Center', href: '#help' },
+                  { label: 'FAQ', href: '#faq' },
+                  { label: 'Privacy Policy', href: '#privacy' },
+                  { label: 'Terms of Service', href: '#terms' },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <a 
+                      href={link.href} 
+                      className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
+                    >
+                      {link.label}
+                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
           </div>
 
-          <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-gray-400 text-sm">
-              © {new Date().getFullYear()} StudyPlanner. All rights reserved.
-            </p>
-            <div className="flex items-center gap-4 text-sm text-gray-400">
-              <a href="#privacy" className="hover:text-white transition-colors">Privacy</a>
-              <span>•</span>
-              <a href="#terms" className="hover:text-white transition-colors">Terms</a>
-              <span>•</span>
-              <a href="#cookies" className="hover:text-white transition-colors">Cookies</a>
+          {/* Bottom Bar */}
+          <div className="border-t border-gray-800 pt-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <span>© {new Date().getFullYear()} StudyPlanner.</span>
+                <span className="hidden sm:inline">Made with</span>
+                <Heart className="w-4 h-4 text-red-500 hidden sm:inline" fill="currentColor" />
+                <span className="hidden sm:inline">for students worldwide.</span>
+              </div>
+              <div className="flex items-center gap-6 text-sm text-gray-400">
+                <a href="#privacy" className="hover:text-white transition-colors">Privacy</a>
+                <a href="#terms" className="hover:text-white transition-colors">Terms</a>
+                <a href="#cookies" className="hover:text-white transition-colors">Cookies</a>
+              </div>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 z-40 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center hover:shadow-blue-500/50 transition-shadow"
+            aria-label="Back to top"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </main>
   );
 };
