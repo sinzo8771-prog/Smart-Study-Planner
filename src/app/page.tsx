@@ -5,7 +5,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
-import { getFirebaseAuth } from '@/lib/firebase';
+import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebase';
 
 // Custom hook for mounted state to avoid lint issues
 function useMounted() {
@@ -5252,12 +5252,20 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [showSuccess, setShowSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [firebaseReady, setFirebaseReady] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Check Firebase configuration on mount
+    setFirebaseReady(isFirebaseConfigured());
   }, []);
 
   const handleGoogleLogin = async () => {
+    if (!firebaseReady) {
+      setError('Firebase is not properly configured. Please check your environment variables.');
+      return;
+    }
+    
     setError('');
     setGoogleLoading(true);
     
@@ -5265,7 +5273,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       const { auth, googleProvider } = await getFirebaseAuth();
       
       if (!auth || !googleProvider) {
-        throw new Error('Firebase is not initialized. Please check your configuration.');
+        throw new Error('Firebase authentication could not be initialized. Please check your Firebase project configuration in the Firebase Console.');
       }
       
       const { signInWithPopup } = await import('firebase/auth');
@@ -5297,7 +5305,21 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       }, 800);
     } catch (err) {
       console.error('Google sign-in error:', err);
-      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+      
+      // Handle specific Firebase errors
+      const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
+      
+      if (errorMessage.includes('invalid-api-key')) {
+        setError('Invalid Firebase API Key. Please verify your Firebase configuration in the Firebase Console.');
+      } else if (errorMessage.includes('auth/unauthorized-domain')) {
+        setError('This domain is not authorized. Please add it to Firebase Console → Authentication → Settings → Authorized domains.');
+      } else if (errorMessage.includes('auth/popup-blocked')) {
+        setError('Popup was blocked by your browser. Please allow popups and try again.');
+      } else if (errorMessage.includes('auth/popup-closed-by-user')) {
+        setError('Sign-in was cancelled. Please try again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setGoogleLoading(false);
     }
