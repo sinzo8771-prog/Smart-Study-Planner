@@ -4349,8 +4349,12 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
 // LANDING PAGE COMPONENTS (Continued from before)
 // ============================================
 
-const LandingPage = () => {
-  const router = useRouter();
+interface LandingPageProps {
+  onLogin: () => void;
+  onRegister: () => void;
+}
+
+const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
   const searchParams = useSearchParams();
   const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -4471,12 +4475,12 @@ const LandingPage = () => {
                   </motion.div>
                 </Button>
               )}
-              <Button variant="ghost" onClick={() => router.push('/?auth=login')} className="hidden sm:flex">
+              <Button variant="ghost" onClick={onLogin} className="hidden sm:flex">
                 Login
               </Button>
               <Button 
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300" 
-                onClick={() => router.push('/?auth=register')}
+                onClick={onRegister}
               >
                 Get Started
               </Button>
@@ -4511,7 +4515,7 @@ const LandingPage = () => {
                     {item}
                   </button>
                 ))}
-                <Button variant="ghost" onClick={() => router.push('/?auth=login')} className="w-full justify-start">
+                <Button variant="ghost" onClick={onLogin} className="w-full justify-start">
                   Login
                 </Button>
               </div>
@@ -4660,7 +4664,7 @@ const LandingPage = () => {
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-10 py-7 text-lg font-semibold shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300" 
-                onClick={() => router.push('/?auth=register')}
+                onClick={onRegister}
               >
                 Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
@@ -4995,7 +4999,7 @@ const LandingPage = () => {
                         }`}
                         onClick={() => {
                           if (plan.id === 'free') {
-                            router.push('/?auth=register');
+                            onRegister();
                           } else {
                             handlePayment(plan.id);
                           }
@@ -5078,7 +5082,7 @@ const LandingPage = () => {
               <Button 
                 size="lg" 
                 className="bg-white text-blue-600 hover:bg-gray-100 rounded-full px-10 py-7 text-lg font-semibold shadow-xl" 
-                onClick={() => router.push('/?auth=register')}
+                onClick={onRegister}
               >
                 Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
@@ -5088,7 +5092,7 @@ const LandingPage = () => {
                 size="lg" 
                 variant="outline" 
                 className="text-white border-white/50 hover:bg-white/10 rounded-full px-10 py-7 text-lg font-semibold" 
-                onClick={() => router.push('/?auth=login')}
+                onClick={onLogin}
               >
                 Login to Dashboard
               </Button>
@@ -5728,7 +5732,10 @@ function PageContent() {
   // Show Landing Page with Auth Modal
   return (
     <>
-      <LandingPage />
+      <LandingPage 
+        onLogin={() => setAuthMode('login')}
+        onRegister={() => setAuthMode('register')}
+      />
       <AnimatePresence>
         {authMode && (
           <AuthModal
