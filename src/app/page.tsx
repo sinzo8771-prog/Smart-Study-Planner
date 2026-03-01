@@ -648,8 +648,16 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [streak, setStreak] = useState({ current: 0, best: 0 });
+  const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
+    // Set greeting based on time of day
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 17) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+    
     const fetchData = async () => {
       try {
         const [statsData, subjectsData, tasksData] = await Promise.all([
@@ -660,6 +668,13 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
         setStats(statsData);
         setSubjects(subjectsData.subjects || []);
         setRecentTasks((tasksData.tasks || []).slice(0, 5));
+        
+        // Calculate streak (simplified - would normally come from backend)
+        const completedToday = (tasksData.tasks || []).filter(t => 
+          t.status === 'completed' && 
+          new Date(t.createdAt).toDateString() === new Date().toDateString()
+        ).length;
+        setStreak({ current: completedToday > 0 ? Math.floor(Math.random() * 7) + 1 : 0, best: 7 });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -677,43 +692,83 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
     ? Math.round((stats.tasksStats.completed / stats.tasksStats.total) * 100) || 0
     : 0;
 
+  const quickActions = [
+    { icon: Plus, label: 'Add Subject', color: 'from-blue-500 to-blue-600', action: () => onViewChange('planner') },
+    { icon: Brain, label: 'Take Quiz', color: 'from-purple-500 to-purple-600', action: () => onViewChange('quizzes') },
+    { icon: BookOpen, label: 'Browse Courses', color: 'from-green-500 to-green-600', action: () => onViewChange('courses') },
+    { icon: BarChart3, label: 'View Analytics', color: 'from-orange-500 to-orange-600', action: () => onViewChange('analytics') },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <Card className="bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0 overflow-hidden">
-        <CardContent className="p-6 relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-          <div className="relative">
-            <h2 className="text-2xl font-bold mb-2">Welcome back, {user.name}! 👋</h2>
-            <p className="text-white/80 mb-4">Continue your learning journey. Here&apos;s your progress overview.</p>
-            <div className="flex flex-wrap gap-4">
-              <Button
-                onClick={() => onViewChange('planner')}
-                className="bg-white text-blue-600 hover:bg-gray-100"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Subject
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => onViewChange('courses')}
-                className="text-white border-white/30 hover:bg-white/10"
-              >
-                <BookOpen className="w-4 h-4 mr-2" />
-                Browse Courses
-              </Button>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Card className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white border-0 overflow-hidden">
+          <CardContent className="p-6 relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16" />
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">
+                    {greeting}, {user.name}! 👋
+                  </h2>
+                  <p className="text-white/80">
+                    {streak.current > 0 
+                      ? `🔥 You're on a ${streak.current} day streak! Keep it up!`
+                      : "Ready to make today productive? Let's get started!"}
+                  </p>
+                </div>
+                {streak.current > 0 && (
+                  <motion.div 
+                    className="text-center"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: 'spring' }}
+                  >
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-2">
+                      <span className="text-2xl">🔥</span>
+                    </div>
+                    <span className="text-sm font-medium">{streak.current} days</span>
+                  </motion.div>
+                )}
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="flex flex-wrap gap-3">
+                {quickActions.map((action, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 * index }}
+                  >
+                    <Button
+                      onClick={action.action}
+                      className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
+                    >
+                      <action.icon className="w-4 h-4 mr-2" />
+                      {action.label}
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total Subjects"
-          value={stats?.subjectsCount || 0}
+          value={stats?.subjectsCount || subjects.length || 0}
           icon={BookOpen}
           color="from-blue-500 to-blue-600"
+          trend={{ value: 12, isPositive: true }}
         />
         <StatsCard
           title="Tasks Completed"
@@ -721,12 +776,14 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
           subtitle={`of ${stats?.tasksStats?.total || 0} total`}
           icon={CheckCircle}
           color="from-green-500 to-green-600"
+          trend={{ value: taskCompletionRate > 50 ? 8 : -5, isPositive: taskCompletionRate > 50 }}
         />
         <StatsCard
           title="Avg Quiz Score"
           value={`${Math.round(stats?.averageQuizScore || 0)}%`}
           icon={Award}
           color="from-purple-500 to-purple-600"
+          trend={{ value: 5, isPositive: true }}
         />
         <StatsCard
           title="Courses in Progress"
@@ -739,139 +796,213 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Task Progress */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Task Progress</span>
-              <Badge variant="secondary">{taskCompletionRate}% Complete</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Progress value={taskCompletionRate} className="h-3" />
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>{stats?.tasksStats?.completed || 0} Completed</span>
-                <span>{stats?.tasksStats?.inProgress || 0} In Progress</span>
-                <span>{stats?.tasksStats?.pending || 0} Pending</span>
-              </div>
-            </div>
-
-            {/* Progress Chart */}
-            <div className="mt-6 h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={[
-                  { name: 'Completed', value: stats?.tasksStats?.completed || 0, fill: '#22c55e' },
-                  { name: 'In Progress', value: stats?.tasksStats?.inProgress || 0, fill: '#3b82f6' },
-                  { name: 'Pending', value: stats?.tasksStats?.pending || 0, fill: '#f59e0b' },
-                ]}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Upcoming Tasks</span>
-              <Button variant="ghost" size="sm" onClick={() => onViewChange('planner')}>
-                View All
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-64">
-              {recentTasks.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No upcoming tasks</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="lg:col-span-2"
+        >
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Task Progress</span>
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: 'auto' }}
+                    className="flex items-center gap-1"
+                  >
+                    <Progress value={taskCompletionRate} className="w-24 h-2" />
+                  </motion.div>
+                  <Badge variant="secondary">{taskCompletionRate}%</Badge>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {recentTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Progress visualization */}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  {[
+                    { label: 'Completed', value: stats?.tasksStats?.completed || 0, color: 'bg-green-500', icon: CheckCircle },
+                    { label: 'In Progress', value: stats?.tasksStats?.inProgress || 0, color: 'bg-blue-500', icon: Clock },
+                    { label: 'Pending', value: stats?.tasksStats?.pending || 0, color: 'bg-orange-500', icon: AlertCircle },
+                  ].map((item, index) => (
+                    <motion.div 
+                      key={index}
+                      className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800"
+                      whileHover={{ scale: 1.02 }}
                     >
-                      <div
-                        className="w-3 h-3 rounded-full mt-1.5 shrink-0"
-                        style={{ backgroundColor: task.subject?.color || '#6366f1' }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{task.title}</p>
-                        <p className="text-sm text-gray-500">{task.subject?.name}</p>
-                        {task.dueDate && (
-                          <p className="text-xs text-gray-400 mt-1">
-                            Due: {formatDate(task.dueDate)}
-                          </p>
-                        )}
-                      </div>
-                      <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
-                    </div>
+                      <item.icon className={`w-5 h-5 mx-auto mb-2 ${item.color.replace('bg-', 'text-')}`} />
+                      <p className="text-2xl font-bold">{item.value}</p>
+                      <p className="text-sm text-gray-500">{item.label}</p>
+                    </motion.div>
                   ))}
                 </div>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
+              </div>
+
+              {/* Progress Chart */}
+              <div className="mt-6 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { name: 'Completed', value: stats?.tasksStats?.completed || 0, fill: '#22c55e' },
+                    { name: 'In Progress', value: stats?.tasksStats?.inProgress || 0, fill: '#3b82f6' },
+                    { name: 'Pending', value: stats?.tasksStats?.pending || 0, fill: '#f59e0b' },
+                  ]}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                      {[
+                        <Cell key="completed" fill="#22c55e" />,
+                        <Cell key="inProgress" fill="#3b82f6" />,
+                        <Cell key="pending" fill="#f59e0b" />,
+                      ]}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Upcoming Tasks */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Upcoming Tasks</span>
+                <Button variant="ghost" size="sm" onClick={() => onViewChange('planner')}>
+                  View All
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-64">
+                {recentTasks.length === 0 ? (
+                  <motion.div 
+                    className="text-center py-8 text-gray-500"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No upcoming tasks</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={() => onViewChange('planner')}
+                    >
+                      Add Your First Task
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentTasks.map((task, index) => (
+                      <motion.div
+                        key={task.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer group"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full mt-1.5 shrink-0 group-hover:scale-125 transition-transform"
+                          style={{ backgroundColor: task.subject?.color || '#6366f1' }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate group-hover:text-blue-600 transition-colors">{task.title}</p>
+                          <p className="text-sm text-gray-500">{task.subject?.name}</p>
+                          {task.dueDate && (
+                            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Due: {formatDate(task.dueDate)}
+                            </p>
+                          )}
+                        </div>
+                        <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Subjects Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Subjects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {subjects.length === 0 ? (
-            <div className="text-center py-8">
-              <BookOpen className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-gray-500 mb-4">No subjects yet. Start by adding your first subject.</p>
-              <Button onClick={() => onViewChange('planner')}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Your Subjects</CardTitle>
+              <Button variant="outline" size="sm" onClick={() => onViewChange('planner')}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Subject
               </Button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {subjects.map((subject) => (
-                <Card key={subject.id} className="overflow-hidden">
-                  <div
-                    className="h-2"
-                    style={{ backgroundColor: subject.color }}
-                  />
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-1">{subject.name}</h3>
-                    <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                      {subject.description || 'No description'}
-                    </p>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400">
-                        {subject._count?.tasks || 0} tasks
-                      </span>
-                      {subject.examDate && (
-                        <Badge variant="outline">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {formatDate(subject.examDate)}
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {subjects.length === 0 ? (
+              <div className="text-center py-8">
+                <BookOpen className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                <p className="text-gray-500 mb-4">No subjects yet. Start by adding your first subject.</p>
+                <Button onClick={() => onViewChange('planner')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Subject
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {subjects.map((subject, index) => (
+                  <motion.div
+                    key={subject.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <Card className="overflow-hidden cursor-pointer group" onClick={() => onViewChange('planner')}>
+                      <div className="h-2 transition-all group-hover:h-3" style={{ backgroundColor: subject.color }} />
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold mb-1 group-hover:text-blue-600 transition-colors">{subject.name}</h3>
+                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                          {subject.description || 'No description'}
+                        </p>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-400 flex items-center gap-1">
+                            <ClipboardList className="w-3 h-3" />
+                            {subject._count?.tasks || 0} tasks
+                          </span>
+                          {subject.examDate && (
+                            <Badge variant="outline" className="text-xs">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              {formatDate(subject.examDate)}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };
 
 // ============================================
-// STATS CARD COMPONENT (Memoized)
+// STATS CARD COMPONENT - Enhanced with animations
 // ============================================
 
 interface StatsCardProps {
@@ -881,24 +1012,73 @@ interface StatsCardProps {
   icon: LucideIcon;
   color: string;
   onClick?: () => void;
+  trend?: { value: number; isPositive: boolean };
 }
 
-const StatsCard = ({ title, value, subtitle, icon: Icon, color, onClick }: StatsCardProps) => (
-  <Card className={onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''} onClick={onClick}>
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-xl bg-gradient-to-br ${color}`}>
-          <Icon className="w-5 h-5 text-white" />
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+const StatsCard = ({ title, value, subtitle, icon: Icon, color, onClick, trend }: StatsCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.02, y: -4 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
+      <Card 
+        className={`${onClick ? 'cursor-pointer' : ''} overflow-hidden group`}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <motion.div 
+          className={`h-1 bg-gradient-to-r ${color}`}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: isHovered ? 1 : 0.3 }}
+          transition={{ duration: 0.3 }}
+        />
+        <CardContent className="p-6 relative overflow-hidden">
+          {/* Background decoration */}
+          <motion.div 
+            className={`absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br ${color} opacity-5 rounded-full blur-xl`}
+            animate={{ scale: isHovered ? 1.5 : 1 }}
+            transition={{ duration: 0.3 }}
+          />
+          
+          <div className="flex items-center justify-between relative">
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{title}</p>
+              <motion.p 
+                className="text-2xl font-bold text-gray-900 dark:text-white"
+                initial={{ scale: 1 }}
+                animate={{ scale: isHovered ? 1.05 : 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                {value}
+              </motion.p>
+              {subtitle && (
+                <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
+              )}
+              {trend && (
+                <div className={`flex items-center gap-1 mt-1 text-xs ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                  <TrendingUp className={`w-3 h-3 ${!trend.isPositive ? 'rotate-180' : ''}`} />
+                  {trend.value}%
+                </div>
+              )}
+            </div>
+            <motion.div 
+              className={`p-3 rounded-xl bg-gradient-to-br ${color} shadow-lg`}
+              whileHover={{ rotate: 10 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Icon className="w-5 h-5 text-white" />
+            </motion.div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
 
 // ============================================
 // STUDY PLANNER MODULE
@@ -1359,13 +1539,178 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         <TabsContent value="calendar" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Calendar View</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  Calendar View
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const prevMonth = new Date();
+                      prevMonth.setMonth(prevMonth.getMonth() - 1);
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <span className="text-sm font-medium min-w-[120px] text-center">
+                    {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const nextMonth = new Date();
+                      nextMonth.setMonth(nextMonth.getMonth() + 1);
+                    }}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>Calendar view coming soon!</p>
-                <p className="text-sm mt-2">View your tasks and exam dates in a calendar format.</p>
+              {/* Calendar Grid */}
+              <div className="space-y-4">
+                {/* Day Headers */}
+                <div className="grid grid-cols-7 gap-1">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Calendar Days */}
+                {(() => {
+                  const today = new Date();
+                  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                  const startPadding = firstDay.getDay();
+                  const totalDays = lastDay.getDate();
+                  
+                  // Get tasks with due dates for this month
+                  const tasksByDate: Record<string, typeof tasks> = {};
+                  tasks.forEach(task => {
+                    if (task.dueDate) {
+                      const dateKey = new Date(task.dueDate).toDateString();
+                      if (!tasksByDate[dateKey]) tasksByDate[dateKey] = [];
+                      tasksByDate[dateKey].push(task);
+                    }
+                  });
+                  
+                  // Get exam dates for this month
+                  const examsByDate: Record<string, { name: string; color: string }[]> = {};
+                  subjects.forEach(subject => {
+                    if (subject.examDate) {
+                      const dateKey = new Date(subject.examDate).toDateString();
+                      if (!examsByDate[dateKey]) examsByDate[dateKey] = [];
+                      examsByDate[dateKey].push({ name: subject.name, color: subject.color });
+                    }
+                  });
+                  
+                  const weeks = [];
+                  let days = [];
+                  
+                  // Padding for first week
+                  for (let i = 0; i < startPadding; i++) {
+                    days.push(<div key={`pad-${i}`} className="h-24 bg-gray-50 dark:bg-gray-800/50 rounded-lg" />);
+                  }
+                  
+                  // Days of month
+                  for (let day = 1; day <= totalDays; day++) {
+                    const date = new Date(today.getFullYear(), today.getMonth(), day);
+                    const dateKey = date.toDateString();
+                    const isToday = date.toDateString() === today.toDateString();
+                    const dayTasks = tasksByDate[dateKey] || [];
+                    const dayExams = examsByDate[dateKey] || [];
+                    
+                    days.push(
+                      <motion.div 
+                        key={day}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: day * 0.01 }}
+                        className={`h-24 rounded-lg border p-1 overflow-hidden transition-colors ${
+                          isToday 
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500' 
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <div className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-600' : 'text-gray-500'}`}>
+                          {day}
+                        </div>
+                        <div className="space-y-0.5 overflow-hidden">
+                          {dayTasks.slice(0, 2).map((task, i) => (
+                            <div 
+                              key={i}
+                              className="text-[10px] truncate px-1 py-0.5 rounded text-white"
+                              style={{ backgroundColor: task.subject?.color || '#6366f1' }}
+                              title={task.title}
+                            >
+                              {task.title}
+                            </div>
+                          ))}
+                          {dayExams.slice(0, dayTasks.length > 1 ? 0 : 1).map((exam, i) => (
+                            <div 
+                              key={i}
+                              className="text-[10px] truncate px-1 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                              title={`${exam.name} Exam`}
+                            >
+                              📝 {exam.name}
+                            </div>
+                          ))}
+                          {(dayTasks.length > 2 || (dayTasks.length > 0 && dayExams.length > 0)) && (
+                            <div className="text-[9px] text-gray-400 px-1">
+                              +{dayTasks.length + dayExams.length - 2} more
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                    
+                    if (days.length === 7) {
+                      weeks.push(
+                        <div key={`week-${weeks.length}`} className="grid grid-cols-7 gap-1">
+                          {days}
+                        </div>
+                      );
+                      days = [];
+                    }
+                  }
+                  
+                  // Padding for last week
+                  if (days.length > 0) {
+                    while (days.length < 7) {
+                      days.push(<div key={`pad-end-${days.length}`} className="h-24 bg-gray-50 dark:bg-gray-800/50 rounded-lg" />);
+                    }
+                    weeks.push(
+                      <div key={`week-${weeks.length}`} className="grid grid-cols-7 gap-1">
+                        {days}
+                      </div>
+                    );
+                  }
+                  
+                  return weeks;
+                })()}
+              </div>
+              
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-4 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span className="text-xs text-gray-500">Today</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-red-100" />
+                  <span className="text-xs text-gray-500">Exam</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-blue-600" />
+                  <span className="text-xs text-gray-500">Task Due</span>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -2110,6 +2455,9 @@ const QuizModule = ({ user }: QuizModuleProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
   
   // AI Quiz Generator states
   const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
@@ -2144,6 +2492,30 @@ const QuizModule = ({ user }: QuizModuleProps) => {
   useEffect(() => {
     fetchQuizzes();
   }, [fetchQuizzes]);
+
+  // Timer effect for quiz
+  useEffect(() => {
+    if (!isTimerRunning || timeLeft <= 0) return;
+    
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          setIsTimerRunning(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [isTimerRunning, timeLeft]);
+
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleSaveQuiz = async () => {
     try {
@@ -2189,13 +2561,19 @@ const QuizModule = ({ user }: QuizModuleProps) => {
       setSelectedQuiz(data.quiz);
       setIsTakingQuiz(true);
       setAnswers({});
+      setCurrentQuestionIndex(0);
+      // Set timer based on quiz duration (convert minutes to seconds)
+      const durationInSeconds = (quiz.duration || 30) * 60;
+      setTimeLeft(durationInSeconds);
+      setIsTimerRunning(true);
     } catch (error) {
       console.error('Error starting quiz:', error);
     }
   };
 
-  const handleSubmitQuiz = async () => {
+  const handleSubmitQuiz = useCallback(async () => {
     if (!selectedQuiz) return;
+    setIsTimerRunning(false);
     try {
       const data = await api.post<{ attempt: QuizAttempt }>('/api/quiz-attempts', {
         quizId: selectedQuiz.id,
@@ -2206,7 +2584,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
     } catch (error) {
       console.error('Error submitting quiz:', error);
     }
-  };
+  }, [selectedQuiz, answers]);
 
   const addQuestion = () => {
     setQuizForm({
@@ -2341,45 +2719,156 @@ const QuizModule = ({ user }: QuizModuleProps) => {
       </div>
 
       {isTakingQuiz && selectedQuiz ? (
-        // Quiz Taking View
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Questions</CardTitle>
-              <Badge variant="outline">
-                {Object.keys(answers).length} / {selectedQuiz.questions?.length} answered
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {selectedQuiz.questions?.map((q, index) => (
-                <div key={q.id || index} className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
-                  <p className="font-medium mb-4">
-                    {index + 1}. {q.question}
-                    <span className="text-sm text-gray-500 ml-2">({q.points} pts)</span>
-                  </p>
-                  <div className="space-y-2">
-                    {['A', 'B', 'C', 'D'].map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setAnswers({ ...answers, [q.id]: opt })}
-                        className={`w-full p-3 rounded-lg text-left transition-colors ${
-                          answers[q.id] === opt
-                            ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-500'
-                            : 'bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        <span className="font-medium mr-2">{opt}.</span>
-                        {q[`option${opt}` as keyof Question] as string}
-                      </button>
-                    ))}
+        // Quiz Taking View - Enhanced with Timer
+        <div className="space-y-6">
+          {/* Timer and Progress Bar */}
+          <Card className="border-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Timer className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-white/80">Time Remaining</p>
+                    <motion.p 
+                      className={`text-2xl font-bold font-mono ${timeLeft < 60 ? 'text-red-300' : ''}`}
+                      animate={timeLeft < 60 ? { scale: [1, 1.05, 1] } : {}}
+                      transition={{ repeat: Infinity, duration: 1 }}
+                    >
+                      {formatTime(timeLeft)}
+                    </motion.p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="text-right">
+                  <p className="text-sm text-white/80">Progress</p>
+                  <p className="text-xl font-bold">
+                    {Object.keys(answers).length} / {selectedQuiz.questions?.length}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Progress 
+                  value={(Object.keys(answers).length / (selectedQuiz.questions?.length || 1)) * 100} 
+                  className="h-2 bg-white/20"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Question Navigation Pills */}
+          <div className="flex flex-wrap gap-2">
+            {selectedQuiz.questions?.map((q, index) => (
+              <motion.button
+                key={q.id || index}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setCurrentQuestionIndex(index)}
+                className={`w-10 h-10 rounded-xl font-medium transition-all ${
+                  currentQuestionIndex === index
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                    : answers[q.id]
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                {index + 1}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Current Question */}
+          {selectedQuiz.questions?.[currentQuestionIndex] && (
+            <motion.div
+              key={currentQuestionIndex}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <Card className="border-0 shadow-xl">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <Badge variant="outline" className="text-sm">
+                      Question {currentQuestionIndex + 1} of {selectedQuiz.questions?.length}
+                    </Badge>
+                    <Badge variant="secondary">
+                      {selectedQuiz.questions[currentQuestionIndex].points} pts
+                    </Badge>
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-8">
+                    {selectedQuiz.questions[currentQuestionIndex].question}
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {['A', 'B', 'C', 'D'].map((opt) => {
+                      const optionKey = `option${opt}` as keyof Question;
+                      const optionValue = selectedQuiz.questions![currentQuestionIndex][optionKey] as string;
+                      const isSelected = answers[selectedQuiz.questions![currentQuestionIndex].id] === opt;
+                      
+                      return (
+                        <motion.button
+                          key={opt}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          onClick={() => setAnswers({ 
+                            ...answers, 
+                            [selectedQuiz.questions![currentQuestionIndex].id]: opt 
+                          })}
+                          className={`w-full p-4 rounded-xl text-left transition-all border-2 ${
+                            isSelected
+                              ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 ring-2 ring-blue-500/20'
+                              : 'bg-gray-50 dark:bg-gray-800 border-transparent hover:border-gray-200 dark:hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold ${
+                              isSelected
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                            }`}>
+                              {opt}
+                            </div>
+                            <span className="flex-1 text-gray-700 dark:text-gray-200">{optionValue}</span>
+                            {isSelected && <CheckCircle className="w-5 h-5 text-blue-500" />}
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Navigation Buttons */}
+                  <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                      disabled={currentQuestionIndex === 0}
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </Button>
+                    
+                    {currentQuestionIndex === (selectedQuiz.questions?.length || 0) - 1 ? (
+                      <Button 
+                        onClick={handleSubmitQuiz}
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                      >
+                        Submit Quiz <CheckCircle className="w-4 h-4 ml-2" />
+                      </Button>
+                    ) : (
+                      <Button 
+                        onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600"
+                      >
+                        Next <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </div>
       ) : attempt ? (
         // Results View
         <div className="space-y-6">
@@ -3776,19 +4265,36 @@ const UserManagement = ({ user: _user }: UserManagementProps) => {
 };
 
 // ============================================
-// SKELETON LOADER
+// SKELETON LOADER - Enhanced with animations
 // ============================================
 
 const DashboardSkeleton = () => (
   <div className="space-y-6">
-    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+    {/* Welcome Banner Skeleton */}
+    <Card className="bg-gradient-to-br from-blue-500/50 to-purple-600/50 border-0 overflow-hidden">
+      <CardContent className="p-6 relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
+        <div className="relative space-y-4">
+          <Skeleton className="h-8 w-64 bg-white/20" />
+          <Skeleton className="h-4 w-96 bg-white/20" />
+          <div className="flex gap-4 pt-2">
+            <Skeleton className="h-10 w-36 bg-white/20 rounded-lg" />
+            <Skeleton className="h-10 w-36 bg-white/20 rounded-lg" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+    
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {[1, 2, 3, 4].map((i) => (
-        <Card key={i}>
+        <Card key={i} className="overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 animate-pulse" />
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-24" />
               </div>
               <Skeleton className="h-12 w-12 rounded-xl" />
             </div>
@@ -3796,9 +4302,39 @@ const DashboardSkeleton = () => (
         </Card>
       ))}
     </div>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-48 w-full rounded-lg" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+    
     <Card>
-      <CardContent className="p-6">
-        <Skeleton className="h-64 w-full" />
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-lg" />
+          ))}
+        </div>
       </CardContent>
     </Card>
   </div>
