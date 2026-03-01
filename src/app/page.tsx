@@ -5170,7 +5170,7 @@ const LandingPage = () => {
 };
 
 // ============================================
-// AUTH MODAL
+// AUTH MODAL - ENHANCED VERSION
 // ============================================
 
 interface AuthModalProps {
@@ -5181,6 +5181,61 @@ interface AuthModalProps {
   initialError?: string;
 }
 
+// Floating shapes for background animation
+const AuthFloatingShapes = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className={`absolute rounded-full ${
+            i % 2 === 0
+              ? 'bg-gradient-to-br from-blue-400/20 to-purple-400/20'
+              : 'bg-gradient-to-br from-pink-400/20 to-orange-400/20'
+          }`}
+          style={{
+            width: Math.random() * 100 + 50,
+            height: Math.random() * 100 + 50,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -30, 0],
+            x: [0, 20, 0],
+            rotate: [0, 180, 360],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: Math.random() * 5 + 5,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: Math.random() * 2,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Password strength calculator
+const calculatePasswordStrength = (password: string) => {
+  let strength = 0;
+  if (password.length >= 6) strength++;
+  if (password.length >= 8) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[^A-Za-z0-9]/.test(password)) strength++;
+  return strength;
+};
+
+const getPasswordStrengthColor = (strength: number) => {
+  if (strength <= 1) return { bar: 'bg-red-500', text: 'text-red-500', label: 'Weak' };
+  if (strength <= 2) return { bar: 'bg-orange-500', text: 'text-orange-500', label: 'Fair' };
+  if (strength <= 3) return { bar: 'bg-yellow-500', text: 'text-yellow-500', label: 'Good' };
+  if (strength <= 4) return { bar: 'bg-lime-500', text: 'text-lime-500', label: 'Strong' };
+  return { bar: 'bg-green-500', text: 'text-green-500', label: 'Excellent' };
+};
+
 const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: AuthModalProps) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -5190,11 +5245,21 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(initialError || '');
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const passwordStrength = calculatePasswordStrength(formData.password);
+  const strengthInfo = getPasswordStrengthColor(passwordStrength);
 
   const handleGoogleLogin = () => {
-    // Clear any previous errors
     setError('');
-    // Redirect to NextAuth Google sign-in
     window.location.href = '/api/auth/signin/google?callbackUrl=/';
   };
 
@@ -5217,7 +5282,11 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.error || 'Something went wrong');
       }
 
-      onSuccess(data.user);
+      // Show success animation
+      setShowSuccess(true);
+      setTimeout(() => {
+        onSuccess(data.user);
+      }, 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -5225,60 +5294,213 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
+  // Input field component with floating label effect
+  const FloatingInput = ({
+    id,
+    label,
+    type = 'text',
+    value,
+    onChange,
+    icon: Icon,
+    required = true,
+    minLength,
+    placeholder,
+    showPasswordToggle = false,
+  }: {
+    id: string;
+    label: string;
+    type?: string;
+    value: string;
+    onChange: (value: string) => void;
+    icon: LucideIcon;
+    required?: boolean;
+    minLength?: number;
+    placeholder?: string;
+    showPasswordToggle?: boolean;
+  }) => {
+    const isFocused = focusedField === id;
+    const hasValue = value.length > 0;
+
+    return (
+      <div className="relative">
+        <motion.div
+          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-200 ${
+            isFocused || hasValue ? 'opacity-100' : 'opacity-50'
+          }`}
+          animate={{ scale: isFocused ? 1.1 : 1 }}
+        >
+          <Icon className={`w-5 h-5 ${isFocused ? 'text-blue-500' : 'text-gray-400'}`} />
+        </motion.div>
+        <Input
+          id={id}
+          type={showPasswordToggle ? (showPassword ? 'text' : 'password') : type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocusedField(id)}
+          onBlur={() => setFocusedField(null)}
+          required={required}
+          minLength={minLength}
+          placeholder={placeholder}
+          className={`pl-12 pr-${showPasswordToggle ? '12' : '4'} py-6 h-auto text-lg transition-all duration-200 ${
+            isFocused
+              ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/10'
+              : 'hover:border-gray-400'
+          }`}
+        />
+        {showPasswordToggle && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            {showPassword ? <Eye className="w-5 h-5" /> : <Eye className="w-5 h-5 opacity-50" />}
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl" />
+
+      {/* Floating particles */}
+      {mounted && <AuthFloatingShapes />}
+
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 text-white">
-          <h2 className="text-2xl font-bold">{mode === 'login' ? 'Welcome Back!' : 'Create Account'}</h2>
-          <p className="text-white/80 mt-1">{mode === 'login' ? 'Login to access your dashboard' : 'Start your learning journey today'}</p>
+        {/* Success Animation Overlay */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 z-20 bg-white dark:bg-gray-900 flex items-center justify-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="text-center"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring' }}
+                  className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4"
+                >
+                  <CheckCircle className="w-12 h-12 text-white" />
+                </motion.div>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-xl font-semibold text-gray-900 dark:text-white"
+                >
+                  {mode === 'login' ? 'Welcome Back!' : 'Account Created!'}
+                </motion.p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Header with decorative elements */}
+        <div className="relative bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-8 text-white overflow-hidden">
+          {/* Animated circles in header */}
+          <motion.div
+            className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/10 rounded-full"
+            animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.1, 0.2] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+
+          <div className="relative z-10">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 mb-2"
+            >
+              <motion.div
+                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
+                whileHover={{ rotate: 10, scale: 1.1 }}
+              >
+                {mode === 'login' ? (
+                  <GraduationCap className="w-6 h-6" />
+                ) : (
+                  <Sparkles className="w-6 h-6" />
+                )}
+              </motion.div>
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {mode === 'login' ? 'Welcome Back!' : 'Join StudyPlanner'}
+                </h2>
+                <p className="text-white/80 text-sm">
+                  {mode === 'login' ? 'Sign in to continue learning' : 'Start your learning journey today'}
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
+        <div className="p-6 space-y-5">
+          {/* Error Alert */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: -10, height: 0 }}
+                className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-start gap-3"
+              >
+                <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Google Login Button */}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGoogleLogin}
-            className="w-full py-6 rounded-xl font-semibold flex items-center justify-center gap-3 border-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Continue with Google
-          </Button>
+          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleLogin}
+              className="w-full py-6 h-auto rounded-xl font-semibold flex items-center justify-center gap-3 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 group"
+            >
+              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              <span>Continue with Google</span>
+            </Button>
+          </motion.div>
 
           {/* Divider */}
           <div className="relative">
@@ -5286,90 +5508,255 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
               <div className="w-full border-t border-gray-200 dark:border-gray-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-gray-900 text-gray-500">or continue with email</span>
+              <span className="px-4 bg-white dark:bg-gray-900 text-gray-500 font-medium">or continue with email</span>
             </div>
           </div>
 
-          {/* Email/Password Form */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'register' && (
-              <div>
-                <Label>Full Name</Label>
-                <Input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  placeholder="John Doe"
-                />
-              </div>
-            )}
+            <AnimatePresence mode="wait">
+              {mode === 'register' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Full Name</Label>
+                  <FloatingInput
+                    id="name"
+                    label="Full Name"
+                    value={formData.name}
+                    onChange={(v) => setFormData({ ...formData, name: v })}
+                    icon={Users}
+                    placeholder="Enter your full name"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div>
-              <Label>Email Address</Label>
-              <Input
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Email Address</Label>
+              <FloatingInput
+                id="email"
+                label="Email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
+                onChange={(v) => setFormData({ ...formData, email: v })}
+                icon={BookOpen}
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <Label>Password</Label>
-              <Input
-                type="password"
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Password</Label>
+              <FloatingInput
+                id="password"
+                label="Password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
+                onChange={(v) => setFormData({ ...formData, password: v })}
+                icon={Shield}
                 minLength={6}
                 placeholder="••••••••"
+                showPasswordToggle
               />
+
+              {/* Password Strength Indicator */}
+              {mode === 'register' && formData.password && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 space-y-2"
+                >
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <motion.div
+                        key={i}
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                          i <= passwordStrength ? strengthInfo.bar : 'bg-gray-200 dark:bg-gray-700'
+                        }`}
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                      />
+                    ))}
+                  </div>
+                  <p className={`text-xs font-medium ${strengthInfo.text}`}>
+                    Password strength: {strengthInfo.label}
+                  </p>
+                </motion.div>
+              )}
             </div>
 
-            {mode === 'register' && (
-              <div>
-                <Label>I am a</Label>
-                <div className="flex gap-4 mt-2">
-                  {['student', 'admin'].map((role) => (
-                    <button
-                      key={role}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, role })}
-                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
-                        formData.role === role
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </button>
-                  ))}
-                </div>
+            {/* Role Selection for Register */}
+            <AnimatePresence mode="wait">
+              {mode === 'register' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">I am a</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { role: 'student', icon: GraduationCap, label: 'Student', desc: 'Learn & study' },
+                      { role: 'admin', icon: UserCog, label: 'Teacher', desc: 'Manage courses' },
+                    ].map((item) => (
+                      <motion.button
+                        key={item.role}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, role: item.role })}
+                        className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${
+                          formData.role === item.role
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg shadow-blue-500/10'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {formData.role === item.role && (
+                          <motion.div
+                            layoutId="roleSelector"
+                            className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5"
+                            transition={{ type: 'spring', damping: 25 }}
+                          />
+                        )}
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-1">
+                            <item.icon className={`w-5 h-5 ${
+                              formData.role === item.role ? 'text-blue-500' : 'text-gray-400'
+                            }`} />
+                            <span className={`font-semibold ${
+                              formData.role === item.role ? 'text-blue-600' : 'text-gray-700 dark:text-gray-300'
+                            }`}>{item.label}</span>
+                          </div>
+                          <p className="text-xs text-gray-500">{item.desc}</p>
+                        </div>
+                        {formData.role === item.role && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute top-2 right-2"
+                          >
+                            <CheckCircle className="w-4 h-4 text-blue-500" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Remember Me & Forgot Password */}
+            {mode === 'login' && (
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
+                      rememberMe
+                        ? 'bg-blue-500 border-blue-500'
+                        : 'border-gray-300 dark:border-gray-600 group-hover:border-blue-400'
+                    }`}>
+                      {rememberMe && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center justify-center h-full"
+                        >
+                          <Check className="w-3 h-3 text-white" />
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+                </label>
+                <button
+                  type="button"
+                  className="text-sm text-blue-500 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Forgot password?
+                </button>
               </div>
             )}
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-6 rounded-xl font-semibold"
-            >
-              {isLoading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
-            </Button>
+            {/* Submit Button */}
+            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-6 h-auto text-lg font-semibold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {mode === 'login' ? 'Sign In' : 'Create Account'}
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </span>
+                {/* Animated gradient overlay */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  initial={{ x: '-100%' }}
+                  whileHover={{ x: '100%' }}
+                  transition={{ duration: 0.6 }}
+                />
+              </Button>
+            </motion.div>
           </form>
 
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
-            <button type="button" onClick={() => onSwitchMode(mode === 'login' ? 'register' : 'login')} className="text-blue-600 font-medium hover:underline">
-              {mode === 'login' ? 'Sign up' : 'Sign in'}
-            </button>
-          </p>
-        </div>
+          {/* Switch Mode */}
+          <div className="pt-2 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+              <motion.button
+                type="button"
+                onClick={() => {
+                  onSwitchMode(mode === 'login' ? 'register' : 'login');
+                  setError('');
+                }}
+                className="ml-2 text-blue-500 font-semibold hover:text-blue-600 transition-colors relative"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {mode === 'login' ? 'Sign up' : 'Sign in'}
+                <motion.div
+                  className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500"
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.button>
+            </p>
+          </div>
 
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 text-white/80 hover:text-white">
-          <X className="w-5 h-5" />
-        </button>
+          {/* Terms for Register */}
+          {mode === 'register' && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xs text-center text-gray-500 dark:text-gray-400"
+            >
+              By creating an account, you agree to our{' '}
+              <a href="#" className="text-blue-500 hover:underline">Terms of Service</a>
+              {' '}and{' '}
+              <a href="#" className="text-blue-500 hover:underline">Privacy Policy</a>
+            </motion.p>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );
