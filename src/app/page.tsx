@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebase';
@@ -5935,18 +5936,18 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'About Us', modal: 'about' },
-                  { label: 'Blog', modal: 'blog' },
-                  { label: 'Careers', modal: 'careers' },
-                  { label: 'Contact', modal: 'contact' },
+                  { label: 'About Us', href: '/about' },
+                  { label: 'Blog', href: '/blog' },
+                  { label: 'Careers', href: '/careers' },
+                  { label: 'Contact', href: '/contact' },
                 ].map((link) => (
                   <li key={link.label}>
-                    <button 
-                      onClick={() => setActiveFooterModal(link.modal)}
+                    <Link 
+                      href={link.href}
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
                     >
                       {link.label}
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -5965,18 +5966,18 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'Help Center', modal: 'faq' },
-                  { label: 'FAQ', modal: 'faq' },
-                  { label: 'Privacy Policy', modal: 'privacy' },
-                  { label: 'Terms of Service', modal: 'terms' },
+                  { label: 'Help Center', href: '/help' },
+                  { label: 'FAQ', href: '/faq' },
+                  { label: 'Privacy Policy', href: '/privacy' },
+                  { label: 'Terms of Service', href: '/terms' },
                 ].map((link) => (
                   <li key={link.label}>
-                    <button 
-                      onClick={() => setActiveFooterModal(link.modal)}
+                    <Link 
+                      href={link.href}
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
                     >
                       {link.label}
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -5993,9 +5994,9 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 <span className="hidden sm:inline">for students worldwide.</span>
               </div>
               <div className="flex items-center gap-6 text-sm text-gray-400">
-                <button onClick={() => setActiveFooterModal('privacy')} className="hover:text-white transition-colors">Privacy</button>
-                <button onClick={() => setActiveFooterModal('terms')} className="hover:text-white transition-colors">Terms</button>
-                <button onClick={() => setActiveFooterModal('faq')} className="hover:text-white transition-colors">Cookies</button>
+                <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+                <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+                <Link href="/faq" className="hover:text-white transition-colors">FAQ</Link>
               </div>
             </div>
           </div>
