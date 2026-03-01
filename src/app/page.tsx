@@ -3802,6 +3802,271 @@ const DashboardSkeleton = () => (
 );
 
 // ============================================
+// ANIMATED COUNTER COMPONENT
+// ============================================
+
+const AnimatedCounter = ({ value, suffix = '', duration = 2000 }: { value: number; suffix?: string; duration?: number }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime: number;
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      setCount(Math.floor(progress * value));
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [isVisible, value, duration]);
+
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+};
+
+// ============================================
+// FLOATING PARTICLES COMPONENT
+// ============================================
+
+const FloatingParticles = () => {
+  const particles = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    size: Math.random() * 4 + 2,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    duration: Math.random() * 20 + 10,
+    delay: Math.random() * 5,
+  }));
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          className="absolute rounded-full bg-gradient-to-br from-blue-400/30 to-purple-400/30"
+          style={{
+            width: particle.size,
+            height: particle.size,
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+          }}
+          animate={{
+            y: [0, -30, 0],
+            x: [0, 15, 0],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: particle.duration,
+            delay: particle.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// ============================================
+// MOUSE GLOW EFFECT
+// ============================================
+
+const MouseGlow = () => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setPosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  return (
+    <div
+      className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
+      style={{
+        background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(99, 102, 241, 0.06), transparent 40%)`,
+      }}
+    />
+  );
+};
+
+// ============================================
+// INTERACTIVE FEATURE CARD
+// ============================================
+
+const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index }: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  color: string;
+  index: number;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1, type: 'spring', stiffness: 100 }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative group"
+    >
+      <div
+        className="absolute inset-0 rounded-2xl transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(99, 102, 241, 0.15), transparent 40%)`,
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
+      <Card className="h-full relative overflow-hidden border-0 bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <CardContent className="p-8 relative z-10">
+          <motion.div
+            className={`w-16 h-16 bg-gradient-to-br ${color} rounded-2xl flex items-center justify-center mb-6 shadow-lg`}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <Icon className="w-8 h-8 text-white" />
+          </motion.div>
+          <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{description}</p>
+          <motion.div
+            className="mt-6 flex items-center text-blue-600 font-medium"
+            initial={{ opacity: 0, x: -10 }}
+            whileHover={{ opacity: 1, x: 0 }}
+          >
+            Learn more <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
+// ============================================
+// TESTIMONIAL CAROUSEL
+// ============================================
+
+const TestimonialCarousel = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const testimonials = [
+    { name: 'Sarah Johnson', role: 'Computer Science Student', content: 'StudyPlanner helped me organize my entire semester. The AI quiz generator is a game-changer for exam prep!', rating: 5, avatar: 'SJ' },
+    { name: 'Michael Chen', role: 'Medical Student', content: 'The analytics feature showed me exactly where I needed to focus. My grades improved significantly!', rating: 5, avatar: 'MC' },
+    { name: 'Emily Davis', role: 'Business Student', content: 'Finally a study app that actually helps! The task management keeps me on track every day.', rating: 5, avatar: 'ED' },
+    { name: 'Alex Thompson', role: 'Engineering Student', content: 'The AI assistant is like having a tutor 24/7. It explains complex concepts in simple terms.', rating: 5, avatar: 'AT' },
+    { name: 'Jessica Wang', role: 'Law Student', content: 'Managing my study schedule has never been easier. The progress tracking keeps me motivated!', rating: 5, avatar: 'JW' },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
+  return (
+    <div className="relative">
+      <div className="overflow-hidden">
+        <motion.div
+          className="flex transition-transform duration-500 ease-out"
+          animate={{ x: `-${activeIndex * 100}%` }}
+        >
+          {testimonials.map((testimonial, index) => (
+            <div key={index} className="w-full flex-shrink-0 px-4">
+              <Card className="max-w-2xl mx-auto bg-white dark:bg-gray-800 shadow-xl border-0">
+                <CardContent className="p-8">
+                  <div className="flex gap-1 mb-4 justify-center">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.1 }}
+                      >
+                        <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+                      </motion.div>
+                    ))}
+                  </div>
+                  <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 text-center italic">"{testimonial.content}"</p>
+                  <div className="flex items-center justify-center gap-4">
+                    <Avatar className="w-14 h-14 ring-4 ring-blue-500/20">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+                        {testimonial.avatar}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</div>
+                      <div className="text-sm text-gray-500">{testimonial.role}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Navigation Dots */}
+      <div className="flex justify-center gap-2 mt-8">
+        {testimonials.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setActiveIndex(index)}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              index === activeIndex
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 w-8'
+                : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ============================================
 // LANDING PAGE COMPONENTS (Continued from before)
 // ============================================
 
@@ -3810,12 +4075,14 @@ const LandingPage = () => {
   const searchParams = useSearchParams();
   const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const mounted = useMounted();
 
   useEffect(() => {
     const payment = searchParams.get('payment');
     if (payment === 'success') {
       setShowSuccess(true);
-      // Auto-hide after 5 seconds
       setTimeout(() => setShowSuccess(false), 5000);
     }
   }, [searchParams]);
@@ -3826,19 +4093,11 @@ const LandingPage = () => {
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          planId,
-          userId: 'guest',
-          userEmail: null,
-        }),
+        body: JSON.stringify({ planId, userId: 'guest', userEmail: null }),
       });
       
       const data = await response.json();
-      console.log('Checkout response:', data);
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
-      }
+      if (!response.ok) throw new Error(data.error || 'Failed to create checkout session');
       
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
@@ -3852,8 +4111,18 @@ const LandingPage = () => {
     }
   };
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-900">
+    <main className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
+      <MouseGlow />
+      
       {/* Payment Success Banner */}
       <AnimatePresence>
         {showSuccess && (
@@ -3861,10 +4130,16 @@ const LandingPage = () => {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
-            className="fixed top-16 left-0 right-0 z-40 bg-green-500 text-white py-3 px-4 text-center"
+            className="fixed top-16 left-0 right-0 z-40 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 text-center shadow-lg"
           >
             <div className="flex items-center justify-center gap-2">
-              <CheckCircle className="w-5 h-5" />
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                <CheckCircle className="w-5 h-5" />
+              </motion.div>
               <span className="font-medium">Payment successful! Welcome to StudyPlanner Pro!</span>
             </div>
           </motion.div>
@@ -3880,83 +4155,186 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Logo size="md" />
-            <div className="hidden md:flex items-center gap-6">
-              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-blue-600">Features</a>
-              <a href="#how-it-works" className="text-gray-600 dark:text-gray-300 hover:text-blue-600">How It Works</a>
-              <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-blue-600">Pricing</a>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-8">
+              {['Features', 'How It Works', 'Pricing'].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => scrollToSection(item.toLowerCase().replace(' ', '-'))}
+                  className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                >
+                  {item}
+                </button>
+              ))}
             </div>
+            
             <div className="flex items-center gap-3">
-              <Button variant="ghost" onClick={() => router.push('/?auth=login')}>Login</Button>
-              <Button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full" onClick={() => router.push('/?auth=register')}>
+              {mounted && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="hidden sm:flex"
+                >
+                  <motion.div
+                    initial={false}
+                    animate={{ rotate: theme === 'dark' ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  </motion.div>
+                </Button>
+              )}
+              <Button variant="ghost" onClick={() => router.push('/?auth=login')} className="hidden sm:flex">
+                Login
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300" 
+                onClick={() => router.push('/?auth=register')}
+              >
                 Get Started
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700"
+            >
+              <div className="px-4 py-4 space-y-3">
+                {['Features', 'How It Works', 'Pricing'].map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => scrollToSection(item.toLowerCase().replace(' ', '-'))}
+                    className="block w-full text-left py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600"
+                  >
+                    {item}
+                  </button>
+                ))}
+                <Button variant="ghost" onClick={() => router.push('/?auth=login')} className="w-full justify-start">
+                  Login
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
-      {/* Hero */}
+      {/* Hero Section */}
       <section className="relative pt-32 pb-24 px-4 overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/30 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-200/20 to-purple-200/20 rounded-full blur-3xl" />
+        <FloatingParticles />
         
-        {/* Floating Elements */}
-        <div className="absolute top-32 left-[15%] w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl rotate-12 opacity-60 animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }} />
-        <div className="absolute top-48 right-[20%] w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '4s' }} />
-        <div className="absolute bottom-32 left-[25%] w-10 h-10 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg opacity-60 animate-bounce" style={{ animationDelay: '1s', animationDuration: '3.5s' }} />
-        <div className="absolute top-64 left-[10%] w-6 h-6 bg-yellow-400 rounded-full opacity-50 animate-ping" style={{ animationDelay: '0.3s' }} />
-        <div className="absolute bottom-48 right-[15%] w-6 h-6 bg-blue-400 rounded-full opacity-50 animate-ping" style={{ animationDelay: '0.8s' }} />
-
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
+        
+        {/* Animated Orbs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-5xl mx-auto relative z-10"
-        >
+          className="absolute top-20 left-10 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.5, 0.3, 0.5],
+          }}
+          transition={{ duration: 5, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-200/20 to-purple-200/20 rounded-full blur-3xl"
+          animate={{
+            rotate: 360,
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+        />
+
+        {/* Floating Shapes */}
+        <motion.div
+          className="absolute top-32 left-[15%] w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl opacity-60"
+          animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 3, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute top-48 right-[20%] w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full opacity-60"
+          animate={{ y: [0, 15, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-32 left-[25%] w-10 h-10 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg opacity-60"
+          animate={{ y: [0, -15, 0], rotate: [0, -10, 0] }}
+          transition={{ duration: 3.5, repeat: Infinity }}
+        />
+
+        <div className="max-w-5xl mx-auto relative z-10">
           {/* Trust Badge */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-center mb-6"
+            transition={{ delay: 0.2, type: 'spring', stiffness: 100 }}
+            className="flex justify-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50 dark:border-gray-700/50">
+            <div className="inline-flex items-center gap-3 px-5 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full shadow-xl border border-gray-200/50 dark:border-gray-700/50">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`w-6 h-6 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br ${
-                    i === 1 ? 'from-blue-500 to-blue-600' :
-                    i === 2 ? 'from-purple-500 to-purple-600' :
-                    i === 3 ? 'from-pink-500 to-pink-600' :
-                    'from-orange-500 to-orange-600'
-                  }`} />
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className={`w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br ${
+                      i === 1 ? 'from-blue-500 to-blue-600' :
+                      i === 2 ? 'from-purple-500 to-purple-600' :
+                      i === 3 ? 'from-pink-500 to-pink-600' :
+                      'from-orange-500 to-orange-600'
+                    }`}
+                  />
                 ))}
               </div>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 <span className="text-blue-600 font-bold">2,500+</span> students already learning
               </span>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                  <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
             </div>
           </motion.div>
 
+          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="text-center"
           >
-            <Badge className="mb-6 px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0" variant="default">
+            <Badge className="mb-6 px-5 py-2.5 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg shadow-blue-500/25" variant="default">
               <Sparkles className="w-4 h-4 mr-2" />
               AI-Powered Learning Platform
               <Sparkles className="w-4 h-4 ml-2" />
             </Badge>
           </motion.div>
 
+          {/* Title */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3965,11 +4343,18 @@ const LandingPage = () => {
           >
             <span className="text-gray-900 dark:text-white">Plan Smarter.</span>
             <br />
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Learn Better.</span>
+            <motion.span 
+              className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent inline-block"
+              animate={{ backgroundPosition: ['0%', '100%', '0%'] }}
+              transition={{ duration: 5, repeat: Infinity }}
+            >
+              Learn Better.
+            </motion.span>
             <br />
             <span className="text-gray-900 dark:text-white">Achieve More.</span>
           </motion.h1>
 
+          {/* Subtitle */}
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3979,27 +4364,32 @@ const LandingPage = () => {
             The all-in-one smart study planner and learning management system designed to help students organize their studies, track progress, and achieve academic excellence.
           </motion.p>
 
+          {/* CTA Buttons */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-10 py-7 text-lg font-semibold shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105" 
-              onClick={() => router.push('/?auth=register')}
-            >
-              Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="rounded-full px-10 py-7 text-lg font-semibold border-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300" 
-              onClick={() => router.push('/?auth=login')}
-            >
-              <Play className="w-5 h-5 mr-2" /> Watch Demo
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-10 py-7 text-lg font-semibold shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300" 
+                onClick={() => router.push('/?auth=register')}
+              >
+                Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="rounded-full px-10 py-7 text-lg font-semibold border-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300" 
+                onClick={() => router.push('/?auth=login')}
+              >
+                <Play className="w-5 h-5 mr-2" /> Watch Demo
+              </Button>
+            </motion.div>
           </motion.div>
 
           {/* Feature Pills */}
@@ -4010,24 +4400,65 @@ const LandingPage = () => {
             className="flex flex-wrap justify-center gap-3 mt-10"
           >
             {['No credit card required', 'Free forever plan', 'Cancel anytime'].map((text, i) => (
-              <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full text-sm text-gray-600 dark:text-gray-300">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8 + i * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full text-sm text-gray-600 dark:text-gray-300 shadow-sm"
+              >
                 <CheckCircle className="w-4 h-4 text-green-500" />
                 {text}
-              </div>
+              </motion.div>
             ))}
           </motion.div>
-        </motion.div>
+
+          {/* Hero Image/Demo Preview */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
+            className="mt-16 relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-900 to-transparent z-10 pointer-events-none" />
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
+              <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-4">
+                <div className="flex gap-2 mb-4">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                </div>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-1 bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse" />
+                  </div>
+                  <div className="col-span-3 bg-white dark:bg-gray-800 rounded-lg p-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-24 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg animate-pulse" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 px-4 bg-white dark:bg-gray-900 border-y border-gray-200 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-16 px-4 bg-white dark:bg-gray-900 border-y border-gray-200 dark:border-gray-800 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5" />
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: '2,500+', label: 'Active Students', icon: Users },
-              { value: '150+', label: 'Courses Created', icon: BookOpen },
-              { value: '50,000+', label: 'Tasks Completed', icon: CheckCircle },
-              { value: '98%', label: 'Satisfaction Rate', icon: Star },
+              { value: 2500, suffix: '+', label: 'Active Students', icon: Users, color: 'from-blue-500 to-blue-600' },
+              { value: 150, suffix: '+', label: 'Courses Created', icon: BookOpen, color: 'from-purple-500 to-purple-600' },
+              { value: 50000, suffix: '+', label: 'Tasks Completed', icon: CheckCircle, color: 'from-green-500 to-green-600' },
+              { value: 98, suffix: '%', label: 'Satisfaction Rate', icon: Star, color: 'from-yellow-500 to-orange-500' },
             ].map((stat, index) => (
               <motion.div 
                 key={index}
@@ -4035,15 +4466,21 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="text-center"
+                whileHover={{ scale: 1.05 }}
+                className="text-center group cursor-pointer"
               >
-                <div className="flex justify-center mb-2">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-xl flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-blue-600" />
-                  </div>
+                <div className="flex justify-center mb-3">
+                  <motion.div 
+                    className={`w-14 h-14 bg-gradient-to-br ${stat.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow`}
+                    whileHover={{ rotate: 10 }}
+                  >
+                    <stat.icon className="w-7 h-7 text-white" />
+                  </motion.div>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{stat.value}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{stat.label}</div>
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -4059,7 +4496,7 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4" variant="outline">Features</Badge>
+            <Badge className="mb-4 px-4 py-2" variant="outline">Features</Badge>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Everything You Need to{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Succeed</span>
@@ -4071,33 +4508,14 @@ const LandingPage = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: Calendar, title: 'Smart Study Planner', description: 'Organize subjects, set exam dates, and manage tasks with intelligent scheduling.', color: 'from-blue-500 to-blue-600' },
-              { icon: ClipboardList, title: 'Task Management', description: 'Create, edit, and track tasks with priority levels and completion status.', color: 'from-purple-500 to-purple-600' },
-              { icon: BookOpen, title: 'Course Library', description: 'Access comprehensive courses with structured modules and learning materials.', color: 'from-pink-500 to-pink-600' },
-              { icon: Brain, title: 'AI Quiz Generator', description: 'Generate quizzes automatically with AI-powered question creation and explanations.', color: 'from-orange-500 to-orange-600' },
-              { icon: BarChart3, title: 'Progress Analytics', description: 'Visualize your learning journey with detailed charts and statistics.', color: 'from-green-500 to-green-600' },
-              { icon: MessageCircle, title: 'AI Study Assistant', description: 'Get instant help with an AI-powered chatbot for all your study questions.', color: 'from-cyan-500 to-cyan-600' },
+              { icon: Calendar, title: 'Smart Study Planner', description: 'Organize subjects, set exam dates, and manage tasks with intelligent scheduling that adapts to your learning style.', color: 'from-blue-500 to-blue-600' },
+              { icon: ClipboardList, title: 'Task Management', description: 'Create, edit, and track tasks with priority levels and completion status. Never miss a deadline again.', color: 'from-purple-500 to-purple-600' },
+              { icon: BookOpen, title: 'Course Library', description: 'Access comprehensive courses with structured modules and learning materials curated by experts.', color: 'from-pink-500 to-pink-600' },
+              { icon: Brain, title: 'AI Quiz Generator', description: 'Generate quizzes automatically with AI-powered question creation and detailed explanations.', color: 'from-orange-500 to-orange-600' },
+              { icon: BarChart3, title: 'Progress Analytics', description: 'Visualize your learning journey with detailed charts, statistics, and personalized insights.', color: 'from-green-500 to-green-600' },
+              { icon: MessageCircle, title: 'AI Study Assistant', description: 'Get instant help with an AI-powered chatbot for all your study questions 24/7.', color: 'from-cyan-500 to-cyan-600' },
             ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="group h-full hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-white dark:bg-gray-800 shadow-lg overflow-hidden">
-                  <CardContent className="p-8">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                      <feature.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">{feature.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
-                    <div className="mt-6 flex items-center text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                      Learn more <ArrowRight className="w-4 h-4 ml-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              <InteractiveFeatureCard key={index} {...feature} index={index} />
             ))}
           </div>
         </div>
@@ -4105,7 +4523,6 @@ const LandingPage = () => {
 
       {/* How It Works */}
       <section id="how-it-works" className="py-24 px-4 bg-gray-50 dark:bg-gray-900/50 relative overflow-hidden">
-        {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         </div>
@@ -4117,7 +4534,7 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4" variant="outline">How It Works</Badge>
+            <Badge className="mb-4 px-4 py-2" variant="outline">How It Works</Badge>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Start Learning in{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">4 Simple Steps</span>
@@ -4128,8 +4545,7 @@ const LandingPage = () => {
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
-            {/* Connecting Line */}
-            <div className="hidden md:block absolute top-16 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+            <div className="hidden md:block absolute top-16 left-[12.5%] right-[12.5%] h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full" />
             
             {[
               { step: '01', title: 'Create Account', description: 'Sign up for free and set up your profile in seconds', icon: Users, color: 'from-blue-500 to-blue-600' },
@@ -4143,13 +4559,19 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15 }}
-                className="text-center relative"
+                className="text-center relative group"
               >
-                <div className="relative z-10">
-                  <div className={`w-20 h-20 mx-auto mb-6 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl rotate-3 hover:rotate-0 transition-transform duration-300`}>
+                <motion.div
+                  className="relative z-10"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  <div className={`w-20 h-20 mx-auto mb-6 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:shadow-2xl transition-shadow`}>
                     <item.icon className="w-10 h-10" />
                   </div>
-                </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 shadow-lg">
+                    {item.step}
+                  </div>
+                </motion.div>
                 <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">{item.title}</h3>
                 <p className="text-gray-500 dark:text-gray-400">{item.description}</p>
               </motion.div>
@@ -4167,7 +4589,7 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4" variant="outline">Testimonials</Badge>
+            <Badge className="mb-4 px-4 py-2" variant="outline">Testimonials</Badge>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Loved by{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Students</span>
@@ -4177,43 +4599,7 @@ const LandingPage = () => {
             </p>
           </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: 'Sarah Johnson', role: 'Computer Science Student', content: 'StudyPlanner helped me organize my entire semester. The AI quiz generator is a game-changer for exam prep!', rating: 5 },
-              { name: 'Michael Chen', role: 'Medical Student', content: 'The analytics feature showed me exactly where I needed to focus. My grades improved significantly!', rating: 5 },
-              { name: 'Emily Davis', role: 'Business Student', content: 'Finally a study app that actually helps! The task management keeps me on track every day.', rating: 5 },
-            ].map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="h-full bg-white dark:bg-gray-800 shadow-lg border-0 hover:shadow-xl transition-shadow">
-                  <CardContent className="p-8">
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-gray-600 dark:text-gray-300 mb-6 italic">"{testimonial.content}"</p>
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                          {testimonial.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</div>
-                        <div className="text-sm text-gray-500">{testimonial.role}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          <TestimonialCarousel />
         </div>
       </section>
 
@@ -4226,7 +4612,7 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4" variant="outline">Pricing</Badge>
+            <Badge className="mb-4 px-4 py-2" variant="outline">Pricing</Badge>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Simple,{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Transparent</span>{' '}
@@ -4276,9 +4662,13 @@ const LandingPage = () => {
                 transition={{ delay: index * 0.1 }}
                 className={plan.popular ? 'md:-mt-4 md:mb-4' : ''}
               >
-                <Card className={`h-full relative ${plan.popular ? 'border-2 border-blue-500 shadow-2xl shadow-blue-500/20 scale-105' : 'border border-gray-200 dark:border-gray-700 shadow-lg'} bg-white dark:bg-gray-800 overflow-hidden`}>
+                <Card className={`h-full relative ${plan.popular ? 'border-2 border-blue-500 shadow-2xl shadow-blue-500/20 scale-105' : 'border border-gray-200 dark:border-gray-700 shadow-lg'} bg-white dark:bg-gray-800 overflow-hidden group`}>
                   {plan.popular && (
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600" />
+                    <motion.div 
+                      className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600"
+                      animate={{ scaleX: [1, 1.02, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
                   )}
                   {plan.popular && (
                     <div className="absolute -top-0 right-4">
@@ -4297,38 +4687,46 @@ const LandingPage = () => {
                     </div>
                     <ul className="space-y-4 mb-8">
                       {plan.features.map((f, i) => (
-                        <li key={i} className="flex items-center gap-3">
+                        <motion.li 
+                          key={i} 
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className="flex items-center gap-3"
+                        >
                           <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${plan.popular ? 'from-blue-500 to-purple-600' : 'from-green-500 to-green-600'} flex items-center justify-center flex-shrink-0`}>
                             <Check className="w-3 h-3 text-white" />
                           </div>
                           <span className="text-gray-600 dark:text-gray-300">{f}</span>
-                        </li>
+                        </motion.li>
                       ))}
                     </ul>
-                    <Button 
-                      className={`w-full py-6 rounded-xl font-semibold text-lg transition-all duration-300 ${
-                        plan.popular 
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25' 
-                          : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white'
-                      }`}
-                      onClick={() => {
-                        if (plan.id === 'free') {
-                          router.push('/?auth=register');
-                        } else {
-                          handlePayment(plan.id);
-                        }
-                      }}
-                      disabled={isProcessingPayment === plan.id}
-                    >
-                      {isProcessingPayment === plan.id ? (
-                        <span className="flex items-center gap-2">
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Processing...
-                        </span>
-                      ) : (
-                        plan.cta
-                      )}
-                    </Button>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button 
+                        className={`w-full py-6 rounded-xl font-semibold text-lg transition-all duration-300 ${
+                          plan.popular 
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25' 
+                            : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white'
+                        }`}
+                        onClick={() => {
+                          if (plan.id === 'free') {
+                            router.push('/?auth=register');
+                          } else {
+                            handlePayment(plan.id);
+                          }
+                        }}
+                        disabled={isProcessingPayment === plan.id}
+                      >
+                        {isProcessingPayment === plan.id ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Processing...
+                          </span>
+                        ) : (
+                          plan.cta
+                        )}
+                      </Button>
+                    </motion.div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -4340,7 +4738,29 @@ const LandingPage = () => {
       {/* CTA */}
       <section className="py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnY0em0wLTZ2LTRoMnY0aC0yem0tNiA2di00aDJ2NGgtMnptMC02di00aDJ2NGgtMnptLTYgNnYtNGgydjRoLTJ6bTAtNnYtNGgydjRoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-20" />
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            backgroundPosition: ['0% 0%', '100% 100%'],
+          }}
+          transition={{ duration: 10, repeat: Infinity, repeatType: 'reverse' }}
+          style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+        
+        {/* Floating Elements */}
+        <motion.div
+          className="absolute top-10 left-10 w-20 h-20 border border-white/20 rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+        />
+        <motion.div
+          className="absolute bottom-10 right-10 w-32 h-32 border border-white/10 rounded-full"
+          animate={{ rotate: -360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+        />
         
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -4348,73 +4768,110 @@ const LandingPage = () => {
           viewport={{ once: true }}
           className="max-w-4xl mx-auto relative z-10 text-center"
         >
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+          <motion.h2 
+            className="text-4xl sm:text-5xl font-bold text-white mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
             Ready to Transform Your Learning?
-          </h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p 
+            className="text-xl text-white/80 mb-10 max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             Join thousands of students who have improved their academic performance with StudyPlanner.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-600 hover:bg-gray-100 rounded-full px-10 py-7 text-lg font-semibold shadow-xl transition-all duration-300 hover:scale-105" 
-              onClick={() => router.push('/?auth=register')}
-            >
-              Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-white border-white/50 hover:bg-white/10 rounded-full px-10 py-7 text-lg font-semibold" 
-              onClick={() => router.push('/?auth=login')}
-            >
-              Login to Dashboard
-            </Button>
-          </div>
+          </motion.p>
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-gray-100 rounded-full px-10 py-7 text-lg font-semibold shadow-xl" 
+                onClick={() => router.push('/?auth=register')}
+              >
+                Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-white border-white/50 hover:bg-white/10 rounded-full px-10 py-7 text-lg font-semibold" 
+                onClick={() => router.push('/?auth=login')}
+              >
+                Login to Dashboard
+              </Button>
+            </motion.div>
+          </motion.div>
         </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white pt-12 pb-8 px-4">
+      <footer className="bg-gray-900 text-white pt-16 pb-8 px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Main Footer Content */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            {/* Brand Section */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div className="md:col-span-2">
               <Logo size="md" className="mb-4" />
-              <p className="text-gray-400 text-sm max-w-md">
+              <p className="text-gray-400 max-w-md leading-relaxed">
                 Your all-in-one smart study planner and learning management system. Plan smarter, learn better, achieve more.
               </p>
+              <div className="flex gap-4 mt-6">
+                {['twitter', 'github', 'linkedin'].map((social) => (
+                  <motion.div
+                    key={social}
+                    whileHover={{ scale: 1.1, y: -2 }}
+                    className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-blue-500 hover:to-purple-600 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                  </motion.div>
+                ))}
+              </div>
             </div>
 
-            {/* Quick Links */}
             <div>
               <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
               <ul className="space-y-3">
-                <li><a href="#features" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                <li><a href="#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="/about" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-                <li><a href="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                {['Features', 'Pricing', 'About Us', 'Contact'].map((link) => (
+                  <li key={link}>
+                    <a href={`#${link.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-white transition-colors">
+                      {link}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
 
-            {/* Support */}
             <div>
               <h3 className="font-semibold text-lg mb-4">Support</h3>
               <ul className="space-y-3">
-                <li><a href="/faq" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
-                <li><a href="/resources" className="text-gray-400 hover:text-white transition-colors">Resources</a></li>
-                <li><a href="#privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#terms" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a></li>
+                {['FAQ', 'Resources', 'Privacy Policy', 'Terms of Service'].map((link) => (
+                  <li key={link}>
+                    <a href={`#${link.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-white transition-colors">
+                      {link}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
 
-          {/* Bottom Bar */}
-          <div className="border-t border-gray-800 pt-8 text-center">
+          <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-gray-400 text-sm">
               © {new Date().getFullYear()} StudyPlanner. All rights reserved.
             </p>
+            <div className="flex items-center gap-4 text-sm text-gray-400">
+              <a href="#privacy" className="hover:text-white transition-colors">Privacy</a>
+              <span>•</span>
+              <a href="#terms" className="hover:text-white transition-colors">Terms</a>
+              <span>•</span>
+              <a href="#cookies" className="hover:text-white transition-colors">Cookies</a>
+            </div>
           </div>
         </div>
       </footer>
