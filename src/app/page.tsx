@@ -4347,6 +4347,617 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
 };
 
 // ============================================
+// FOOTER PAGE MODALS
+// ============================================
+
+interface FooterPageModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+// About Us Modal
+const AboutUsModal = ({ isOpen, onClose }: FooterPageModalProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <h2 className="text-2xl font-bold">About Us</h2>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="p-8 overflow-y-auto max-h-[60vh]">
+          <div className="prose dark:prose-invert max-w-none">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Our Mission</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              At StudyPlanner, we believe every student deserves the tools to succeed. Our mission is to transform how students learn, plan, and achieve their academic goals through intelligent, personalized study management.
+            </p>
+            
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Our Story</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Founded in 2024, StudyPlanner was born from the frustration of juggling multiple subjects, deadlines, and study materials. We created an all-in-one platform that combines smart planning, AI-powered quizzes, and comprehensive analytics to help students study smarter, not harder.
+            </p>
+            
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">What We Offer</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {[
+                { icon: Calendar, title: 'Smart Planning', desc: 'Organize subjects and tasks with intelligent scheduling' },
+                { icon: Brain, title: 'AI Quizzes', desc: 'Generate personalized quizzes automatically' },
+                { icon: BarChart3, title: 'Analytics', desc: 'Track progress with detailed insights' },
+                { icon: BookOpen, title: 'Courses', desc: 'Access comprehensive learning materials' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
+                    <item.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">{item.title}</h4>
+                    <p className="text-sm text-gray-500">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Our Team</h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              We're a passionate team of educators, developers, and designers committed to making education more accessible and effective. Together, we're building the future of learning.
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Contact Modal
+const ContactModal = ({ isOpen, onClose }: FooterPageModalProps) => {
+  const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsSubmitting(false);
+    setSubmitted(true);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h2 className="text-2xl font-bold">Contact Us</h2>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="p-6">
+          {submitted ? (
+            <div className="text-center py-8">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </motion.div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Message Sent!</h3>
+              <p className="text-gray-500">We'll get back to you as soon as possible.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="contact-name">Name</Label>
+                <Input
+                  id="contact-name"
+                  value={formState.name}
+                  onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  placeholder="Your name"
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="contact-email">Email</Label>
+                <Input
+                  id="contact-email"
+                  type="email"
+                  value={formState.email}
+                  onChange={(e) => setFormState({ ...formState, email: e.target.value })}
+                  placeholder="your@email.com"
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="contact-message">Message</Label>
+                <Textarea
+                  id="contact-message"
+                  value={formState.message}
+                  onChange={(e) => setFormState({ ...formState, message: e.target.value })}
+                  placeholder="How can we help?"
+                  required
+                  rows={4}
+                  className="mt-1"
+                />
+              </div>
+              <Button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-500 to-purple-600">
+                {isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
+                ) : (
+                  <>Send Message <Send className="w-4 h-4 ml-2" /></>
+                )}
+              </Button>
+            </form>
+          )}
+          
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">
+              <a href="mailto:support@studyplanner.com" className="flex items-center gap-1 hover:text-blue-500">
+                <Mail className="w-4 h-4" /> support@studyplanner.com
+              </a>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// FAQ/Help Center Modal
+const FAQModal = ({ isOpen, onClose }: FooterPageModalProps) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      question: 'How do I get started with StudyPlanner?',
+      answer: 'Simply click the "Get Started" button, sign up with your Google account, and you can immediately start adding subjects and tasks. Our intuitive interface makes it easy to organize your studies.',
+    },
+    {
+      question: 'Is StudyPlanner free to use?',
+      answer: 'Yes! We offer a free plan with up to 5 subjects and basic features. For unlimited access to AI quizzes, advanced analytics, and more, check out our Pro and Premium plans.',
+    },
+    {
+      question: 'How does the AI Quiz Generator work?',
+      answer: 'Our AI analyzes your subjects and learning materials to automatically generate relevant quiz questions. It adapts to your progress and focuses on areas where you need more practice.',
+    },
+    {
+      question: 'Can I track my progress over time?',
+      answer: 'Absolutely! Our Analytics dashboard shows detailed charts of your task completion, quiz scores, and study patterns. You can see weekly, monthly, and overall trends.',
+    },
+    {
+      question: 'Is my data secure?',
+      answer: 'We take security seriously. All data is encrypted, and we never share your personal information. Your study data remains private and secure on our servers.',
+    },
+    {
+      question: 'Can I access StudyPlanner on mobile?',
+      answer: 'Yes! StudyPlanner is fully responsive and works great on all devices - desktop, tablet, and mobile. Access your studies anywhere, anytime.',
+    },
+    {
+      question: 'How do I cancel my subscription?',
+      answer: 'You can cancel your subscription anytime from your account settings. No hidden fees, no questions asked. Your access continues until the end of your billing period.',
+    },
+    {
+      question: 'Do you offer refunds?',
+      answer: 'Yes, we offer a 14-day money-back guarantee for all paid plans. If you\'re not satisfied, contact our support team for a full refund.',
+    },
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Help Center</h2>
+                <p className="text-sm text-white/80">Frequently Asked Questions</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-3">
+            {faqs.map((faq, index) => (
+              <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${openIndex === index ? 'rotate-180' : ''}`} />
+                </button>
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="px-4 pb-4"
+                  >
+                    <p className="text-gray-600 dark:text-gray-300">{faq.answer}</p>
+                  </motion.div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Privacy Policy Modal
+const PrivacyPolicyModal = ({ isOpen, onClose }: FooterPageModalProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <Shield className="w-5 h-5" />
+              </div>
+              <h2 className="text-2xl font-bold">Privacy Policy</h2>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="p-8 overflow-y-auto max-h-[60vh] prose dark:prose-invert max-w-none">
+          <p className="text-sm text-gray-500 mb-4">Last updated: January 2024</p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">1. Information We Collect</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            We collect information you provide directly, such as your name, email, and study data. We also automatically collect usage data to improve our services.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">2. How We Use Your Information</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Your information is used to provide and improve our services, personalize your experience, and communicate with you about your account.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">3. Data Security</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            We implement industry-standard security measures to protect your data. Your information is encrypted and stored securely on our servers.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">4. Information Sharing</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            We do not sell or share your personal information with third parties, except as required by law or to provide our services.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">5. Your Rights</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            You have the right to access, correct, or delete your personal data. Contact us at privacy@studyplanner.com for any requests.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">6. Cookies</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            We use cookies to enhance your experience. You can manage cookie preferences through your browser settings.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">7. Changes to This Policy</h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            We may update this policy periodically. Continued use of our service constitutes acceptance of any changes.
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Terms of Service Modal
+const TermsOfServiceModal = ({ isOpen, onClose }: FooterPageModalProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <FileText className="w-5 h-5" />
+              </div>
+              <h2 className="text-2xl font-bold">Terms of Service</h2>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="p-8 overflow-y-auto max-h-[60vh] prose dark:prose-invert max-w-none">
+          <p className="text-sm text-gray-500 mb-4">Last updated: January 2024</p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">1. Acceptance of Terms</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            By accessing and using StudyPlanner, you agree to be bound by these Terms of Service and all applicable laws and regulations.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">2. Use License</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Permission is granted to temporarily use StudyPlanner for personal, non-commercial purposes. This is the grant of a license, not a transfer of title.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">3. User Accounts</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            You are responsible for maintaining the confidentiality of your account and for all activities under your account. You must notify us immediately of any unauthorized use.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">4. Prohibited Uses</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            You may not use StudyPlanner for any unlawful purpose, to solicit others to perform unlawful acts, or to violate any international, federal, or local regulations.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">5. Disclaimer</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            StudyPlanner is provided "as is" without warranties of any kind. We do not guarantee the accuracy, completeness, or usefulness of any content.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">6. Limitations</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            In no event shall StudyPlanner or its operators be liable for any damages arising out of the use or inability to use the service.
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">7. Revisions</h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            We reserve the right to revise these terms at any time. Continued use of the service after changes constitutes acceptance of the revised terms.
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Careers Modal
+const CareersModal = ({ isOpen, onClose }: FooterPageModalProps) => {
+  const jobs = [
+    { title: 'Full-Stack Developer', type: 'Full-time', location: 'Remote', department: 'Engineering' },
+    { title: 'UI/UX Designer', type: 'Full-time', location: 'Remote', department: 'Design' },
+    { title: 'Product Manager', type: 'Full-time', location: 'Remote', department: 'Product' },
+    { title: 'Content Writer', type: 'Part-time', location: 'Remote', department: 'Content' },
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Join Our Team</h2>
+                <p className="text-sm text-white/80">Open Positions</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            We're always looking for talented individuals who are passionate about education and technology. Join us in building the future of learning!
+          </p>
+          
+          <div className="space-y-4">
+            {jobs.map((job, index) => (
+              <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">{job.title}</h4>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs">{job.type}</Badge>
+                      <Badge variant="outline" className="text-xs">{job.location}</Badge>
+                      <Badge variant="secondary" className="text-xs">{job.department}</Badge>
+                    </div>
+                  </div>
+                  <Button size="sm" className="bg-gradient-to-r from-blue-500 to-purple-600">Apply</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Don't see a fit?</h4>
+            <p className="text-sm text-gray-500 mb-3">Send us your resume and we'll keep you in mind for future opportunities.</p>
+            <Button variant="outline" size="sm">Send Resume</Button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Blog Modal
+const BlogModal = ({ isOpen, onClose }: FooterPageModalProps) => {
+  const posts = [
+    { title: '10 Study Techniques Backed by Science', date: 'Jan 15, 2024', readTime: '5 min', category: 'Study Tips' },
+    { title: 'How to Build a Study Schedule That Works', date: 'Jan 10, 2024', readTime: '7 min', category: 'Planning' },
+    { title: 'The Benefits of Spaced Repetition', date: 'Jan 5, 2024', readTime: '4 min', category: 'Learning' },
+    { title: 'AI in Education: What to Expect in 2024', date: 'Dec 28, 2023', readTime: '6 min', category: 'Technology' },
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Blog</h2>
+                <p className="text-sm text-white/80">Study Tips & Insights</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-4">
+            {posts.map((post, index) => (
+              <div key={index} className="group cursor-pointer">
+                <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-xl flex items-center justify-center shrink-0">
+                    <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <Badge variant="outline" className="text-xs mb-2">{post.category}</Badge>
+                    <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">{post.title}</h4>
+                    <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
+                      <span>{post.date}</span>
+                      <span>•</span>
+                      <span>{post.readTime} read</span>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-6 text-center">
+            <Button variant="outline">View All Posts</Button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// ============================================
 // LANDING PAGE COMPONENTS (Continued from before)
 // ============================================
 
@@ -4364,6 +4975,10 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  
+  // Footer modal states
+  const [activeFooterModal, setActiveFooterModal] = useState<string | null>(null);
+  
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
 
@@ -5320,14 +5935,14 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'About Us', onClick: () => scrollToSection('features') },
-                  { label: 'Blog', onClick: () => scrollToSection('features') },
-                  { label: 'Careers', onClick: () => scrollToSection('features') },
-                  { label: 'Contact', onClick: () => scrollToSection('features') },
+                  { label: 'About Us', modal: 'about' },
+                  { label: 'Blog', modal: 'blog' },
+                  { label: 'Careers', modal: 'careers' },
+                  { label: 'Contact', modal: 'contact' },
                 ].map((link) => (
                   <li key={link.label}>
                     <button 
-                      onClick={link.onClick}
+                      onClick={() => setActiveFooterModal(link.modal)}
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
                     >
                       {link.label}
@@ -5350,14 +5965,14 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'Help Center', onClick: onRegister },
-                  { label: 'FAQ', onClick: onRegister },
-                  { label: 'Privacy Policy', onClick: () => scrollToTop() },
-                  { label: 'Terms of Service', onClick: () => scrollToTop() },
+                  { label: 'Help Center', modal: 'faq' },
+                  { label: 'FAQ', modal: 'faq' },
+                  { label: 'Privacy Policy', modal: 'privacy' },
+                  { label: 'Terms of Service', modal: 'terms' },
                 ].map((link) => (
                   <li key={link.label}>
                     <button 
-                      onClick={link.onClick}
+                      onClick={() => setActiveFooterModal(link.modal)}
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
                     >
                       {link.label}
@@ -5378,14 +5993,25 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 <span className="hidden sm:inline">for students worldwide.</span>
               </div>
               <div className="flex items-center gap-6 text-sm text-gray-400">
-                <button onClick={() => scrollToTop()} className="hover:text-white transition-colors">Privacy</button>
-                <button onClick={() => scrollToTop()} className="hover:text-white transition-colors">Terms</button>
-                <button onClick={() => scrollToTop()} className="hover:text-white transition-colors">Cookies</button>
+                <button onClick={() => setActiveFooterModal('privacy')} className="hover:text-white transition-colors">Privacy</button>
+                <button onClick={() => setActiveFooterModal('terms')} className="hover:text-white transition-colors">Terms</button>
+                <button onClick={() => setActiveFooterModal('faq')} className="hover:text-white transition-colors">Cookies</button>
               </div>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Footer Page Modals */}
+      <AnimatePresence>
+        <AboutUsModal isOpen={activeFooterModal === 'about'} onClose={() => setActiveFooterModal(null)} />
+        <ContactModal isOpen={activeFooterModal === 'contact'} onClose={() => setActiveFooterModal(null)} />
+        <FAQModal isOpen={activeFooterModal === 'faq'} onClose={() => setActiveFooterModal(null)} />
+        <PrivacyPolicyModal isOpen={activeFooterModal === 'privacy'} onClose={() => setActiveFooterModal(null)} />
+        <TermsOfServiceModal isOpen={activeFooterModal === 'terms'} onClose={() => setActiveFooterModal(null)} />
+        <CareersModal isOpen={activeFooterModal === 'careers'} onClose={() => setActiveFooterModal(null)} />
+        <BlogModal isOpen={activeFooterModal === 'blog'} onClose={() => setActiveFooterModal(null)} />
+      </AnimatePresence>
 
       {/* Back to Top Button */}
       <AnimatePresence>
