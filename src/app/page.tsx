@@ -4279,78 +4279,43 @@ const UserManagement = ({ user: _user }: UserManagementProps) => {
 };
 
 // ============================================
-// SKELETON LOADER - Enhanced with animations
+// SKELETON LOADER - Lightweight for faster rendering
 // ============================================
 
 const DashboardSkeleton = () => (
-  <div className="space-y-6">
+  <div className="space-y-6 animate-pulse">
     {/* Welcome Banner Skeleton */}
-    <Card className="bg-gradient-to-br from-blue-500/50 to-purple-600/50 border-0 overflow-hidden">
-      <CardContent className="p-6 relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
-        <div className="relative space-y-4">
-          <Skeleton className="h-8 w-64 bg-white/20" />
-          <Skeleton className="h-4 w-96 bg-white/20" />
-          <div className="flex gap-4 pt-2">
-            <Skeleton className="h-10 w-36 bg-white/20 rounded-lg" />
-            <Skeleton className="h-10 w-36 bg-white/20 rounded-lg" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <Card className="bg-gradient-to-br from-blue-500/50 to-purple-600/50 border-0 h-32" />
     
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {[1, 2, 3, 4].map((i) => (
-        <Card key={i} className="overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 animate-pulse" />
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-              <Skeleton className="h-12 w-12 rounded-xl" />
-            </div>
+        <Card key={i} className="h-28">
+          <CardContent className="p-4">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-2" />
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16" />
           </CardContent>
         </Card>
       ))}
     </div>
     
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-48 w-full rounded-lg" />
+      <Card className="lg:col-span-2 h-64">
+        <CardContent className="p-4">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-4" />
+          <div className="h-40 bg-gray-100 dark:bg-gray-800 rounded" />
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
-          ))}
+      <Card className="h-64">
+        <CardContent className="p-4">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-4" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-12 bg-gray-100 dark:bg-gray-800 rounded" />
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
-    
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-32" />
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-lg" />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
   </div>
 );
 
@@ -7019,6 +6984,19 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
 };
 
 // ============================================
+// QUICK LOADING INDICATOR
+// ============================================
+
+const QuickLoader = () => (
+  <div className="flex items-center justify-center py-8">
+    <div className="flex items-center gap-3">
+      <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent" />
+      <span className="text-gray-500 text-sm">Loading...</span>
+    </div>
+  </div>
+);
+
+// ============================================
 // MAIN PAGE COMPONENT
 // ============================================
 
@@ -7028,6 +7006,7 @@ function PageContent() {
   const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+  const [viewLoading, setViewLoading] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -7082,7 +7061,14 @@ function PageContent() {
   };
 
   const handleViewChange = (view: string) => {
-    setCurrentView(view);
+    if (view !== currentView) {
+      setViewLoading(view);
+      // Small delay to show loading state
+      setTimeout(() => {
+        setCurrentView(view);
+        setViewLoading(null);
+      }, 100);
+    }
     const url = new URL(window.location.href);
     url.searchParams.set('view', view);
     url.searchParams.delete('auth');
@@ -7091,8 +7077,11 @@ function PageContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -7100,6 +7089,11 @@ function PageContent() {
   // Show Dashboard if logged in
   if (user) {
     const renderContent = () => {
+      // Show quick loader during view transitions
+      if (viewLoading && viewLoading !== currentView) {
+        return <QuickLoader />;
+      }
+      
       switch (currentView) {
         case 'planner':
           return <StudyPlanner user={user} />;
