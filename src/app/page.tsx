@@ -5341,7 +5341,9 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
           required={required}
           minLength={minLength}
           placeholder={placeholder}
-          className={`pl-12 pr-${showPasswordToggle ? '12' : '4'} py-6 h-auto text-lg transition-all duration-200 ${
+          className={`pl-12 py-6 h-auto text-lg transition-all duration-200 ${
+            showPasswordToggle ? 'pr-12' : 'pr-4'
+          } ${
             isFocused
               ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/10'
               : 'hover:border-gray-400'
