@@ -6690,22 +6690,22 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   }, []);
 
   const handleGoogleLogin = async () => {
-    if (!firebaseReady && !firebaseAuthRef.current.auth) {
-      setError('Firebase is not properly configured. Please check your environment variables.');
-      return;
-    }
-    
     setError('');
     setGoogleLoading(true);
     
     try {
       // Use cached auth instance or get it
-      let { auth, googleProvider } = firebaseAuthRef.current;
+      let { auth, googleProvider, error: firebaseError } = firebaseAuthRef.current;
       
       if (!auth || !googleProvider) {
         const result = await getFirebaseAuth();
         auth = result.auth;
         googleProvider = result.googleProvider;
+        firebaseError = result.error;
+      }
+      
+      if (firebaseError) {
+        throw new Error(firebaseError);
       }
       
       if (!auth || !googleProvider) {
@@ -6715,6 +6715,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       const { signInWithPopup } = await import('firebase/auth');
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      
+      if (!user.email) {
+        throw new Error('Could not get email from Google account. Please ensure your Google account has an email address.');
+      }
       
       // Send the user info to our backend to create a session
       const response = await fetch('/api/auth/firebase', {
@@ -6731,7 +6735,11 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create session');
+        throw new Error(data.error || 'Failed to create session. Please try again.');
+      }
+
+      if (!data.success || !data.user) {
+        throw new Error(data.error || 'Authentication failed. Please try again.');
       }
 
       // Show success animation
@@ -6745,14 +6753,18 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       // Handle specific Firebase errors
       const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
       
-      if (errorMessage.includes('invalid-api-key')) {
-        setError('Invalid Firebase API Key. Please verify your Firebase configuration in the Firebase Console.');
-      } else if (errorMessage.includes('auth/unauthorized-domain')) {
-        setError('This domain is not authorized. Please add it to Firebase Console → Authentication → Settings → Authorized domains.');
+      if (errorMessage.includes('invalid-api-key') || errorMessage.includes('invalid_api_key')) {
+        setError('Invalid Firebase API Key. Please verify your Firebase configuration.');
+      } else if (errorMessage.includes('auth/unauthorized-domain') || errorMessage.includes('unauthorized-domain')) {
+        setError('This domain is not authorized for Google sign-in. Please contact support or try a different login method.');
       } else if (errorMessage.includes('auth/popup-blocked')) {
         setError('Popup was blocked by your browser. Please allow popups and try again.');
       } else if (errorMessage.includes('auth/popup-closed-by-user')) {
         setError('Sign-in was cancelled. Please try again.');
+      } else if (errorMessage.includes('auth/network-request-failed')) {
+        setError('Network error. Please check your internet connection and try again.');
+      } else if (errorMessage.includes('Firebase configuration incomplete')) {
+        setError('Firebase is not configured. Google sign-in is currently unavailable. Please try again later.');
       } else {
         setError(errorMessage);
       }
