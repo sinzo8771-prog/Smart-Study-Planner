@@ -5,12 +5,57 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { db } from './db';
 import bcrypt from 'bcryptjs';
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
-  providers: [
+// Check if Google OAuth is configured
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const isGoogleConfigured = googleClientId && googleClientSecret && googleClientId.length > 0 && googleClientSecret.length > 0;
+
+const providers: NextAuthOptions['providers'] = [
+  CredentialsProvider({
+    name: 'credentials',
+    credentials: {
+      email: { label: 'Email', type: 'email' },
+      password: { label: 'Password', type: 'password' },
+    },
+    async authorize(credentials) {
+      if (!credentials?.email || !credentials?.password) {
+        return null;
+      }
+
+      const user = await db.user.findUnique({
+        where: { email: credentials.email },
+      });
+
+      if (!user || !user.password) {
+        return null;
+      }
+
+      const passwordMatch = await bcrypt.compare(
+        credentials.password,
+        user.password
+      );
+
+      if (!passwordMatch) {
+        return null;
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.image,
+        role: user.role,
+      };
+    },
+  }),
+];
+
+// Only add Google provider if configured
+if (isGoogleConfigured) {
+  providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
       authorization: {
         params: {
           prompt: "consent",
@@ -18,45 +63,13 @@ export const authOptions: NextAuthOptions = {
           scope: "openid email profile"
         }
       }
-    }),
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+    })
+  );
+}
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        });
-
-        if (!user || !user.password) {
-          return null;
-        }
-
-        const passwordMatch = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!passwordMatch) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role: user.role,
-        };
-      },
-    }),
-  ],
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(db),
+  providers,
   session: {
     strategy: 'jwt',
   },
@@ -143,5 +156,8 @@ export const authOptions: NextAuthOptions = {
       }
     },
   },
-  debug: true,
+  debug: process.env.NODE_ENV === 'development',
 };
+
+// Export helper to check if Google is configured
+export const isGoogleOAuthConfigured = () => isGoogleConfigured;
