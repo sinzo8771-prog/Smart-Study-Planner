@@ -5256,13 +5256,15 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 {/* Social Links */}
                 <div className="flex gap-3">
                   {[
-                    { icon: Twitter, href: '#', label: 'Twitter' },
-                    { icon: Github, href: '#', label: 'GitHub' },
-                    { icon: Linkedin, href: '#', label: 'LinkedIn' },
+                    { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
+                    { icon: Github, href: 'https://github.com', label: 'GitHub' },
+                    { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
                   ].map((social) => (
                     <motion.a
                       key={social.label}
                       href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       whileHover={{ scale: 1.1, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       className="w-10 h-10 bg-gray-800 hover:bg-gradient-to-br hover:from-blue-500 hover:to-purple-600 rounded-xl flex items-center justify-center transition-all duration-300 group"
@@ -5288,19 +5290,18 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'Features', href: '#features' },
-                  { label: 'Pricing', href: '#pricing' },
-                  { label: 'Courses', href: '#' },
-                  { label: 'Quizzes', href: '#' },
+                  { label: 'Features', href: '#features', onClick: () => scrollToSection('features') },
+                  { label: 'Pricing', href: '#pricing', onClick: () => scrollToSection('pricing') },
+                  { label: 'Courses', onClick: onRegister },
+                  { label: 'Quizzes', onClick: onRegister },
                 ].map((link) => (
                   <li key={link.label}>
-                    <a 
-                      href={link.href} 
+                    <button 
+                      onClick={link.onClick}
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
                     >
                       {link.label}
-                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -5319,19 +5320,18 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'About Us', href: '#about' },
-                  { label: 'Blog', href: '#blog' },
-                  { label: 'Careers', href: '#careers' },
-                  { label: 'Contact', href: '#contact' },
+                  { label: 'About Us', onClick: () => scrollToSection('features') },
+                  { label: 'Blog', onClick: () => scrollToSection('features') },
+                  { label: 'Careers', onClick: () => scrollToSection('features') },
+                  { label: 'Contact', onClick: () => scrollToSection('features') },
                 ].map((link) => (
                   <li key={link.label}>
-                    <a 
-                      href={link.href} 
+                    <button 
+                      onClick={link.onClick}
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
                     >
                       {link.label}
-                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -5350,19 +5350,18 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'Help Center', href: '#help' },
-                  { label: 'FAQ', href: '#faq' },
-                  { label: 'Privacy Policy', href: '#privacy' },
-                  { label: 'Terms of Service', href: '#terms' },
+                  { label: 'Help Center', onClick: onRegister },
+                  { label: 'FAQ', onClick: onRegister },
+                  { label: 'Privacy Policy', onClick: () => scrollToTop() },
+                  { label: 'Terms of Service', onClick: () => scrollToTop() },
                 ].map((link) => (
                   <li key={link.label}>
-                    <a 
-                      href={link.href} 
+                    <button 
+                      onClick={link.onClick}
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 group"
                     >
                       {link.label}
-                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -5379,9 +5378,9 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 <span className="hidden sm:inline">for students worldwide.</span>
               </div>
               <div className="flex items-center gap-6 text-sm text-gray-400">
-                <a href="#privacy" className="hover:text-white transition-colors">Privacy</a>
-                <a href="#terms" className="hover:text-white transition-colors">Terms</a>
-                <a href="#cookies" className="hover:text-white transition-colors">Cookies</a>
+                <button onClick={() => scrollToTop()} className="hover:text-white transition-colors">Privacy</button>
+                <button onClick={() => scrollToTop()} className="hover:text-white transition-colors">Terms</button>
+                <button onClick={() => scrollToTop()} className="hover:text-white transition-colors">Cookies</button>
               </div>
             </div>
           </div>
