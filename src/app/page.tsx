@@ -869,7 +869,7 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
 };
 
 // ============================================
-// STATS CARD COMPONENT
+// STATS CARD COMPONENT (Memoized)
 // ============================================
 
 interface StatsCardProps {
@@ -3850,17 +3850,18 @@ const AnimatedCounter = ({ value, suffix = '', duration = 2000 }: { value: numbe
 };
 
 // ============================================
-// FLOATING PARTICLES COMPONENT
+// FLOATING PARTICLES COMPONENT (Optimized)
 // ============================================
 
 const FloatingParticles = () => {
-  const particles = Array.from({ length: 50 }, (_, i) => ({
+  // Reduced particles for better performance
+  const particles = Array.from({ length: 15 }, (_, i) => ({
     id: i,
     size: Math.random() * 4 + 2,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    duration: Math.random() * 20 + 10,
-    delay: Math.random() * 5,
+    duration: Math.random() * 15 + 10,
+    delay: Math.random() * 3,
   }));
 
   return (
@@ -3868,7 +3869,7 @@ const FloatingParticles = () => {
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute rounded-full bg-gradient-to-br from-blue-400/30 to-purple-400/30"
+          className="absolute rounded-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 will-change-transform"
           style={{
             width: particle.size,
             height: particle.size,
@@ -3876,9 +3877,8 @@ const FloatingParticles = () => {
             top: `${particle.y}%`,
           }}
           animate={{
-            y: [0, -30, 0],
-            x: [0, 15, 0],
-            opacity: [0.3, 0.6, 0.3],
+            y: [0, -20, 0],
+            opacity: [0.2, 0.4, 0.2],
           }}
           transition={{
             duration: particle.duration,
@@ -3893,33 +3893,48 @@ const FloatingParticles = () => {
 };
 
 // ============================================
-// MOUSE GLOW EFFECT
+// MOUSE GLOW EFFECT (Optimized with throttle)
 // ============================================
 
 const MouseGlow = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
+  const targetRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
+      targetRef.current = { x: e.clientX, y: e.clientY };
+      
+      // Throttle using requestAnimationFrame
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(() => {
+          setPosition({ ...targetRef.current });
+          rafRef.current = null;
+        });
+      }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
+      className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300 will-change-[background]"
       style={{
-        background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(99, 102, 241, 0.06), transparent 40%)`,
+        background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(99, 102, 241, 0.04), transparent 40%)`,
       }}
     />
   );
 };
 
 // ============================================
-// INTERACTIVE FEATURE CARD
+// INTERACTIVE FEATURE CARD (Optimized)
 // ============================================
 
 const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index }: {
@@ -3929,18 +3944,7 @@ const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index }
   color: string;
   index: number;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-  };
 
   return (
     <motion.div
@@ -3949,19 +3953,9 @@ const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index }
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, type: 'spring', stiffness: 100 }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className="relative group"
     >
-      <div
-        className="absolute inset-0 rounded-2xl transition-opacity duration-300"
-        style={{
-          background: `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(99, 102, 241, 0.15), transparent 40%)`,
-          opacity: isHovered ? 1 : 0,
-        }}
-      />
-      <Card className="h-full relative overflow-hidden border-0 bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer">
+      <Card className="h-full relative overflow-hidden border-0 bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         <CardContent className="p-8 relative z-10">
           <motion.div
@@ -5182,35 +5176,39 @@ interface AuthModalProps {
   initialError?: string;
 }
 
-// Floating shapes for background animation
+// Floating shapes for background animation (Optimized)
 const AuthFloatingShapes = () => {
+  // Reduced from 6 to 3 shapes for better performance
+  const shapes = [
+    { size: 80, left: 10, top: 20, duration: 8 },
+    { size: 60, left: 80, top: 60, duration: 10 },
+    { size: 40, left: 50, top: 80, duration: 12 },
+  ];
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(6)].map((_, i) => (
+      {shapes.map((shape, i) => (
         <motion.div
           key={i}
-          className={`absolute rounded-full ${
+          className={`absolute rounded-full will-change-transform ${
             i % 2 === 0
-              ? 'bg-gradient-to-br from-blue-400/20 to-purple-400/20'
-              : 'bg-gradient-to-br from-pink-400/20 to-orange-400/20'
+              ? 'bg-gradient-to-br from-blue-400/15 to-purple-400/15'
+              : 'bg-gradient-to-br from-pink-400/15 to-orange-400/15'
           }`}
           style={{
-            width: Math.random() * 100 + 50,
-            height: Math.random() * 100 + 50,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            width: shape.size,
+            height: shape.size,
+            left: `${shape.left}%`,
+            top: `${shape.top}%`,
           }}
           animate={{
-            y: [0, -30, 0],
-            x: [0, 20, 0],
-            rotate: [0, 180, 360],
-            scale: [1, 1.1, 1],
+            y: [0, -15, 0],
+            scale: [1, 1.05, 1],
           }}
           transition={{
-            duration: Math.random() * 5 + 5,
+            duration: shape.duration,
             repeat: Infinity,
             ease: 'easeInOut',
-            delay: Math.random() * 2,
           }}
         />
       ))}
@@ -5253,15 +5251,27 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [mounted, setMounted] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [firebaseReady, setFirebaseReady] = useState(false);
+  
+  // Pre-cache Firebase auth instance
+  const firebaseAuthRef = useRef<{ auth: typeof import('firebase/auth').Auth | null; googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null }>({ auth: null, googleProvider: null });
 
   useEffect(() => {
     setMounted(true);
-    // Check Firebase configuration on mount
-    setFirebaseReady(isFirebaseConfigured());
+    // Check Firebase configuration and pre-initialize on mount
+    if (isFirebaseConfigured()) {
+      // Pre-load Firebase in the background
+      getFirebaseAuth().then(({ auth, googleProvider }) => {
+        firebaseAuthRef.current = { auth, googleProvider };
+        setFirebaseReady(!!auth && !!googleProvider);
+      }).catch((err) => {
+        console.error('Firebase pre-initialization error:', err);
+        setFirebaseReady(false);
+      });
+    }
   }, []);
 
   const handleGoogleLogin = async () => {
-    if (!firebaseReady) {
+    if (!firebaseReady && !firebaseAuthRef.current.auth) {
       setError('Firebase is not properly configured. Please check your environment variables.');
       return;
     }
@@ -5270,7 +5280,14 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     setGoogleLoading(true);
     
     try {
-      const { auth, googleProvider } = await getFirebaseAuth();
+      // Use cached auth instance or get it
+      let { auth, googleProvider } = firebaseAuthRef.current;
+      
+      if (!auth || !googleProvider) {
+        const result = await getFirebaseAuth();
+        auth = result.auth;
+        googleProvider = result.googleProvider;
+      }
       
       if (!auth || !googleProvider) {
         throw new Error('Firebase authentication could not be initialized. Please check your Firebase project configuration in the Firebase Console.');
