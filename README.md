@@ -43,7 +43,7 @@ The **Smart Study Planner & Learning Management System** is a comprehensive, pro
 
 ### 🎓 Academic Project
 
-This is a **Final Year Major Project** demonstrating:
+This is a **First Year Project** demonstrating:
 - ✅ Full-stack development expertise
 - ✅ Modern web technologies mastery
 - ✅ Clean architecture and code quality
@@ -479,7 +479,7 @@ Contributions are welcome! Here's how you can help:
 
 ## 📄 License
 
-This project is developed as a **Final Year Major College Project**.
+This project is developed as a **First Year College Project**.
 
 ---
 
@@ -490,9 +490,9 @@ This project is developed as a **Final Year Major College Project**.
 | Project Info | Details |
 |--------------|---------|
 | **Project** | Smart Study Planner & Learning Management System |
-| **Type** | Final Year Major Project |
+| **Type** | First Year Project |
 | **Department** | Computer Science |
-| **Academic Year** | 2024-2025 |
+| **Academic Year** | 2025-2026 |
 | **Developer** | [@sinzo8771-prog](https://github.com/sinzo8771-prog) |
 
 </div>
