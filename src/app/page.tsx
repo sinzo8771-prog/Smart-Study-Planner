@@ -5323,14 +5323,13 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
 
     return (
       <div className="relative">
-        <motion.div
-          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-200 ${
+        <div
+          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-200 pointer-events-none ${
             isFocused || hasValue ? 'opacity-100' : 'opacity-50'
           }`}
-          animate={{ scale: isFocused ? 1.1 : 1 }}
         >
           <Icon className={`w-5 h-5 ${isFocused ? 'text-blue-500' : 'text-gray-400'}`} />
-        </motion.div>
+        </div>
         <Input
           id={id}
           type={showPasswordToggle ? (showPassword ? 'text' : 'password') : type}
@@ -5371,7 +5370,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       onClick={onClose}
     >
       {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl pointer-events-none" />
 
       {/* Floating particles */}
       {mounted && <AuthFloatingShapes />}
@@ -5381,7 +5380,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden z-10"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Success Animation Overlay */}
