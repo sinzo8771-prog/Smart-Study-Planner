@@ -452,9 +452,9 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
       </aside>
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
+      <main className={`flex flex-col min-h-screen transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
         {/* Top Bar */}
-        <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+        <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 shrink-0">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -514,8 +514,10 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
           </div>
         </header>
 
-        {/* Page Content */}
-        <div className="p-4 lg:p-6">{children}</div>
+        {/* Page Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 lg:p-6">{children}</div>
+        </div>
       </main>
     </div>
   );
