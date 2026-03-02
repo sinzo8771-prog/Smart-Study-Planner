@@ -6,10 +6,11 @@ export function generateToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Generate a 6-digit verification code (for email verification)
+// Generate a secure 6-digit verification code using crypto
 export function generateVerificationCode(): string {
-  // Generate a random 6-digit code
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // Use crypto.randomInt for cryptographically secure random number
+  // Generate a number between 100000 and 999999 (inclusive)
+  return crypto.randomInt(100000, 1000000).toString();
 }
 
 // Create a verification token (returns 6-digit code for both types)

@@ -10,8 +10,6 @@ function createTransporter() {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
 
-  console.log('Creating SMTP transporter:', { host, port, user: user || 'not set', pass: pass ? 'set' : 'not set' });
-
   return nodemailer.createTransport({
     host,
     port,
@@ -40,17 +38,12 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ 
   // If no SMTP credentials, log for development
   if (!smtpUser || !smtpPass) {
     console.log('📧 Email Service (Development Mode - No SMTP Credentials)');
-    console.log('To:', to);
-    console.log('Subject:', subject);
-    console.log('HTML:', html);
     return { success: true };
   }
 
   try {
     const transporter = createTransporter();
     const emailFrom = getEmailFrom();
-    
-    console.log('Sending email via SMTP:', { from: emailFrom, to, subject });
     
     const info = await transporter.sendMail({
       from: `"${APP_NAME}" <${emailFrom}>`,
@@ -59,10 +52,10 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ 
       html,
     });
 
-    console.log('Email sent successfully:', info.messageId);
+    console.log('Email sent successfully, MessageId:', info.messageId);
     return { success: true };
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('Email sending error:', error instanceof Error ? error.message : 'Unknown error');
     return { success: false, error: error instanceof Error ? error.message : 'Failed to send email' };
   }
 }

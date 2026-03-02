@@ -3,7 +3,14 @@ import jwt from 'jsonwebtoken';
 import { db } from './db';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';
+// Get JWT secret from environment variable - no fallback for security
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set. Please configure it in your environment.');
+  }
+  return secret;
+}
 
 export interface UserPayload {
   id: string;
@@ -24,13 +31,13 @@ export async function comparePassword(password: string, hashedPassword: string):
 
 // Generate JWT token
 export function generateToken(payload: UserPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' });
 }
 
 // Verify JWT token
 export function verifyToken(token: string): UserPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as UserPayload;
+    return jwt.verify(token, getJwtSecret()) as UserPayload;
   } catch {
     return null;
   }

@@ -7,8 +7,6 @@ export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
 
-    console.log('Forgot password request for:', email);
-
     if (!email) {
       return NextResponse.json(
         { error: 'Email is required' },
@@ -30,7 +28,6 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       // Don't reveal if user exists or not for security
-      console.log('User not found for email:', email);
       return NextResponse.json({
         success: true,
         message: 'If an account with that email exists, a verification code has been sent.',
@@ -39,7 +36,6 @@ export async function POST(request: NextRequest) {
 
     // Check if user has password (OAuth users might not)
     if (!user.password) {
-      console.log('User has no password (OAuth user):', email);
       return NextResponse.json({
         success: true,
         message: 'If an account with that email exists, a verification code has been sent.',
@@ -50,13 +46,8 @@ export async function POST(request: NextRequest) {
     await deleteTokensForIdentifier(email, 'password_reset');
     const code = await createVerificationToken(email, 'password_reset', 1); // 1 hour expiry
 
-    console.log('Generated reset code for', email, ':', code);
-    console.log('Sending email via SMTP...');
-
     // Send password reset email with code
     const emailResult = await sendPasswordResetEmail(email, user.name, code);
-
-    console.log('Email result:', emailResult);
 
     if (!emailResult.success) {
       console.error('Failed to send password reset email:', emailResult.error);

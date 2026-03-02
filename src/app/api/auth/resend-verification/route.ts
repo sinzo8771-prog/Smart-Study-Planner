@@ -39,8 +39,6 @@ export async function POST(request: NextRequest) {
     await deleteTokensForIdentifier(email, 'email_verification');
     const token = await createVerificationToken(email, 'email_verification', 24);
 
-    console.log('Generated verification code:', token);
-
     // Send verification email
     const emailResult = await sendVerificationEmail(email, user.name, token);
 
