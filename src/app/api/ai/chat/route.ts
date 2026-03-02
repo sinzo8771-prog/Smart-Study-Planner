@@ -17,15 +17,36 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log('AI Chat: Unauthorized - no user found');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Unauthorized',
+        message: 'Please log in to use the AI assistant.' 
+      }, { status: 401 });
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      console.log('AI Chat: Invalid JSON body');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid request body',
+        message: 'Invalid request format.' 
+      }, { status: 400 });
+    }
+    
     const message = body.message;
     const history = Array.isArray(body.history) ? body.history : [];
 
     if (!message || typeof message !== 'string') {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+      console.log('AI Chat: No message provided');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Message is required',
+        message: 'Please enter a message.' 
+      }, { status: 400 });
     }
 
     // System prompt for the AI Study Assistant
@@ -52,7 +73,6 @@ Guidelines:
 The student's name is ${user.name || 'Student'}.`;
 
     // Build messages array with proper format
-    // Use 'assistant' role for system prompt as per z-ai-web-dev-sdk docs
     const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [
       { role: 'assistant', content: systemPrompt }
     ];
@@ -60,7 +80,6 @@ The student's name is ${user.name || 'Student'}.`;
     // Add conversation history if provided (filter and validate)
     if (history.length > 0) {
       for (const msg of history) {
-        // Only include valid user/assistant messages
         if (msg && typeof msg === 'object') {
           const role = msg.role;
           const content = String(msg.content || '');
@@ -78,7 +97,7 @@ The student's name is ${user.name || 'Student'}.`;
     // Add the current user message
     messages.push({ role: 'user', content: message });
 
-    // Get ZAI instance
+    // Get ZAI instance and make request
     const zai = await getZAI();
 
     const response = await zai.chat.completions.create({
@@ -89,7 +108,12 @@ The student's name is ${user.name || 'Student'}.`;
     const aiMessage = response.choices?.[0]?.message?.content;
 
     if (!aiMessage) {
-      throw new Error('Empty response from AI');
+      console.log('AI Chat: Empty response from AI');
+      // Return fallback instead of throwing
+      return NextResponse.json({
+        success: true,
+        message: getFallbackResponse()
+      });
     }
 
     return NextResponse.json({
@@ -99,12 +123,17 @@ The student's name is ${user.name || 'Student'}.`;
   } catch (error) {
     console.error('AI chat error:', error);
     
-    // Provide helpful fallback based on common queries
-    const fallbackMessage = getFallbackResponse();
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     
+    // Return fallback response with success=true so UI shows it
     return NextResponse.json({ 
       success: true, 
-      message: fallbackMessage 
+      message: getFallbackResponse()
     });
   }
 }

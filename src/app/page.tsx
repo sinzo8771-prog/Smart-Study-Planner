@@ -681,24 +681,32 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Handle specific error codes
+        if (response.status === 401) {
+          throw new Error('Please log in to use the AI assistant.');
+        }
+        throw new Error(`Server error (${response.status}). Please try again.`);
       }
       
       const data = await response.json();
 
       if (data.success && data.message) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+      } else if (data.message) {
+        // API returned a message even if success is false
+        setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
       } else {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: '❌ Sorry, I encountered an error. Please try again.' 
+          content: '## ⚠️ Temporary Issue\n\nI\'m having some trouble right now. Please try again in a moment!\n\n**Quick tip**: While waiting, try the Pomodoro technique - study for 25 minutes, then take a 5-minute break.' 
         }]);
       }
     } catch (error) {
       console.error('AI chat error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Connection failed';
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: '❌ Sorry, I couldn\'t connect to the AI service. Please try again later.' 
+        content: `## ⚠️ ${errorMessage}\n\nHere are some study tips while we reconnect:\n\n• **Take a break** - Short breaks improve focus\n• **Review your notes** - Active recall helps memory\n• **Stay hydrated** - Water keeps your brain sharp\n\nPlease try again in a moment!` 
       }]);
     } finally {
       setIsLoading(false);
