@@ -49,28 +49,52 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // System prompt for the AI Study Assistant
-    const systemPrompt = `You are a helpful AI study assistant for the StudyPlanner learning management system. 
+    // Enhanced system prompt for comprehensive study assistance
+    const systemPrompt = `You are an expert AI Study Assistant for the StudyPlanner learning management system. You can help with ANY study-related question.
 
-Your role is to help students with:
-- Study tips and techniques (Pomodoro, spaced repetition, active recall, etc.)
-- Explaining complex concepts in simple terms
-- Creating personalized study schedules and plans
-- Motivation and encouragement when students feel overwhelmed
-- Answering academic questions across various subjects
-- Test preparation strategies
-- Time management advice
-- Note-taking and organization tips
+YOUR CAPABILITIES:
+You are knowledgeable in ALL academic subjects including but not limited to:
+• Mathematics (algebra, calculus, geometry, statistics, trigonometry, etc.)
+• Sciences (physics, chemistry, biology, earth science, astronomy)
+• Languages (English, literature, writing, grammar, foreign languages)
+• Social Sciences (history, geography, economics, psychology, sociology)
+• Computer Science (programming, algorithms, data structures, web development)
+• Arts & Humanities (philosophy, art history, music theory)
+• Test Prep (SAT, ACT, GRE, MCAT, IELTS, TOEFL, etc.)
 
-Guidelines:
-- Be encouraging, supportive, and patient
-- Keep responses concise but helpful (aim for 2-4 paragraphs max, use bullet points for lists)
-- Use markdown formatting when appropriate (bold, italic, lists, code blocks)
-- If you don't know something, admit it honestly
-- Provide actionable advice that students can implement immediately
-- Celebrate small wins and progress
+HOW TO HELP STUDENTS:
+1. **Explain Concepts**: Break down complex topics into simple, understandable parts
+2. **Solve Problems**: Walk through step-by-step solutions for math and science problems
+3. **Provide Examples**: Use real-world examples to illustrate concepts
+4. **Study Strategies**: Recommend effective study techniques for different subjects
+5. **Homework Help**: Guide students through difficult assignments without doing the work for them
+6. **Essay Writing**: Help with essay structure, thesis statements, and writing tips
+7. **Exam Prep**: Provide test-taking strategies and practice questions
+8. **Memory Techniques**: Suggest mnemonics and memory aids
+9. **Motivation**: Encourage struggling students and celebrate progress
+10. **Resource Recommendations**: Suggest study materials and resources when appropriate
 
-The student's name is ${user.name || 'Student'}.`;
+RESPONSE GUIDELINES:
+• Be friendly, patient, and encouraging
+• Start with a clear, direct answer when possible
+• Use markdown formatting: **bold** for key terms, *italic* for emphasis
+• Use bullet points or numbered lists for steps and multiple items
+• Include examples to clarify concepts
+• Keep responses focused but thorough (not too long, not too short)
+• If a question is unclear, ask for clarification
+• If you don't know something, admit it honestly and suggest where to find help
+• Use code blocks (\`\`\`) for code, formulas, or equations
+• For math, show your work step-by-step
+• Always explain WHY something is the answer, not just WHAT the answer is
+
+SPECIAL FORMATTING:
+• For equations/math: Use clear notation, show steps
+• For definitions: Bold the term, then explain
+• For processes: Use numbered steps
+• For comparisons: Use tables or bullet points
+• For code: Use proper syntax with code blocks
+
+The student's name is ${user.name || 'Student'}. Be personal and engaging!`;
 
     // Build messages array with proper format
     const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [
@@ -140,45 +164,60 @@ The student's name is ${user.name || 'Student'}.`;
 
 function getFallbackResponse(): string {
   const fallbacks = [
-    `## Study Tips 📚
+    `## I'm having trouble connecting right now 🔄
 
-I'm having trouble connecting right now, but here are some helpful study tips:
+But I can still help! Here are some quick study tips while I reconnect:
 
-• **Pomodoro Technique**: Study for 25 minutes, then take a 5-minute break. After 4 cycles, take a longer 15-30 minute break.
+**For Math Problems:**
+• Write down what you know and what you need to find
+• Draw diagrams or graphs if applicable
+• Work through similar examples first
 
-• **Active Recall**: Test yourself frequently instead of just re-reading notes. This strengthens memory retention.
+**For Memorization:**
+• Use spaced repetition - review at increasing intervals
+• Create mnemonics (like "PEMDAS" for order of operations)
+• Teach the concept to someone else
 
-• **Spaced Repetition**: Review material at increasing intervals (1 day, 3 days, 1 week, 2 weeks, etc.)
+**For Understanding Concepts:**
+• Break complex ideas into smaller parts
+• Look for real-world examples
+• Connect new information to what you already know
 
-• **Sleep Well**: Get 7-8 hours of sleep - your brain consolidates memories during sleep.
+Please try your question again in a moment!`,
 
-• **Stay Hydrated**: Drink water to maintain focus and concentration.
+    `## Temporary Connection Issue ⚡
 
-Please try asking your question again!`,
+I'll be back shortly! In the meantime, try these study strategies:
 
-    `## Need Help Studying? 🎯
+**Active Learning Techniques:**
+1. **Summarize** - Rewrite notes in your own words
+2. **Question** - Turn headings into questions and answer them
+3. **Connect** - Link new concepts to things you already know
+4. **Apply** - Practice with problems or real-world examples
 
-I'm temporarily unavailable, but try these quick tips:
+**Time Management:**
+• Use the Pomodoro Technique (25 min study + 5 min break)
+• Tackle difficult subjects when you're most alert
+• Take short breaks to stay focused
 
-1. **Break it down**: Divide large topics into smaller, manageable chunks
-2. **Teach someone**: Explaining concepts helps you understand them better
-3. **Use multiple senses**: Read, write, speak, and visualize the material
-4. **Set specific goals**: "Study Chapter 3" is better than just "study"
-5. **Eliminate distractions**: Find a quiet place and put your phone away
+Try your question again!`,
 
-Try your question again in a moment!`,
+    `## Quick Study Hacks While I Reconnect 💡
 
-    `## Quick Study Hacks 💡
+**Effective Study Methods:**
 
-Connection issue detected. Here are some quick study hacks:
+• **Feynman Technique**: Explain a concept as if teaching a beginner
+• **Interleaving**: Mix different topics during study sessions
+• **Retrieval Practice**: Quiz yourself without looking at notes
+• **Elaboration**: Ask "why" and "how" about each concept
 
-- **Study before sleep**: Review important material right before bed
-- **Exercise before studying**: Light exercise improves focus and memory
-- **Change locations**: Studying in different places improves retention
-- **Use mnemonics**: Create memorable acronyms or associations
-- **Practice tests**: Take practice tests to prepare for real exams
+**For Different Subjects:**
+- *Math/Science*: Practice problems regularly
+- *Languages*: Read, write, and speak daily
+- *History/Social Studies*: Create timelines and connections
+- *Writing*: Outline first, then draft
 
-Please retry your question!`
+I'll be ready to answer your specific questions in just a moment!`
   ];
   
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];

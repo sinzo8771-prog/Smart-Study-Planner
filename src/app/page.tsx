@@ -625,7 +625,7 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
     { 
       role: 'assistant', 
-      content: '👋 Hello! I\'m your AI Study Assistant.\n\nI can help you with:\n• **Study tips** and techniques\n• **Explaining concepts** in simple terms\n• **Creating study schedules**\n• **Motivation** and encouragement\n• **Test preparation** strategies\n\nHow can I help you today?' 
+      content: '👋 Hello! I\'m your AI Study Assistant.\n\nI can help you with **ANY study-related question**:\n\n• 📐 **Math** - Algebra, calculus, geometry, statistics\n• 🔬 **Science** - Physics, chemistry, biology\n• 📖 **Languages** - Writing, grammar, literature\n• 🌍 **Social Studies** - History, geography, economics\n• 💻 **Computer Science** - Programming, algorithms\n• 📝 **Test Prep** - SAT, ACT, GRE, and more\n• 📚 **Study Tips** - Techniques, schedules, motivation\n\n**Ask me anything!** I\'ll explain concepts, solve problems step-by-step, or help you study smarter.' 
     }
   ]);
   const [input, setInput] = useState('');
@@ -634,10 +634,10 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const quickPrompts = [
-    { icon: '📚', text: 'Study tips for exams' },
-    { icon: '🧠', text: 'How to improve memory?' },
-    { icon: '⏰', text: 'Help me create a study schedule' },
-    { icon: '💪', text: 'I need motivation to study' },
+    { icon: '📐', text: 'Explain quadratic equations' },
+    { icon: '🔬', text: 'How does photosynthesis work?' },
+    { icon: '💻', text: 'What is a linked list?' },
+    { icon: '📚', text: 'Best study techniques for exams' },
   ];
 
   useEffect(() => {
@@ -836,7 +836,7 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
                 handleSend();
               }
             }}
-            placeholder="Ask me anything about studying..."
+            placeholder="Ask me anything about your studies..."
             className="flex-1 text-sm"
             disabled={isLoading}
           />
