@@ -6623,6 +6623,81 @@ const getPasswordStrengthColor = (strength: number) => {
   return { bar: 'bg-green-500', text: 'text-green-500', label: 'Excellent' };
 };
 
+// Input field component - defined outside AuthModal to prevent re-renders
+const FloatingInput = ({
+  id,
+  type = 'text',
+  value,
+  onChange,
+  icon: Icon,
+  required = true,
+  minLength,
+  placeholder,
+  showPasswordToggle = false,
+  showPassword = false,
+  onTogglePassword,
+  focusedField,
+  onFocus,
+  onBlur,
+}: {
+  id: string;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  icon: LucideIcon;
+  required?: boolean;
+  minLength?: number;
+  placeholder?: string;
+  showPasswordToggle?: boolean;
+  showPassword?: boolean;
+  onTogglePassword?: () => void;
+  focusedField: string | null;
+  onFocus: (id: string) => void;
+  onBlur: () => void;
+}) => {
+  const isFocused = focusedField === id;
+  const hasValue = value.length > 0;
+
+  return (
+    <div className="relative">
+      <div
+        className={`absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-200 pointer-events-none ${
+          isFocused || hasValue ? 'opacity-100' : 'opacity-50'
+        }`}
+      >
+        <Icon className={`w-5 h-5 ${isFocused ? 'text-blue-500' : 'text-gray-400'}`} />
+      </div>
+      <Input
+        id={id}
+        type={showPasswordToggle ? (showPassword ? 'text' : 'password') : type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => onFocus(id)}
+        onBlur={onBlur}
+        required={required}
+        minLength={minLength}
+        placeholder={placeholder}
+        className={`pl-12 py-6 h-auto text-lg transition-all duration-200 ${
+          showPasswordToggle ? 'pr-12' : 'pr-4'
+        } ${
+          isFocused
+            ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/10'
+            : 'hover:border-gray-400'
+        }`}
+      />
+      {showPasswordToggle && onTogglePassword && (
+        <button
+          type="button"
+          onClick={onTogglePassword}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          {showPassword ? <Eye className="w-5 h-5" /> : <Eye className="w-5 h-5 opacity-50" />}
+        </button>
+      )}
+    </div>
+  );
+};
+
 const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: AuthModalProps) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -6897,73 +6972,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const passwordStrength = calculatePasswordStrength(formData.password);
   const passwordStrengthInfo = getPasswordStrengthColor(passwordStrength);
 
-  // Input field component with floating label effect
-  const FloatingInput = ({
-    id,
-    label,
-    type = 'text',
-    value,
-    onChange,
-    icon: Icon,
-    required = true,
-    minLength,
-    placeholder,
-    showPasswordToggle = false,
-  }: {
-    id: string;
-    label: string;
-    type?: string;
-    value: string;
-    onChange: (value: string) => void;
-    icon: LucideIcon;
-    required?: boolean;
-    minLength?: number;
-    placeholder?: string;
-    showPasswordToggle?: boolean;
-  }) => {
-    const isFocused = focusedField === id;
-    const hasValue = value.length > 0;
-
-    return (
-      <div className="relative">
-        <div
-          className={`absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-200 pointer-events-none ${
-            isFocused || hasValue ? 'opacity-100' : 'opacity-50'
-          }`}
-        >
-          <Icon className={`w-5 h-5 ${isFocused ? 'text-blue-500' : 'text-gray-400'}`} />
-        </div>
-        <Input
-          id={id}
-          type={showPasswordToggle ? (showPassword ? 'text' : 'password') : type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setFocusedField(id)}
-          onBlur={() => setFocusedField(null)}
-          required={required}
-          minLength={minLength}
-          placeholder={placeholder}
-          className={`pl-12 py-6 h-auto text-lg transition-all duration-200 ${
-            showPasswordToggle ? 'pr-12' : 'pr-4'
-          } ${
-            isFocused
-              ? 'ring-2 ring-blue-500 border-blue-500 shadow-lg shadow-blue-500/10'
-              : 'hover:border-gray-400'
-          }`}
-        />
-        {showPasswordToggle && (
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            {showPassword ? <Eye className="w-5 h-5" /> : <Eye className="w-5 h-5 opacity-50" />}
-          </button>
-        )}
-      </div>
-    );
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -7171,12 +7179,14 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <FloatingInput
                     id="forgot-email"
-                    label="Email"
                     type="email"
                     value={formData.email}
                     onChange={(v) => setFormData({ ...formData, email: v })}
                     icon={Mail}
                     placeholder="Enter your email"
+                    focusedField={focusedField}
+                    onFocus={setFocusedField}
+                    onBlur={() => setFocusedField(null)}
                   />
                   <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                     <Button
@@ -7253,23 +7263,29 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                     <form onSubmit={handleEmailLogin} className="space-y-4">
                       <FloatingInput
                         id="login-email"
-                        label="Email"
                         type="email"
                         value={formData.email}
                         onChange={(v) => setFormData({ ...formData, email: v })}
                         icon={Mail}
                         placeholder="Enter your email"
+                        focusedField={focusedField}
+                        onFocus={setFocusedField}
+                        onBlur={() => setFocusedField(null)}
                       />
                       <div className="relative">
                         <FloatingInput
                           id="login-password"
-                          label="Password"
                           type="password"
                           value={formData.password}
                           onChange={(v) => setFormData({ ...formData, password: v })}
                           icon={Shield}
                           showPasswordToggle
+                          showPassword={showPassword}
+                          onTogglePassword={() => setShowPassword(!showPassword)}
                           placeholder="Enter your password"
+                          focusedField={focusedField}
+                          onFocus={setFocusedField}
+                          onBlur={() => setFocusedField(null)}
                         />
                       </div>
                       <div className="flex items-center justify-between text-sm">
@@ -7324,33 +7340,41 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                     <form onSubmit={handleEmailRegister} className="space-y-4">
                       <FloatingInput
                         id="register-name"
-                        label="Full Name"
                         type="text"
                         value={formData.name}
                         onChange={(v) => setFormData({ ...formData, name: v })}
                         icon={GraduationCap}
                         placeholder="Enter your full name"
+                        focusedField={focusedField}
+                        onFocus={setFocusedField}
+                        onBlur={() => setFocusedField(null)}
                       />
                       <FloatingInput
                         id="register-email"
-                        label="Email"
                         type="email"
                         value={formData.email}
                         onChange={(v) => setFormData({ ...formData, email: v })}
                         icon={Mail}
                         placeholder="Enter your email"
+                        focusedField={focusedField}
+                        onFocus={setFocusedField}
+                        onBlur={() => setFocusedField(null)}
                       />
                       <div className="space-y-2">
                         <FloatingInput
                           id="register-password"
-                          label="Password"
                           type="password"
                           value={formData.password}
                           onChange={(v) => setFormData({ ...formData, password: v })}
                           icon={Shield}
                           showPasswordToggle
+                          showPassword={showPassword}
+                          onTogglePassword={() => setShowPassword(!showPassword)}
                           minLength={6}
                           placeholder="Create a password"
+                          focusedField={focusedField}
+                          onFocus={setFocusedField}
+                          onBlur={() => setFocusedField(null)}
                         />
                         {formData.password && (
                           <div className="px-2">
