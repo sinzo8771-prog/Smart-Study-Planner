@@ -3,27 +3,27 @@ import nodemailer from 'nodemailer';
 // Email configuration
 const APP_NAME = 'Smart Study Planner';
 
-// Create SMTP transporter (uses Resend SMTP)
+// Create SMTP transporter (Gmail SMTP)
 function createTransporter() {
-  const host = process.env.SMTP_HOST || 'smtp.resend.com';
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '587');
-  const user = process.env.SMTP_USER || 'resend';
-  const pass = process.env.SMTP_PASS || process.env.RESEND_API_KEY;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
 
-  console.log('Creating SMTP transporter:', { host, port, user: user ? 'set' : 'not set', pass: pass ? 'set' : 'not set' });
+  console.log('Creating SMTP transporter:', { host, port, user: user || 'not set', pass: pass ? 'set' : 'not set' });
 
   return nodemailer.createTransport({
     host,
     port,
     secure: port === 465, // true for 465, false for other ports
-    auth: {
+    auth: user && pass ? {
       user,
       pass,
-    },
+    } : undefined,
   });
 }
 
-const getEmailFrom = () => process.env.EMAIL_FROM || 'onboarding@resend.dev';
+const getEmailFrom = () => process.env.EMAIL_FROM || process.env.SMTP_USER || 'noreply@example.com';
 const getAppUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export interface EmailOptions {
@@ -34,10 +34,11 @@ export interface EmailOptions {
 
 // Send email using SMTP
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ success: boolean; error?: string }> {
-  const smtpPass = process.env.SMTP_PASS || process.env.RESEND_API_KEY;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
   
   // If no SMTP credentials, log for development
-  if (!smtpPass) {
+  if (!smtpUser || !smtpPass) {
     console.log('📧 Email Service (Development Mode - No SMTP Credentials)');
     console.log('To:', to);
     console.log('Subject:', subject);
@@ -52,7 +53,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ 
     console.log('Sending email via SMTP:', { from: emailFrom, to, subject });
     
     const info = await transporter.sendMail({
-      from: emailFrom,
+      from: `"${APP_NAME}" <${emailFrom}>`,
       to,
       subject,
       html,
