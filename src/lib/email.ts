@@ -1,12 +1,24 @@
 import { Resend } from 'resend';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Email configuration
-const EMAIL_FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 const APP_NAME = 'Smart Study Planner';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+// Lazy-load Resend client to ensure environment variables are available
+let resendClient: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendClient) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.warn('RESEND_API_KEY is not set');
+    }
+    resendClient = new Resend(apiKey);
+  }
+  return resendClient;
+}
+
+const getEmailFrom = () => process.env.EMAIL_FROM || 'onboarding@resend.dev';
+const getAppUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export interface EmailOptions {
   to: string;
@@ -16,9 +28,11 @@ export interface EmailOptions {
 
 // Send email using Resend
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ success: boolean; error?: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  
   // If no API key is configured, log the email for development
-  if (!process.env.RESEND_API_KEY) {
-    console.log('📧 Email Service (Development Mode)');
+  if (!apiKey) {
+    console.log('📧 Email Service (Development Mode - No API Key)');
     console.log('To:', to);
     console.log('Subject:', subject);
     console.log('HTML:', html);
@@ -26,8 +40,13 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ 
   }
 
   try {
+    const resend = getResendClient();
+    const emailFrom = getEmailFrom();
+    
+    console.log('Sending email:', { from: emailFrom, to, subject });
+    
     const { data, error } = await resend.emails.send({
-      from: EMAIL_FROM,
+      from: emailFrom,
       to,
       subject,
       html,
@@ -42,7 +61,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ 
     return { success: true };
   } catch (error) {
     console.error('Email sending error:', error);
-    return { success: false, error: 'Failed to send email' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to send email' };
   }
 }
 

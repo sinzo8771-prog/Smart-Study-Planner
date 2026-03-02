@@ -6950,8 +6950,15 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to send verification code');
+      }
+
+      // If debug code is returned (for development), pre-fill it
+      if (data.debugCode) {
+        console.log('Debug code received:', data.debugCode);
+        const codeDigits = data.debugCode.split('');
+        setResetPasswordCode(codeDigits.concat(Array(6 - codeDigits.length).fill('')));
       }
 
       setForgotPasswordSuccess(true);
