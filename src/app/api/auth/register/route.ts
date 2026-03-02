@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const { name, email, password, role } = await request.json();
 
+    console.log('Registration request:', { name, email, role });
+
     // Validate input
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -45,6 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
+    console.log('Checking if user exists...');
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return NextResponse.json(
@@ -54,18 +57,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user (unverified)
+    console.log('Creating user...');
     const user = await createUser({
       name,
       email,
       password,
       role: role || 'student',
     });
+    console.log('User created:', user.id);
 
     // Create verification token
+    console.log('Creating verification token...');
     const token = await createVerificationToken(email, 'email_verification', 24);
+    console.log('Token created:', token);
 
     // Send verification email
+    console.log('Sending verification email...');
     const emailResult = await sendVerificationEmail(email, name, token);
+    console.log('Email result:', emailResult);
     
     if (!emailResult.success) {
       console.error('Failed to send verification email:', emailResult.error);
@@ -75,6 +84,7 @@ export async function POST(request: NextRequest) {
         message: 'Account created but verification email could not be sent. Please try resending.',
         requiresVerification: true,
         email: email,
+        debugCode: process.env.NODE_ENV === 'development' ? token : undefined,
       });
     }
 
@@ -83,11 +93,15 @@ export async function POST(request: NextRequest) {
       message: 'Account created successfully! Please check your email to verify your account.',
       requiresVerification: true,
       email: email,
+      debugCode: process.env.NODE_ENV === 'development' ? token : undefined,
     });
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'An error occurred during registration' },
+      { 
+        error: 'An error occurred during registration',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

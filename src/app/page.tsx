@@ -6918,17 +6918,28 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
 
       const data = await response.json();
 
+      console.log('Registration response:', data);
+
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.details || data.error || 'Registration failed');
       }
 
       if (!data.success) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.details || data.error || 'Registration failed');
+      }
+
+      // If debug code is returned (for development), pre-fill it
+      if (data.debugCode) {
+        console.log('Debug code received:', data.debugCode);
+        const codeDigits = data.debugCode.split('');
+        setVerificationCode(codeDigits.concat(Array(6 - codeDigits.length).fill('')));
       }
 
       // Show success message asking user to check email
       setRegistrationSuccess(true);
+      setRequiresVerification(true);
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setEmailLoading(false);
