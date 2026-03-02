@@ -3,34 +3,30 @@ import { getCurrentUser } from '@/lib/auth';
 import ZAI from 'z-ai-web-dev-sdk';
 
 // Simple system prompt
-const SYSTEM_PROMPT = `You are StudyBuddy, a friendly AI tutor helping students learn ANY subject.
+const SYSTEM_PROMPT = `You are StudyBuddy, a friendly AI tutor. Help students learn ANY subject with clear explanations.
 
-**Your expertise covers:**
+Subjects you know:
 • Math: Algebra, Calculus, Geometry, Statistics
 • Science: Physics, Chemistry, Biology
 • Writing: Essays, Grammar, Literature
 • History, Geography, Economics
-• Computer Science: Programming, Algorithms
+• Coding: Programming, Algorithms
 • Study Skills: Memory techniques, Time management
 
-**How to respond:**
+Response style:
 • Be friendly and encouraging
-• Explain concepts step-by-step
+• Explain step-by-step
 • Use **bold** for key terms
 • Use bullet points for lists
-• Give examples when helpful
 • Show work for math problems
 
-Student name: {userName}
+Student: {userName}`;
 
-Always be helpful and educational!`;
-
-// AI Chat endpoint - simple and direct
+// AI Chat endpoint
 export async function POST(request: NextRequest) {
   try {
-    console.log('[AI Chat] === New Request ===');
+    console.log('[AI Chat] Request started');
     
-    // Auth check
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ 
@@ -39,118 +35,98 @@ export async function POST(request: NextRequest) {
       }, { status: 401 });
     }
 
-    // Parse body
     const body = await request.json().catch(() => ({}));
     const userMessage = body?.message;
     const history = Array.isArray(body?.history) ? body.history : [];
 
-    if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
+    if (!userMessage?.trim()) {
       return NextResponse.json({ 
         success: false, 
         message: 'Please enter a question.' 
       }, { status: 400 });
     }
 
-    console.log('[AI Chat] User:', user.email);
-    console.log('[AI Chat] Question:', userMessage.substring(0, 100));
+    console.log('[AI Chat] User:', user.email, '| Message:', userMessage.substring(0, 50));
 
-    // Create fresh ZAI instance for each request (more reliable)
-    console.log('[AI Chat] Creating ZAI instance...');
+    // Create ZAI instance
     const zai = await ZAI.create();
-    console.log('[AI Chat] ZAI instance created');
+    console.log('[AI Chat] ZAI created');
 
     // Build messages
-    const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [];
-    
-    // Add system prompt
-    messages.push({
-      role: 'assistant',
-      content: SYSTEM_PROMPT.replace('{userName}', user.name || 'Student')
-    });
+    const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [
+      { role: 'assistant', content: SYSTEM_PROMPT.replace('{userName}', user.name || 'Student') }
+    ];
 
-    // Add recent history (max 6 messages for context)
-    const recentHistory = history.slice(-6);
-    for (const msg of recentHistory) {
-      if (msg?.role && msg?.content?.trim()) {
-        if (msg.role === 'user' || msg.role === 'assistant') {
-          messages.push({
-            role: msg.role,
-            content: msg.content.trim()
-          });
-        }
+    // Add history (last 6 messages)
+    for (const msg of history.slice(-6)) {
+      if ((msg.role === 'user' || msg.role === 'assistant') && msg.content?.trim()) {
+        messages.push({ role: msg.role, content: msg.content.trim() });
       }
     }
 
     // Add current message
-    messages.push({
-      role: 'user',
-      content: userMessage.trim()
-    });
+    messages.push({ role: 'user', content: userMessage.trim() });
 
-    console.log('[AI Chat] Messages count:', messages.length);
-    console.log('[AI Chat] Calling AI...');
+    console.log('[AI Chat] Calling AI with', messages.length, 'messages');
 
-    // Call AI - simple direct call
-    const completion = await zai.chat.completions.create({
+    // Call AI
+    const response = await zai.chat.completions.create({
       messages,
       thinking: { type: 'disabled' }
     });
 
-    console.log('[AI Chat] AI call completed');
+    console.log('[AI Chat] Response received');
 
-    // Extract response
-    const reply = completion?.choices?.[0]?.message?.content;
+    // Try multiple ways to get the content (like generate-quiz does)
+    let reply = response.choices?.[0]?.message?.content || 
+                (response as unknown as Record<string, unknown>).content || 
+                null;
     
+    // Handle case where content might be in a different structure
+    if (!reply && response.choices?.[0]) {
+      const choice = response.choices[0] as unknown as Record<string, unknown>;
+      reply = choice.message?.content || choice.content || null;
+    }
+
     if (reply && typeof reply === 'string' && reply.trim()) {
-      console.log('[AI Chat] Success! Response length:', reply.length);
+      console.log('[AI Chat] Success! Length:', reply.length);
       return NextResponse.json({ 
         success: true, 
         message: reply.trim() 
       });
     }
 
-    // Empty response
-    console.error('[AI Chat] Empty response from AI');
-    console.log('[AI Chat] Completion object:', JSON.stringify(completion, null, 2));
+    // Log what we got for debugging
+    console.error('[AI Chat] No content found');
+    console.log('[AI Chat] Response structure:', JSON.stringify(response, null, 2).substring(0, 500));
     
     return NextResponse.json({ 
       success: false, 
-      message: `## 🤔 I got an empty response
+      message: `## 🤔 Empty response
 
-Please try asking your question again. Sometimes this happens when:
-• The question is very long
-• The servers are busy
+I received your question but got an empty response. Please try:
 
-**Try:**
 • Rephrasing your question
 • Breaking it into smaller parts
-• Asking one thing at a time`
+• Asking one specific thing at a time`
     });
 
   } catch (error) {
-    console.error('[AI Chat] === ERROR ===');
-    console.error('[AI Chat] Error type:', error?.constructor?.name);
-    console.error('[AI Chat] Error message:', error instanceof Error ? error.message : String(error));
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error('[AI Chat] Error:', errMsg);
     
-    if (error instanceof Error && error.stack) {
-      console.error('[AI Chat] Stack:', error.stack);
-    }
-
-    // Return a helpful error message
     return NextResponse.json({ 
       success: false, 
-      message: `## ⚠️ Oops, something went wrong
+      message: `## ⚠️ Error
 
-I encountered an error while processing your question.
+Something went wrong: \`${errMsg}\`
 
-**What to try:**
-• **Refresh** the page and try again
-• **Rephrase** your question differently
-• **Simplify** - ask one thing at a time
+**Try these:**
+• Refresh the page
+• Ask a simpler question
+• Try again in a moment
 
-**Error details:** \`${error instanceof Error ? error.message : 'Unknown error'}\`
-
-Please try again! I'm here to help. 🎓`
+I'm here to help! 🎓`
     });
   }
 }
