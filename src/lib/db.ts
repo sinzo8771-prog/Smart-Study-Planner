@@ -1,3 +1,9 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env file with override to replace system environment variables
+config({ path: resolve(process.cwd(), '.env'), override: true });
+
 import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
