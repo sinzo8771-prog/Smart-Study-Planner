@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -531,72 +531,81 @@ interface AIChatWidgetProps {
 }
 
 // Helper to render markdown-like content
-const renderMarkdownText = (text: string) => {
+const renderMarkdownText = (text: string): React.ReactNode => {
+  if (!text) return null;
+  
   // Split by code blocks first
   const parts = text.split(/(```[\s\S]*?```)/g);
+  const result: React.ReactNode[] = [];
   
-  return parts.map((part, idx) => {
+  parts.forEach((part, idx) => {
     if (part.startsWith('```')) {
       const codeContent = part.replace(/```\w*\n?/g, '').replace(/```$/g, '');
-      return (
-        <pre key={idx} className="bg-gray-800 text-green-400 p-2 rounded-lg my-2 overflow-x-auto text-xs font-mono">
+      result.push(
+        <pre key={`code-${idx}`} className="bg-gray-800 text-green-400 p-2 rounded-lg my-2 overflow-x-auto text-xs font-mono">
           {codeContent}
         </pre>
       );
+    } else {
+      // Process lines
+      const lines = part.split('\n');
+      lines.forEach((line, lineIdx) => {
+        const key = `${idx}-${lineIdx}`;
+        
+        // Headers
+        if (line.startsWith('### ')) {
+          result.push(<h4 key={key} className="font-semibold text-base mt-2 mb-1">{line.replace('### ', '')}</h4>);
+        } else if (line.startsWith('## ')) {
+          result.push(<h3 key={key} className="font-bold text-lg mt-2 mb-1">{line.replace('## ', '')}</h3>);
+        } else if (line.startsWith('# ')) {
+          result.push(<h2 key={key} className="font-bold text-xl mt-2 mb-1">{line.replace('# ', '')}</h2>);
+        }
+        // Bullet points
+        else if (line.startsWith('• ') || line.startsWith('- ')) {
+          const content = line.replace(/^[•\-] /, '');
+          result.push(
+            <div key={key} className="flex gap-2 my-0.5">
+              <span className="text-emerald-500 mt-0.5 shrink-0">•</span>
+              <span>{renderInlineFormat(content)}</span>
+            </div>
+          );
+        }
+        // Numbered lists
+        else if (/^(\d+)\.\s/.test(line)) {
+          const match = line.match(/^(\d+)\.\s/);
+          if (match) {
+            const content = line.replace(/^\d+\.\s/, '');
+            result.push(
+              <div key={key} className="flex gap-2 my-0.5">
+                <span className="text-emerald-500 font-medium min-w-[1.25rem]">{match[1]}.</span>
+                <span>{renderInlineFormat(content)}</span>
+              </div>
+            );
+          }
+        }
+        // Empty line
+        else if (!line.trim()) {
+          result.push(<div key={key} className="h-1" />);
+        }
+        // Regular text
+        else {
+          result.push(<p key={key} className="my-0.5">{renderInlineFormat(line)}</p>);
+        }
+      });
     }
-    
-    // Process inline formatting
-    return part.split('\n').map((line, lineIdx) => {
-      // Headers
-      if (line.startsWith('### ')) {
-        return <h4 key={`${idx}-${lineIdx}`} className="font-semibold text-base mt-2 mb-1">{line.replace('### ', '')}</h4>;
-      }
-      if (line.startsWith('## ')) {
-        return <h3 key={`${idx}-${lineIdx}`} className="font-bold text-lg mt-2 mb-1">{line.replace('## ', '')}</h3>;
-      }
-      if (line.startsWith('# ')) {
-        return <h2 key={`${idx}-${lineIdx}`} className="font-bold text-xl mt-2 mb-1">{line.replace('# ', '')}</h2>;
-      }
-      
-      // Bullet points
-      if (line.startsWith('• ') || line.startsWith('- ')) {
-        const content = line.replace(/^[•\-] /, '');
-        return (
-          <div key={`${idx}-${lineIdx}`} className="flex gap-2 my-0.5">
-            <span className="text-blue-500 mt-0.5">•</span>
-            <span>{renderInlineFormat(content)}</span>
-          </div>
-        );
-      }
-      
-      // Numbered lists
-      const numberedMatch = line.match(/^(\d+)\.\s/);
-      if (numberedMatch) {
-        const content = line.replace(/^\d+\.\s/, '');
-        return (
-          <div key={`${idx}-${lineIdx}`} className="flex gap-2 my-0.5">
-            <span className="text-blue-500 font-medium min-w-[1.25rem]">{numberedMatch[1]}.</span>
-            <span>{renderInlineFormat(content)}</span>
-          </div>
-        );
-      }
-      
-      // Empty line
-      if (!line.trim()) {
-        return <div key={`${idx}-${lineIdx}`} className="h-1" />;
-      }
-      
-      // Regular text
-      return <p key={`${idx}-${lineIdx}`} className="my-0.5">{renderInlineFormat(line)}</p>;
-    });
   });
+  
+  return result;
 };
 
 // Helper for inline formatting (bold, italic, code)
-const renderInlineFormat = (text: string) => {
+const renderInlineFormat = (text: string): React.ReactNode => {
+  if (!text) return text;
+  
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
   
   return parts.map((part, idx) => {
+    if (!part) return null;
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={idx} className="font-semibold">{part.slice(2, -2)}</strong>;
     }
