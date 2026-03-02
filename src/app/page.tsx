@@ -37,7 +37,7 @@ import {
   Video, Check, XCircle, HelpCircle, RefreshCw, Download, Upload, UserCog,
   LayoutDashboard, ListTodo, GraduationCap as GradCap, Building2, Sparkles,
   MessageCircle, Send, Bot, Loader2, Twitter, Github, Linkedin, Mail, ArrowUp,
-  Heart, ExternalLink
+  Heart, ExternalLink, ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -6723,8 +6723,15 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   
+  // Verification code states
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  
   // Pre-cache Firebase auth instance
   const firebaseAuthRef = useRef<{ auth: typeof import('firebase/auth').Auth | null; googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null }>({ auth: null, googleProvider: null });
+  const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -6748,6 +6755,8 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     setForgotPasswordSuccess(false);
     setRequiresVerification(false);
     setResendSuccess(false);
+    setVerificationCode(['', '', '', '', '', '']);
+    setVerifyError('');
   }, [mode]);
 
   const handleGoogleLogin = async () => {
@@ -6961,10 +6970,85 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       }
 
       setResendSuccess(true);
+      setVerifyError('');
+      setVerificationCode(['', '', '', '', '', '']);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resend verification email');
     } finally {
       setResendLoading(false);
+    }
+  };
+
+  // Handle verification code input change
+  const handleCodeChange = (index: number, value: string) => {
+    // Only allow digits
+    if (value && !/^\d$/.test(value)) return;
+
+    const newCode = [...verificationCode];
+    newCode[index] = value;
+    setVerificationCode(newCode);
+    setVerifyError('');
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      codeInputRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when all digits are entered
+    if (newCode.every(digit => digit) && newCode.join('').length === 6) {
+      handleVerifyCode(newCode.join(''));
+    }
+  };
+
+  // Handle code input key down (for backspace)
+  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
+      codeInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  // Handle code paste
+  const handleCodePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pastedData) {
+      const newCode = pastedData.split('').concat(Array(6 - pastedData.length).fill(''));
+      setVerificationCode(newCode);
+      if (pastedData.length === 6) {
+        handleVerifyCode(pastedData);
+      }
+    }
+  };
+
+  // Handle verification code submission
+  const handleVerifyCode = async (code: string) => {
+    setVerifyLoading(true);
+    setVerifyError('');
+
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: code }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Verification failed');
+      }
+
+      // Show success animation
+      setShowSuccess(true);
+      setTimeout(() => {
+        onSuccess(data.user);
+      }, 800);
+    } catch (err) {
+      setVerifyError(err instanceof Error ? err.message : 'Verification failed');
+      setVerificationCode(['', '', '', '', '', '']);
+      codeInputRefs.current[0]?.focus();
+    } finally {
+      setVerifyLoading(false);
     }
   };
 
@@ -7083,32 +7167,130 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         </div>
 
         <div className="p-8 space-y-6">
-          {/* Registration Success Message */}
+          {/* Registration Success - Verification Code Input */}
           {registrationSuccess && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-6"
+              className="py-4"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', damping: 15 }}
-                className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <Mail className="w-10 h-10 text-white" />
-              </motion.div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Check Your Email</h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                We've sent a verification link to <strong>{formData.email}</strong>. Please check your inbox and click the link to verify your account.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => onSwitchMode('login')}
-                className="mt-2"
-              >
-                Back to Login
-              </Button>
+              {showSuccess ? (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-center py-6"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', damping: 15 }}
+                    className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4"
+                  >
+                    <CheckCircle className="w-10 h-10 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Email Verified!</h3>
+                  <p className="text-gray-500 text-sm">Redirecting to dashboard...</p>
+                </motion.div>
+              ) : (
+                <>
+                  <div className="text-center mb-6">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', damping: 15 }}
+                      className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4"
+                    >
+                      <Mail className="w-8 h-8 text-white" />
+                    </motion.div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Verify Your Email</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      We've sent a 6-digit code to <strong>{formData.email}</strong>
+                    </p>
+                  </div>
+
+                  {/* Verification Code Input */}
+                  <div className="flex justify-center gap-2 mb-4">
+                    {verificationCode.map((digit, index) => (
+                      <motion.input
+                        key={index}
+                        ref={(el) => { codeInputRefs.current[index] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleCodeChange(index, e.target.value)}
+                        onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                        onPaste={index === 0 ? handleCodePaste : undefined}
+                        disabled={verifyLoading}
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 transition-all duration-200 ${
+                          digit 
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                        } ${
+                          verifyError 
+                            ? 'border-red-500 animate-shake' 
+                            : ''
+                        } focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Error message */}
+                  {verifyError && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-sm text-center mb-4"
+                    >
+                      {verifyError}
+                    </motion.p>
+                  )}
+
+                  {/* Loading indicator */}
+                  {verifyLoading && (
+                    <div className="flex justify-center mb-4">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                    </div>
+                  )}
+
+                  {/* Resend code */}
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      Didn't receive the code?
+                    </p>
+                    {resendSuccess ? (
+                      <p className="text-sm text-green-500">New code sent!</p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resendLoading}
+                        className="text-blue-500 hover:text-blue-600 text-sm font-medium disabled:opacity-50"
+                      >
+                        {resendLoading ? 'Sending...' : 'Resend code'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Back button */}
+                  <div className="mt-6 text-center">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setRegistrationSuccess(false);
+                        setVerificationCode(['', '', '', '', '', '']);
+                      }}
+                      className="text-gray-500"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to signup
+                    </Button>
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
 

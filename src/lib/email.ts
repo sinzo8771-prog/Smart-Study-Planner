@@ -46,8 +46,8 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ 
   }
 }
 
-// Generate verification email HTML
-export function generateVerificationEmailHtml(name: string, verificationUrl: string): string {
+// Generate verification email HTML with code
+export function generateVerificationCodeEmailHtml(name: string, code: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -64,24 +64,27 @@ export function generateVerificationEmailHtml(name: string, verificationUrl: str
         </div>
         
         <!-- Content -->
-        <div style="padding: 40px 30px;">
+        <div style="padding: 40px 30px; text-align: center;">
           <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Verify Your Email Address</h2>
           <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
             Hi ${name},<br><br>
-            Welcome to ${APP_NAME}! Please verify your email address to get started with your learning journey.
+            Welcome to ${APP_NAME}! Please use the following verification code to complete your registration:
           </p>
           
-          <a href="${verificationUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-            Verify Email Address
-          </a>
+          <!-- Verification Code Box -->
+          <div style="background: linear-gradient(135deg, #f0f9ff 0%, #faf5ff 100%); border: 2px solid #3b82f6; border-radius: 12px; padding: 30px; margin: 30px 0;">
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px;">Your verification code is:</p>
+            <div style="font-size: 42px; font-weight: bold; letter-spacing: 8px; color: #3b82f6; font-family: 'Courier New', monospace;">
+              ${code}
+            </div>
+          </div>
           
-          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; line-height: 1.6;">
-            If the button above doesn't work, copy and paste this link into your browser:<br>
-            <a href="${verificationUrl}" style="color: #3b82f6; word-break: break-all;">${verificationUrl}</a>
+          <p style="color: #6b7280; font-size: 14px; margin-top: 20px; line-height: 1.6;">
+            Enter this code in the app to verify your email address.
           </p>
           
           <p style="color: #9ca3af; font-size: 14px; margin-top: 30px;">
-            This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+            This code will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
           </p>
         </div>
         
@@ -148,14 +151,12 @@ export function generatePasswordResetEmailHtml(name: string, resetUrl: string): 
   `;
 }
 
-// Send verification email
-export async function sendVerificationEmail(email: string, name: string, token: string): Promise<{ success: boolean; error?: string }> {
-  const verificationUrl = `${APP_URL}/?verify_token=${token}`;
-  
+// Send verification email with code
+export async function sendVerificationEmail(email: string, name: string, code: string): Promise<{ success: boolean; error?: string }> {
   return sendEmail({
     to: email,
-    subject: `Verify Your Email - ${APP_NAME}`,
-    html: generateVerificationEmailHtml(name, verificationUrl),
+    subject: `Your Verification Code - ${APP_NAME}`,
+    html: generateVerificationCodeEmailHtml(name, code),
   });
 }
 
