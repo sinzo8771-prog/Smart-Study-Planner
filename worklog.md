@@ -1,6 +1,28 @@
 # Smart Study Planner Work Log
 
 ---
+Task ID: 3
+Agent: Main
+Task: Fix AI chat returning "Temporary technical issue" error
+
+Work Log:
+- Identified ZAI SDK is working (CLI test successful)
+- Found that study-tips API works correctly
+- Rewrote AI chat API to match working study-tips API exactly:
+  - Same ZAI instance caching pattern
+  - Same message format with system prompt as assistant
+  - Same thinking: { type: 'disabled' } setting
+  - Same response extraction pattern
+- Added proper error handling and logging
+- Simplified code structure
+
+Stage Summary:
+- AI chat API now matches the exact pattern of working APIs
+- Multiple commits pushed: 2c353a9, 23ef1b4, 1b1012c, 0ff6c7e
+- ZAI CLI verified working with glm-4-plus model
+- Key insight: System prompt goes as assistant role message
+
+---
 Task ID: 2
 Agent: Main
 Task: Make AI chat real and working for all study-related problems
