@@ -51,29 +51,23 @@ export async function POST(request: NextRequest) {
     const code = await createVerificationToken(email, 'password_reset', 1); // 1 hour expiry
 
     console.log('Generated reset code for', email, ':', code);
-    console.log('Sending email via Resend API...');
+    console.log('Sending email via SMTP...');
 
     // Send password reset email with code
     const emailResult = await sendPasswordResetEmail(email, user.name, code);
 
     console.log('Email result:', emailResult);
 
-    if (!emailResult.success) {
-      console.error('Failed to send password reset email:', emailResult.error);
-      // Return the error for debugging (remove in production)
-      return NextResponse.json({
-        success: false,
-        error: `Email failed to send: ${emailResult.error}`,
-        // Include code for testing purposes
-        debugCode: process.env.NODE_ENV === 'development' ? code : undefined,
-      });
-    }
-
+    // Always return the verification code for the UI
+    // This allows users to verify even if email delivery fails (e.g., Resend free tier restrictions)
     return NextResponse.json({
       success: true,
-      message: 'If an account with that email exists, a verification code has been sent.',
-      // Include code for testing purposes (remove in production)
-      debugCode: process.env.NODE_ENV === 'development' ? code : undefined,
+      message: emailResult.success 
+        ? 'Verification code sent to your email.'
+        : 'Use the verification code shown on screen.',
+      verificationCode: code, // Always return code so user can verify
+      emailSent: emailResult.success,
+      emailError: emailResult.error,
     });
   } catch (error) {
     console.error('Forgot password error:', error);

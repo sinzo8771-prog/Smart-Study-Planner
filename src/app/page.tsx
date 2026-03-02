@@ -6928,10 +6928,11 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.details || data.error || 'Registration failed');
       }
 
-      // If debug code is returned (for development), pre-fill it
-      if (data.debugCode) {
-        console.log('Debug code received:', data.debugCode);
-        const codeDigits = data.debugCode.split('');
+      // Pre-fill the verification code from response
+      if (data.verificationCode) {
+        console.log('Verification code received:', data.verificationCode);
+        console.log('Email sent:', data.emailSent);
+        const codeDigits = data.verificationCode.split('');
         setVerificationCode(codeDigits.concat(Array(6 - codeDigits.length).fill('')));
       }
 
@@ -6965,10 +6966,11 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.error || 'Failed to send verification code');
       }
 
-      // If debug code is returned (for development), pre-fill it
-      if (data.debugCode) {
-        console.log('Debug code received:', data.debugCode);
-        const codeDigits = data.debugCode.split('');
+      // Pre-fill the verification code from response
+      if (data.verificationCode) {
+        console.log('Verification code received:', data.verificationCode);
+        console.log('Email sent:', data.emailSent);
+        const codeDigits = data.verificationCode.split('');
         setResetPasswordCode(codeDigits.concat(Array(6 - codeDigits.length).fill('')));
       }
 

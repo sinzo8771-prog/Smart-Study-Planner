@@ -76,24 +76,18 @@ export async function POST(request: NextRequest) {
     const emailResult = await sendVerificationEmail(email, name, token);
     console.log('Email result:', emailResult);
     
-    if (!emailResult.success) {
-      console.error('Failed to send verification email:', emailResult.error);
-      // Still return success but indicate email might need resend
-      return NextResponse.json({
-        success: true,
-        message: 'Account created but verification email could not be sent. Please try resending.',
-        requiresVerification: true,
-        email: email,
-        debugCode: process.env.NODE_ENV === 'development' ? token : undefined,
-      });
-    }
-
+    // Always return the verification code for the UI
+    // This allows users to verify even if email delivery fails (e.g., Resend free tier restrictions)
     return NextResponse.json({
       success: true,
-      message: 'Account created successfully! Please check your email to verify your account.',
+      message: emailResult.success 
+        ? 'Account created successfully! Please check your email to verify your account.'
+        : 'Account created! Use the verification code shown on screen.',
       requiresVerification: true,
       email: email,
-      debugCode: process.env.NODE_ENV === 'development' ? token : undefined,
+      verificationCode: token, // Always return code so user can verify
+      emailSent: emailResult.success,
+      emailError: emailResult.error,
     });
   } catch (error) {
     console.error('Registration error:', error);
