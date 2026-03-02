@@ -5,10 +5,10 @@ import { hashPassword, generateToken, setAuthCookie } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, password, confirmPassword } = await request.json();
+    const { code, password, confirmPassword } = await request.json();
 
     // Validate input
-    if (!token || !password || !confirmPassword) {
+    if (!code || !password || !confirmPassword) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -42,12 +42,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify the token
-    const result = await verifyToken(token, 'password_reset');
+    // Verify the code
+    const result = await verifyToken(code, 'password_reset');
 
     if (!result.valid) {
       return NextResponse.json(
-        { error: result.error || 'Invalid or expired reset token' },
+        { error: result.error || 'Invalid or expired verification code' },
         { status: 400 }
       );
     }

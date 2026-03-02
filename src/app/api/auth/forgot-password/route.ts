@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       // Don't reveal if user exists or not for security
       return NextResponse.json({
         success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.',
+        message: 'If an account with that email exists, a verification code has been sent.',
       });
     }
 
@@ -38,16 +38,16 @@ export async function POST(request: NextRequest) {
     if (!user.password) {
       return NextResponse.json({
         success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.',
+        message: 'If an account with that email exists, a verification code has been sent.',
       });
     }
 
-    // Delete old reset tokens and create new one
+    // Delete old reset tokens and create new one (6-digit code, 1 hour expiry)
     await deleteTokensForIdentifier(email, 'password_reset');
-    const token = await createVerificationToken(email, 'password_reset', 1); // 1 hour expiry
+    const code = await createVerificationToken(email, 'password_reset', 1); // 1 hour expiry
 
-    // Send password reset email
-    const emailResult = await sendPasswordResetEmail(email, user.name, token);
+    // Send password reset email with code
+    const emailResult = await sendPasswordResetEmail(email, user.name, code);
 
     if (!emailResult.success) {
       console.error('Failed to send password reset email:', emailResult.error);
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'If an account with that email exists, a password reset link has been sent.',
+      message: 'If an account with that email exists, a verification code has been sent.',
     });
   } catch (error) {
     console.error('Forgot password error:', error);

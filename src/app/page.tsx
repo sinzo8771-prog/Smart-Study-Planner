@@ -6723,11 +6723,18 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   
+  // Password reset flow states
+  const [resetPasswordStep, setResetPasswordStep] = useState<'email' | 'code' | 'new-password'>('email');
+  const [resetPasswordCode, setResetPasswordCode] = useState(['', '', '', '', '', '']);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState('');
+  const [newPassword, setNewPassword] = useState({ password: '', confirmPassword: '' });
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  
   // Verification code states
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
   
   // Pre-cache Firebase auth instance
   const firebaseAuthRef = useRef<{ auth: typeof import('firebase/auth').Auth | null; googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null }>({ auth: null, googleProvider: null });
@@ -6757,6 +6764,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     setResendSuccess(false);
     setVerificationCode(['', '', '', '', '', '']);
     setVerifyError('');
+    setResetPasswordStep('email');
+    setResetPasswordCode(['', '', '', '', '', '']);
+    setResetPasswordError('');
+    setNewPassword({ password: '', confirmPassword: '' });
   }, [mode]);
 
   const handleGoogleLogin = async () => {
@@ -6940,14 +6951,134 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send reset email');
+        throw new Error(data.error || 'Failed to send verification code');
       }
 
       setForgotPasswordSuccess(true);
+      setResetPasswordStep('code');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+      setError(err instanceof Error ? err.message : 'Failed to send verification code');
     } finally {
       setEmailLoading(false);
+    }
+  };
+
+  // Handle reset password code input change
+  const handleResetCodeChange = (index: number, value: string) => {
+    // Only allow digits
+    if (value && !/^\d$/.test(value)) return;
+
+    const newCode = [...resetPasswordCode];
+    newCode[index] = value;
+    setResetPasswordCode(newCode);
+    setResetPasswordError('');
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      codeInputRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when all digits are entered
+    if (newCode.every(digit => digit) && newCode.join('').length === 6) {
+      // Just move to the next step, don't auto-submit
+      // The user will click the button to verify and continue
+    }
+  };
+
+  // Handle reset password code key down
+  const handleResetCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !resetPasswordCode[index] && index > 0) {
+      codeInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  // Handle reset password code paste
+  const handleResetCodePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pastedData) {
+      const newCode = pastedData.split('').concat(Array(6 - pastedData.length).fill(''));
+      setResetPasswordCode(newCode);
+    }
+  };
+
+  // Handle verify reset code and show password form
+  const handleVerifyResetCode = async () => {
+    const code = resetPasswordCode.join('');
+    if (code.length !== 6) {
+      setResetPasswordError('Please enter a valid 6-digit code');
+      return;
+    }
+
+    setResetPasswordLoading(true);
+    setResetPasswordError('');
+
+    try {
+      // We don't verify the code here - we'll verify it when submitting the new password
+      // Just move to the password step
+      setResetPasswordStep('new-password');
+    } catch (err) {
+      setResetPasswordError(err instanceof Error ? err.message : 'Failed to verify code');
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
+  // Handle submit new password
+  const handleSubmitNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword.password !== newPassword.confirmPassword) {
+      setResetPasswordError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.password.length < 8) {
+      setResetPasswordError('Password must be at least 8 characters');
+      return;
+    }
+
+    const hasUpperCase = /[A-Z]/.test(newPassword.password);
+    const hasLowerCase = /[a-z]/.test(newPassword.password);
+    const hasNumbers = /\d/.test(newPassword.password);
+    
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      setResetPasswordError('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+      return;
+    }
+
+    setResetPasswordLoading(true);
+    setResetPasswordError('');
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: resetPasswordCode.join(''),
+          password: newPassword.password,
+          confirmPassword: newPassword.confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Password reset failed');
+      }
+
+      // Show success animation
+      setShowSuccess(true);
+      setTimeout(() => {
+        onSuccess(data.user);
+      }, 800);
+    } catch (err) {
+      setResetPasswordError(err instanceof Error ? err.message : 'Password reset failed');
+      // Reset to code step on error
+      setResetPasswordStep('code');
+      setResetPasswordCode(['', '', '', '', '', '']);
+    } finally {
+      setResetPasswordLoading(false);
     }
   };
 
@@ -7358,45 +7489,228 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
 
               {/* Forgot Password Form */}
               {mode === 'forgot-password' && (
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <FloatingInput
-                    id="forgot-email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(v) => setFormData({ ...formData, email: v })}
-                    icon={Mail}
-                    placeholder="Enter your email"
-                    focusedField={focusedField}
-                    onFocus={setFocusedField}
-                    onBlur={() => setFocusedField(null)}
-                  />
-                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                    <Button
-                      type="submit"
-                      disabled={emailLoading || !formData.email}
-                      className="w-full py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
-                    >
-                      {emailLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                          Sending...
-                        </>
-                      ) : (
-                        'Send Reset Link'
+                <div className="space-y-4">
+                  {/* Step 1: Email Input */}
+                  {resetPasswordStep === 'email' && (
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                      <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Shield className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="text-lg font-semibold">Reset Your Password</h3>
+                        <p className="text-sm text-gray-500 mt-1">Enter your email and we&apos;ll send you a verification code</p>
+                      </div>
+                      <FloatingInput
+                        id="forgot-email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(v) => setFormData({ ...formData, email: v })}
+                        icon={Mail}
+                        placeholder="Enter your email"
+                        focusedField={focusedField}
+                        onFocus={setFocusedField}
+                        onBlur={() => setFocusedField(null)}
+                      />
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button
+                          type="submit"
+                          disabled={emailLoading || !formData.email}
+                          className="w-full py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
+                        >
+                          {emailLoading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              Sending...
+                            </>
+                          ) : (
+                            'Send Verification Code'
+                          )}
+                        </Button>
+                      </motion.div>
+                      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                        Remember your password?{' '}
+                        <button
+                          type="button"
+                          onClick={() => onSwitchMode('login')}
+                          className="text-blue-500 hover:text-blue-600 font-medium"
+                        >
+                          Back to Login
+                        </button>
+                      </p>
+                    </form>
+                  )}
+
+                  {/* Step 2: Code Input */}
+                  {resetPasswordStep === 'code' && (
+                    <div className="space-y-4">
+                      <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Mail className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="text-lg font-semibold">Check Your Email</h3>
+                        <p className="text-sm text-gray-500 mt-1">We&apos;ve sent a 6-digit code to <span className="font-medium">{formData.email}</span></p>
+                      </div>
+                      
+                      {/* Code Input */}
+                      <div className="flex justify-center gap-2">
+                        {resetPasswordCode.map((digit, index) => (
+                          <input
+                            key={index}
+                            ref={(el) => { codeInputRefs.current[index] = el; }}
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) => handleResetCodeChange(index, e.target.value)}
+                            onKeyDown={(e) => handleResetCodeKeyDown(index, e)}
+                            onPaste={handleResetCodePaste}
+                            className="w-12 h-14 text-center text-xl font-bold rounded-xl border-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all bg-white dark:bg-gray-800"
+                          />
+                        ))}
+                      </div>
+
+                      {resetPasswordError && (
+                        <p className="text-sm text-red-500 text-center">{resetPasswordError}</p>
                       )}
-                    </Button>
-                  </motion.div>
-                  <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                    Remember your password?{' '}
-                    <button
-                      type="button"
-                      onClick={() => onSwitchMode('login')}
-                      className="text-blue-500 hover:text-blue-600 font-medium"
-                    >
-                      Back to Login
-                    </button>
-                  </p>
-                </form>
+
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button
+                          onClick={handleVerifyResetCode}
+                          disabled={resetPasswordLoading || resetPasswordCode.some(d => !d)}
+                          className="w-full py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
+                        >
+                          {resetPasswordLoading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              Verifying...
+                            </>
+                          ) : (
+                            'Continue'
+                          )}
+                        </Button>
+                      </motion.div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <button
+                          type="button"
+                          onClick={() => setResetPasswordStep('email')}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <ArrowLeft className="w-4 h-4 inline mr-1" />
+                          Change email
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          disabled={emailLoading}
+                          className="text-blue-500 hover:text-blue-600 font-medium disabled:opacity-50"
+                        >
+                          {emailLoading ? 'Resending...' : 'Resend code'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: New Password */}
+                  {resetPasswordStep === 'new-password' && (
+                    <form onSubmit={handleSubmitNewPassword} className="space-y-4">
+                      <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Shield className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="text-lg font-semibold">Create New Password</h3>
+                        <p className="text-sm text-gray-500 mt-1">Enter your new password below</p>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="new-password">New Password</Label>
+                        <div className="relative mt-1">
+                          <Input
+                            id="new-password"
+                            type={showNewPassword ? 'text' : 'password'}
+                            value={newPassword.password}
+                            onChange={(e) => setNewPassword({ ...newPassword, password: e.target.value })}
+                            placeholder="Enter new password"
+                            className="pr-10"
+                            required
+                            minLength={8}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {newPassword.password && (
+                          <div className="mt-2">
+                            <div className="flex gap-1 mb-1">
+                              {[1, 2, 3, 4, 5].map((level) => {
+                                const strength = calculatePasswordStrength(newPassword.password);
+                                const info = getPasswordStrengthColor(strength);
+                                return (
+                                  <div
+                                    key={level}
+                                    className={`h-1 flex-1 rounded-full transition-all ${
+                                      strength >= level ? info.bar : 'bg-gray-200 dark:bg-gray-700'
+                                    }`}
+                                  />
+                                );
+                              })}
+                            </div>
+                            <p className={`text-xs ${getPasswordStrengthColor(calculatePasswordStrength(newPassword.password)).text}`}>
+                              {getPasswordStrengthColor(calculatePasswordStrength(newPassword.password)).label}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="confirm-password">Confirm Password</Label>
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          value={newPassword.confirmPassword}
+                          onChange={(e) => setNewPassword({ ...newPassword, confirmPassword: e.target.value })}
+                          placeholder="Confirm new password"
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+
+                      {resetPasswordError && (
+                        <p className="text-sm text-red-500">{resetPasswordError}</p>
+                      )}
+
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button
+                          type="submit"
+                          disabled={resetPasswordLoading || !newPassword.password || !newPassword.confirmPassword}
+                          className="w-full py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
+                        >
+                          {resetPasswordLoading ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                              Resetting...
+                            </>
+                          ) : (
+                            'Reset Password'
+                          )}
+                        </Button>
+                      </motion.div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setResetPasswordStep('code')}
+                        className="w-full text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        <ArrowLeft className="w-4 h-4 inline mr-1" />
+                        Back to code
+                      </button>
+                    </form>
+                  )}
+                </div>
               )}
 
               {/* Login and Register Forms */}

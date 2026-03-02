@@ -12,14 +12,14 @@ export function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Create a verification token (returns code for email_verification, token for password_reset)
+// Create a verification token (returns 6-digit code for both types)
 export async function createVerificationToken(
   identifier: string,
   type: 'email_verification' | 'password_reset',
   expiresInHours: number = 24
 ): Promise<string> {
-  // Use 6-digit code for email verification, long token for password reset
-  const token = type === 'email_verification' ? generateVerificationCode() : generateToken();
+  // Use 6-digit code for both email verification and password reset
+  const token = generateVerificationCode();
   const expires = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
 
   // Delete any existing tokens for this identifier and type
