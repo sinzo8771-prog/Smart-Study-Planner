@@ -530,7 +530,28 @@ interface AIChatWidgetProps {
   onClose: () => void;
 }
 
-// Helper to render markdown-like content
+// Helper for inline formatting (bold, italic, code) - MUST be defined before renderMarkdownText
+const renderInlineFormat = (text: string): React.ReactNode => {
+  if (!text) return text;
+  
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+  
+  return parts.map((part, idx) => {
+    if (!part) return null;
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={idx} className="font-semibold">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={idx} className="italic">{part.slice(1, -1)}</em>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={idx} className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">{part.slice(1, -1)}</code>;
+    }
+    return part;
+  });
+};
+
+// Helper to render markdown-like content - uses renderInlineFormat above
 const renderMarkdownText = (text: string): React.ReactNode => {
   if (!text) return null;
   
@@ -596,27 +617,6 @@ const renderMarkdownText = (text: string): React.ReactNode => {
   });
   
   return result;
-};
-
-// Helper for inline formatting (bold, italic, code)
-const renderInlineFormat = (text: string): React.ReactNode => {
-  if (!text) return text;
-  
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
-  
-  return parts.map((part, idx) => {
-    if (!part) return null;
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={idx} className="font-semibold">{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith('*') && part.endsWith('*')) {
-      return <em key={idx} className="italic">{part.slice(1, -1)}</em>;
-    }
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={idx} className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">{part.slice(1, -1)}</code>;
-    }
-    return part;
-  });
 };
 
 const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
