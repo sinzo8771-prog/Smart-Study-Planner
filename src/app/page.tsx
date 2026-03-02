@@ -6718,7 +6718,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   // New states for email auth
   const [emailLoading, setEmailLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
   const [requiresVerification, setRequiresVerification] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
@@ -6759,7 +6758,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   useEffect(() => {
     setError('');
     setRegistrationSuccess(false);
-    setForgotPasswordSuccess(false);
     setRequiresVerification(false);
     setResendSuccess(false);
     setVerificationCode(['', '', '', '', '', '']);
@@ -6958,7 +6956,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.error || 'Failed to send verification code');
       }
 
-      setForgotPasswordSuccess(true);
+      // Move to code step without setting forgotPasswordSuccess
       setResetPasswordStep('code');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send verification code');
@@ -7429,37 +7427,8 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
             </motion.div>
           )}
 
-          {/* Forgot Password Success Message */}
-          {forgotPasswordSuccess && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-6"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', damping: 15 }}
-                className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <Mail className="w-10 h-10 text-white" />
-              </motion.div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Email Sent!</h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                If an account exists for <strong>{formData.email}</strong>, you'll receive a password reset link shortly.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => onSwitchMode('login')}
-                className="mt-2"
-              >
-                Back to Login
-              </Button>
-            </motion.div>
-          )}
-
-          {/* Show forms only if not in success state */}
-          {!registrationSuccess && !forgotPasswordSuccess && (
+          {/* Show forms only if not in registration success state */}
+          {!registrationSuccess && (
             <>
               {/* Error Alert */}
               <AnimatePresence>
