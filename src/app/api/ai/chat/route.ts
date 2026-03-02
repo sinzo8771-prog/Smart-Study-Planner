@@ -20,9 +20,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { message, history = [] } = await request.json();
+    const body = await request.json();
+    const message = body.message;
+    const history = Array.isArray(body.history) ? body.history : [];
 
-    if (!message) {
+    if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
@@ -50,18 +52,25 @@ Guidelines:
 The student's name is ${user.name || 'Student'}.`;
 
     // Build messages array with proper format
+    // Use 'assistant' role for system prompt as per z-ai-web-dev-sdk docs
     const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [
       { role: 'assistant', content: systemPrompt }
     ];
 
-    // Add conversation history if provided
-    if (Array.isArray(history) && history.length > 0) {
+    // Add conversation history if provided (filter and validate)
+    if (history.length > 0) {
       for (const msg of history) {
-        if (msg.role === 'user' || msg.role === 'assistant') {
-          messages.push({
-            role: msg.role,
-            content: String(msg.content)
-          });
+        // Only include valid user/assistant messages
+        if (msg && typeof msg === 'object') {
+          const role = msg.role;
+          const content = String(msg.content || '');
+          
+          if ((role === 'user' || role === 'assistant') && content.trim()) {
+            messages.push({
+              role: role as 'user' | 'assistant',
+              content: content.trim()
+            });
+          }
         }
       }
     }

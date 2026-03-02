@@ -659,11 +659,15 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
     setIsLoading(true);
 
     try {
-      // Get conversation history (exclude the initial greeting for API)
-      const history = messages.slice(1).map(m => ({
-        role: m.role,
-        content: m.content
-      }));
+      // Get conversation history - only include actual conversation (exclude initial greeting)
+      // Also ensure we don't include the current user message we just added
+      const history = messages
+        .slice(1) // Skip the initial greeting
+        .map(m => ({
+          role: m.role,
+          content: m.content
+        }))
+        .filter(m => m.content && m.content.trim());
 
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -673,9 +677,14 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
           history 
         }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.message) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
       } else {
         setMessages(prev => [...prev, { 
@@ -683,7 +692,8 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
           content: '❌ Sorry, I encountered an error. Please try again.' 
         }]);
       }
-    } catch {
+    } catch (error) {
+      console.error('AI chat error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: '❌ Sorry, I couldn\'t connect to the AI service. Please try again later.' 
