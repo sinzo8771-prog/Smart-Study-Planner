@@ -625,7 +625,7 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
     { 
       role: 'assistant', 
-      content: '👋 Hello! I\'m your AI Study Assistant.\n\nI can help you with **ANY study-related question**:\n\n• 📐 **Math** - Algebra, calculus, geometry, statistics\n• 🔬 **Science** - Physics, chemistry, biology\n• 📖 **Languages** - Writing, grammar, literature\n• 🌍 **Social Studies** - History, geography, economics\n• 💻 **Computer Science** - Programming, algorithms\n• 📝 **Test Prep** - SAT, ACT, GRE, and more\n• 📚 **Study Tips** - Techniques, schedules, motivation\n\n**Ask me anything!** I\'ll explain concepts, solve problems step-by-step, or help you study smarter.' 
+      content: '👋 Hey there! I\'m **StudyBuddy**, your personal AI tutor!\n\nI can help you with **ANY subject**:\n\n• 📐 **Math**: Algebra, calculus, statistics, geometry\n• 🔬 **Science**: Physics, chemistry, biology\n• 📝 **Writing**: Essays, grammar, literature\n• 🌍 **History**: World events, dates, analysis\n• 💻 **Coding**: Programming, algorithms, debugging\n• 📚 **Study Skills**: Memory tricks, time management\n\n**Just ask me anything!** I\'ll:\n• Explain difficult concepts simply\n• Solve problems step-by-step\n• Give you practice exercises\n• Help you prepare for exams\n\nWhat would you like to learn today? 🎓' 
     }
   ]);
   const [input, setInput] = useState('');
@@ -634,10 +634,12 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const quickPrompts = [
-    { icon: '📐', text: 'Explain quadratic equations' },
-    { icon: '🔬', text: 'How does photosynthesis work?' },
-    { icon: '💻', text: 'What is a linked list?' },
-    { icon: '📚', text: 'Best study techniques for exams' },
+    { icon: '📐', text: 'Solve: 2x + 5 = 15' },
+    { icon: '🔬', text: 'Explain photosynthesis' },
+    { icon: '💻', text: 'What is recursion?' },
+    { icon: '📝', text: 'How to write an essay' },
+    { icon: '🧠', text: 'Best memorization techniques' },
+    { icon: '📊', text: 'What is standard deviation?' },
   ];
 
   useEffect(() => {
