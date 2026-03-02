@@ -76,18 +76,19 @@ export async function POST(request: NextRequest) {
     const emailResult = await sendVerificationEmail(email, name, token);
     console.log('Email result:', emailResult);
     
-    // Always return the verification code for the UI
-    // This allows users to verify even if email delivery fails (e.g., Resend free tier restrictions)
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+      return NextResponse.json({
+        success: false,
+        error: `Failed to send verification email: ${emailResult.error}. Please try again.`,
+      }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
-      message: emailResult.success 
-        ? 'Account created successfully! Please check your email to verify your account.'
-        : 'Account created! Use the verification code shown on screen.',
+      message: 'Account created successfully! Please check your email to verify your account.',
       requiresVerification: true,
       email: email,
-      verificationCode: token, // Always return code so user can verify
-      emailSent: emailResult.success,
-      emailError: emailResult.error,
     });
   } catch (error) {
     console.error('Registration error:', error);

@@ -58,16 +58,17 @@ export async function POST(request: NextRequest) {
 
     console.log('Email result:', emailResult);
 
-    // Always return the verification code for the UI
-    // This allows users to verify even if email delivery fails (e.g., Resend free tier restrictions)
+    if (!emailResult.success) {
+      console.error('Failed to send password reset email:', emailResult.error);
+      return NextResponse.json({
+        success: false,
+        error: `Failed to send verification email: ${emailResult.error}. Please try again.`,
+      }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
-      message: emailResult.success 
-        ? 'Verification code sent to your email.'
-        : 'Use the verification code shown on screen.',
-      verificationCode: code, // Always return code so user can verify
-      emailSent: emailResult.success,
-      emailError: emailResult.error,
+      message: 'Verification code sent to your email.',
     });
   } catch (error) {
     console.error('Forgot password error:', error);

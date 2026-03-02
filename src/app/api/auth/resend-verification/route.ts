@@ -46,15 +46,16 @@ export async function POST(request: NextRequest) {
 
     console.log('Email result:', emailResult);
 
-    // Always return the verification code for the UI
+    if (!emailResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: `Failed to send verification email: ${emailResult.error}. Please try again.`,
+      }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
-      message: emailResult.success 
-        ? 'Verification email sent! Please check your inbox.'
-        : 'Use the verification code shown on screen.',
-      verificationCode: token,
-      emailSent: emailResult.success,
-      emailError: emailResult.error,
+      message: 'Verification email sent! Please check your inbox.',
     });
   } catch (error) {
     console.error('Resend verification error:', error);
