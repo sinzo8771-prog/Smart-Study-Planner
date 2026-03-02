@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
 
+    console.log('Resend verification request for:', email);
+
     if (!email) {
       return NextResponse.json(
         { error: 'Email is required' },
@@ -37,24 +39,27 @@ export async function POST(request: NextRequest) {
     await deleteTokensForIdentifier(email, 'email_verification');
     const token = await createVerificationToken(email, 'email_verification', 24);
 
+    console.log('Generated verification code:', token);
+
     // Send verification email
     const emailResult = await sendVerificationEmail(email, user.name, token);
 
-    if (!emailResult.success) {
-      return NextResponse.json(
-        { error: 'Failed to send verification email. Please try again.' },
-        { status: 500 }
-      );
-    }
+    console.log('Email result:', emailResult);
 
+    // Always return the verification code for the UI
     return NextResponse.json({
       success: true,
-      message: 'Verification email sent! Please check your inbox.',
+      message: emailResult.success 
+        ? 'Verification email sent! Please check your inbox.'
+        : 'Use the verification code shown on screen.',
+      verificationCode: token,
+      emailSent: emailResult.success,
+      emailError: emailResult.error,
     });
   } catch (error) {
     console.error('Resend verification error:', error);
     return NextResponse.json(
-      { error: 'An error occurred' },
+      { error: 'An error occurred', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

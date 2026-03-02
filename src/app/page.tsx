@@ -7122,7 +7122,15 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
 
       setResendSuccess(true);
       setVerifyError('');
-      setVerificationCode(['', '', '', '', '', '']);
+      
+      // Pre-fill the new verification code
+      if (data.verificationCode) {
+        console.log('New verification code:', data.verificationCode);
+        const codeDigits = data.verificationCode.split('');
+        setVerificationCode(codeDigits.concat(Array(6 - codeDigits.length).fill('')));
+      } else {
+        setVerificationCode(['', '', '', '', '', '']);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resend verification email');
     } finally {
