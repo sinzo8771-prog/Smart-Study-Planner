@@ -2,16 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import ZAI from 'z-ai-web-dev-sdk';
 
-// Store ZAI instance for reuse
-let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null;
-
-async function getZAI() {
-  if (!zaiInstance) {
-    zaiInstance = await ZAI.create();
-  }
-  return zaiInstance;
-}
-
 // AI Chat endpoint using z-ai-web-dev-sdk
 export async function POST(request: NextRequest) {
   try {
@@ -102,8 +92,10 @@ The student's name is ${user.name || 'Student'}. Be personal and engaging!`;
     ];
 
     // Add conversation history if provided (filter and validate)
-    if (history.length > 0) {
-      for (const msg of history) {
+    // Limit history to last 10 messages to avoid token limits
+    const recentHistory = history.slice(-10);
+    if (recentHistory.length > 0) {
+      for (const msg of recentHistory) {
         if (msg && typeof msg === 'object') {
           const role = msg.role;
           const content = String(msg.content || '');
@@ -121,19 +113,25 @@ The student's name is ${user.name || 'Student'}. Be personal and engaging!`;
     // Add the current user message
     messages.push({ role: 'user', content: message });
 
-    // Get ZAI instance and make request
-    const zai = await getZAI();
+    // Create a fresh ZAI instance for each request to avoid stale connections
+    const zai = await ZAI.create();
 
-    const response = await zai.chat.completions.create({
-      messages,
-      thinking: { type: 'disabled' }
-    });
+    // Make request with timeout handling
+    const response = await Promise.race([
+      zai.chat.completions.create({
+        messages,
+        thinking: { type: 'disabled' },
+        stream: false
+      }),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout - AI took too long to respond')), 30000)
+      )
+    ]);
 
     const aiMessage = response.choices?.[0]?.message?.content;
 
     if (!aiMessage) {
       console.log('AI Chat: Empty response from AI');
-      // Return fallback instead of throwing
       return NextResponse.json({
         success: true,
         message: getFallbackResponse()
@@ -151,7 +149,6 @@ The student's name is ${user.name || 'Student'}. Be personal and engaging!`;
     if (error instanceof Error) {
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
     }
     
     // Return fallback response with success=true so UI shows it
