@@ -30,7 +30,7 @@ function useMounted() {
 }
 import {
   Moon, Sun, Menu, X, CheckCircle, Clock, Target, TrendingUp, Users, BookOpen,
-  Brain, Award, ChevronRight, Star, Zap, Shield, BarChart3, Play, ArrowRight,
+  Brain, Award, ChevronRight, Star, Zap, Shield, BarChart3, Play, Pause, ArrowRight,
   GraduationCap, Calendar, ClipboardList, LucideIcon, Home, Settings, LogOut,
   Plus, Edit, Trash2, Search, Filter, MoreVertical, Eye, Timer, AlertCircle,
   ChevronDown, ChevronLeft, PieChart, LineChart, Activity, Layers, FileText,
@@ -5701,158 +5701,739 @@ const TestimonialCarousel = () => {
 };
 
 // ============================================
-// DEMO VIDEO MODAL
+// DEMO VIDEO MODAL - ENHANCED INTERACTIVE VERSION
 // ============================================
 
 const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [playbackSpeed, setPlaybackSpeed] = useState<1 | 1.5 | 2>(1);
+  const [showControls, setShowControls] = useState(true);
+  const [interactiveState, setInteractiveState] = useState<Record<string, unknown>>({});
+  const [typingText, setTypingText] = useState('');
+  const [countUp, setCountUp] = useState(0);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const slideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const typingRef = useRef<NodeJS.Timeout | null>(null);
+  const countUpRef = useRef<NodeJS.Timeout | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
+  const SLIDE_DURATION = 6000; // 6 seconds per slide
+
+  // Demo slides with enhanced content
   const demoSlides = [
     {
+      id: 'welcome',
       title: 'Welcome to StudyPlanner',
       description: 'Your all-in-one smart study companion',
+      duration: 6000,
       content: (
-        <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="text-6xl mb-4">📚</motion.div>
-          <h3 className="text-2xl font-bold mb-2">Smart Study Planner</h3>
-          <p className="opacity-80">Plan, learn, and achieve your academic goals</p>
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-2xl" />
+          <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white overflow-hidden">
+            {/* Animated background particles */}
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 bg-white/20 rounded-full"
+                  initial={{
+                    x: Math.random() * 400,
+                    y: Math.random() * 300,
+                    opacity: 0.3
+                  }}
+                  animate={{
+                    y: [null, Math.random() * -100],
+                    opacity: [0.3, 0]
+                  }}
+                  transition={{
+                    duration: 2 + Math.random() * 2,
+                    repeat: Infinity,
+                    delay: Math.random() * 2
+                  }}
+                />
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              className="text-7xl mb-6 text-center"
+            >
+              📚
+            </motion.div>
+
+            <motion.h3
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-3xl font-bold mb-3 text-center"
+            >
+              Smart Study Planner
+            </motion.h3>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-white/80 text-center text-lg"
+            >
+              Plan, learn, and achieve your academic goals
+            </motion.p>
+
+            {/* Feature badges */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="flex flex-wrap justify-center gap-2 mt-6"
+            >
+              {['📚 Study Plans', '🧠 AI Quizzes', '📊 Analytics', '🎓 Courses'].map((badge, i) => (
+                <motion.span
+                  key={i}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.9 + i * 0.1 }}
+                  className="px-3 py-1.5 bg-white/20 rounded-full text-sm backdrop-blur-sm"
+                >
+                  {badge}
+                </motion.span>
+              ))}
+            </motion.div>
+          </div>
         </div>
       ),
     },
     {
+      id: 'subjects',
       title: 'Organize Your Subjects',
-      description: 'Create subjects and track your progress',
+      description: 'Create subjects and track your progress with ease',
+      duration: 7000,
       content: (
         <div className="space-y-4">
+          {/* Animated subject cards */}
           {[
-            { name: 'Mathematics', color: 'from-blue-500 to-blue-600', progress: 75 },
-            { name: 'Physics', color: 'from-purple-500 to-purple-600', progress: 60 },
-            { name: 'Chemistry', color: 'from-green-500 to-green-600', progress: 45 },
+            { name: 'Mathematics', icon: '📐', color: 'from-blue-500 to-blue-600', progress: 75, tasks: 12 },
+            { name: 'Physics', icon: '⚛️', color: 'from-purple-500 to-purple-600', progress: 60, tasks: 8 },
+            { name: 'Chemistry', icon: '🧪', color: 'from-green-500 to-green-600', progress: 45, tasks: 5 },
           ].map((subject, i) => (
             <motion.div
               key={i}
-              initial={{ x: -50, opacity: 0 }}
+              initial={{ x: -100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: i * 0.2 }}
-              className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg"
+              transition={{ delay: i * 0.3, type: 'spring', stiffness: 100 }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-shadow"
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">{subject.name}</span>
-                <span className="text-sm text-gray-500">{subject.progress}%</span>
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-2xl">
+                  {subject.icon}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-gray-900 dark:text-white">{subject.name}</span>
+                    <span className="text-sm text-gray-500">{subject.tasks} tasks</span>
+                  </div>
+                </div>
               </div>
-              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${subject.progress}%` }}
-                  transition={{ delay: i * 0.2 + 0.3, duration: 0.5 }}
-                  className={`h-full bg-gradient-to-r ${subject.color}`}
-                />
+              <div className="relative">
+                <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${subject.progress}%` }}
+                    transition={{ delay: i * 0.3 + 0.5, duration: 1, ease: 'easeOut' }}
+                    className={`h-full bg-gradient-to-r ${subject.color} rounded-full relative`}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-white/30"
+                      animate={{ x: ['-100%', '100%'] }}
+                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+                    />
+                  </motion.div>
+                </div>
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.3 + 1 }}
+                  className="absolute right-0 -top-6 text-sm font-medium text-gray-600 dark:text-gray-300"
+                >
+                  {subject.progress}%
+                </motion.span>
               </div>
             </motion.div>
           ))}
+
+          {/* Add subject button animation */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+            className="w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Subject
+          </motion.button>
         </div>
       ),
     },
     {
+      id: 'ai-quiz',
       title: 'AI Quiz Generator',
-      description: 'Create quizzes automatically with AI',
+      description: 'Create personalized quizzes automatically with AI',
+      duration: 8000,
       content: (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
+        <div className="space-y-4">
+          {/* AI Generator Interface */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-4">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
+              >
+                <Sparkles className="w-6 h-6 text-white" />
+              </motion.div>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">AI Quiz Generator</p>
+                <p className="text-sm text-gray-500">Powered by advanced AI</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold">AI Quiz Generator</p>
-              <p className="text-sm text-gray-500">Generating questions...</p>
+
+            {/* Typing effect for topic */}
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">
+              <p className="text-sm text-gray-500 mb-1">Topic:</p>
+              <p className="font-medium text-gray-900 dark:text-white">
+                {typingText || 'Calculus fundamentals...'}
+                <motion.span
+                  animate={{ opacity: [1, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity }}
+                  className="inline-block w-0.5 h-5 bg-blue-500 ml-0.5"
+                />
+              </p>
             </div>
+
+            {/* Generated Question */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-100 dark:border-blue-800"
+            >
+              <p className="font-medium mb-4 text-gray-900 dark:text-white">
+                Q: What is the derivative of x²?
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { opt: 'A) 2x', correct: true },
+                  { opt: 'B) x', correct: false },
+                  { opt: 'C) 2', correct: false },
+                  { opt: 'D) x²', correct: false },
+                ].map((option, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 1.3 + i * 0.15 }}
+                    className={`p-3 rounded-xl text-sm font-medium cursor-pointer transition-all ${
+                      option.correct
+                        ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-500 text-green-700 dark:text-green-400'
+                        : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:border-blue-300'
+                    }`}
+                  >
+                    {option.opt}
+                    {option.correct && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 2 }}
+                        className="ml-2"
+                      >
+                        ✓
+                      </motion.span>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
+
+          {/* Generation stats */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl"
+            transition={{ delay: 2.5 }}
+            className="flex justify-center gap-4 text-sm text-gray-500"
           >
-            <p className="font-medium mb-3">Q: What is the derivative of x²?</p>
-            <div className="grid grid-cols-2 gap-2">
-              {['A) 2x', 'B) x', 'C) 2', 'D) x²'].map((opt, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.7 + i * 0.1 }}
-                  className={`p-2 rounded-lg text-sm ${
-                    i === 0
-                      ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-500'
-                      : 'bg-gray-100 dark:bg-gray-600'
-                  }`}
-                >
-                  {opt}
-                </motion.div>
-              ))}
-            </div>
+            <span className="flex items-center gap-1">
+              <Zap className="w-4 h-4 text-yellow-500" />
+              Generated in 2.3s
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              Verified accurate
+            </span>
           </motion.div>
         </div>
       ),
     },
     {
+      id: 'analytics',
       title: 'Track Your Progress',
-      description: 'Detailed analytics and insights',
+      description: 'Detailed analytics and insights to optimize your learning',
+      duration: 7000,
       content: (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="font-semibold">Weekly Progress</h4>
-            <Badge className="bg-green-500">+23%</Badge>
+        <div className="space-y-4">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Tasks Done', value: countUp, icon: CheckCircle, color: 'text-green-500' },
+              { label: 'Study Hours', value: Math.floor(countUp / 2), icon: Clock, color: 'text-blue-500' },
+              { label: 'Day Streak', value: Math.min(countUp, 7), icon: Zap, color: 'text-yellow-500' },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: i * 0.2 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-lg border border-gray-100 dark:border-gray-700"
+              >
+                <stat.icon className={`w-6 h-6 mx-auto mb-2 ${stat.color}`} />
+                <motion.p
+                  className="text-2xl font-bold text-gray-900 dark:text-white"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
+                >
+                  {stat.value}
+                </motion.p>
+                <p className="text-xs text-gray-500">{stat.label}</p>
+              </motion.div>
+            ))}
           </div>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={[
-                { day: 'Mon', tasks: 4, completed: 3 },
-                { day: 'Tue', tasks: 5, completed: 4 },
-                { day: 'Wed', tasks: 3, completed: 3 },
-                { day: 'Thu', tasks: 6, completed: 5 },
-                { day: 'Fri', tasks: 4, completed: 4 },
-                { day: 'Sat', tasks: 2, completed: 2 },
-                { day: 'Sun', tasks: 3, completed: 2 },
-              ]}>
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Bar dataKey="completed" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="tasks" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+
+          {/* Chart */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-gray-900 dark:text-white">Weekly Progress</h4>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Badge className="bg-green-500 hover:bg-green-600">+23%</Badge>
+              </motion.div>
+            </div>
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={[
+                  { day: 'Mon', tasks: 4, completed: 3 },
+                  { day: 'Tue', tasks: 5, completed: 4 },
+                  { day: 'Wed', tasks: 3, completed: 3 },
+                  { day: 'Thu', tasks: 6, completed: 5 },
+                  { day: 'Fri', tasks: 4, completed: 4 },
+                  { day: 'Sat', tasks: 2, completed: 2 },
+                  { day: 'Sun', tasks: 3, completed: 2 },
+                ]}>
+                  <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Bar dataKey="completed" fill="#22c55e" radius={[4, 4, 0, 0]} name="Completed" />
+                  <Bar dataKey="tasks" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Total" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       ),
     },
     {
-      title: 'Get Started Today!',
-      description: 'Join thousands of successful students',
+      id: 'ai-assistant',
+      title: 'AI Study Assistant',
+      description: 'Get instant help with any subject - 24/7',
+      duration: 8000,
       content: (
-        <div className="text-center py-8">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="text-8xl mb-6">🎉</motion.div>
-          <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-            Ready to Transform Your Learning?
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Sign up now and start your journey to academic success
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Button className="bg-gradient-to-r from-blue-500 to-purple-600">
-              Start Free Trial
-            </Button>
-            <Button variant="outline">Learn More</Button>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+          {/* Chat Header */}
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-4 flex items-center gap-3">
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+            >
+              <Bot className="w-5 h-5 text-white" />
+            </motion.div>
+            <div>
+              <p className="font-semibold text-white">AI Study Assistant</p>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
+                <p className="text-xs text-white/80">Online • Ready to help</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat Messages */}
+          <div className="p-4 space-y-3 h-48 overflow-hidden">
+            {/* User question */}
+            <motion.div
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              className="flex justify-end"
+            >
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl rounded-br-md px-4 py-2 max-w-[80%]">
+                <p className="text-sm">Explain photosynthesis</p>
+              </div>
+            </motion.div>
+
+            {/* AI Response */}
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex justify-start"
+            >
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%]">
+                <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
+                  <strong>Photosynthesis</strong> is the process plants use to convert sunlight into energy! 🌱
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                  The equation: <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂</code>
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Typing indicator */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5 }}
+              className="flex justify-start"
+            >
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl px-4 py-2 flex items-center gap-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Input Area */}
+          <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex gap-2">
+              <Input placeholder="Ask anything about your studies..." className="flex-1" />
+              <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 shrink-0">
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       ),
     },
+    {
+      id: 'courses',
+      title: 'Interactive Courses',
+      description: 'Learn at your own pace with video lectures and materials',
+      duration: 7000,
+      content: (
+        <div className="space-y-4">
+          {/* Course Card */}
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700"
+          >
+            {/* Video Thumbnail */}
+            <div className="relative h-40 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center cursor-pointer backdrop-blur-sm"
+              >
+                <Play className="w-8 h-8 text-white ml-1" />
+              </motion.div>
+              <div className="absolute bottom-3 right-3 bg-black/50 px-2 py-1 rounded text-white text-xs">
+                12:34
+              </div>
+              <div className="absolute top-3 left-3">
+                <Badge className="bg-yellow-500 text-black">Premium</Badge>
+              </div>
+            </div>
+
+            {/* Course Info */}
+            <div className="p-4">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                Advanced Mathematics: Calculus Mastery
+              </h4>
+              <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                <span className="flex items-center gap-1">
+                  <Video className="w-4 h-4" /> 24 lessons
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" /> 8 hours
+                </span>
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" /> 2.3k enrolled
+                </span>
+              </div>
+
+              {/* Progress */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Progress</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">65%</span>
+                </div>
+                <Progress value={65} className="h-2" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Module List Preview */}
+          <div className="space-y-2">
+            {[
+              { title: 'Introduction to Limits', done: true },
+              { title: 'Derivatives Fundamentals', done: true },
+              { title: 'Integration Techniques', done: false },
+            ].map((module, i) => (
+              <motion.div
+                key={i}
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
+                className={`flex items-center gap-3 p-3 rounded-xl ${
+                  module.done
+                    ? 'bg-green-50 dark:bg-green-900/20'
+                    : 'bg-gray-50 dark:bg-gray-800'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  module.done
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                }`}>
+                  {module.done ? <Check className="w-4 h-4" /> : i + 1}
+                </div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{module.title}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'cta',
+      title: 'Ready to Transform Your Learning?',
+      description: 'Join thousands of successful students today',
+      duration: 5000,
+      content: (
+        <div className="text-center py-4">
+          {/* Celebration animation */}
+          <div className="relative">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              className="text-8xl mb-6"
+            >
+              🎉
+            </motion.div>
+
+            {/* Confetti effect */}
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute top-0 left-1/2 w-2 h-2 rounded-full"
+                style={{
+                  backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6'][i % 5],
+                }}
+                initial={{ y: 0, x: 0, opacity: 1 }}
+                animate={{
+                  y: [0, -100 - Math.random() * 100],
+                  x: [(Math.random() - 0.5) * 200],
+                  opacity: [1, 0],
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 1.5,
+                  delay: 0.3 + i * 0.05,
+                  ease: 'easeOut',
+                }}
+              />
+            ))}
+          </div>
+
+          <motion.h3
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-2xl font-bold mb-3 text-gray-900 dark:text-white"
+          >
+            Start Your Journey Today!
+          </motion.h3>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto"
+          >
+            Join <span className="font-semibold text-blue-600">10,000+</span> students already achieving their academic goals
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="flex flex-col sm:flex-row gap-3 justify-center"
+          >
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-6"
+              onClick={onClose}
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Get Started Free
+            </Button>
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+              View Pricing
+            </Button>
+          </motion.div>
+
+          {/* Trust badges */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-500"
+          >
+            <span className="flex items-center gap-1">
+              <Shield className="w-4 h-4 text-green-500" />
+              Secure & Private
+            </span>
+            <span className="flex items-center gap-1">
+              <Zap className="w-4 h-4 text-yellow-500" />
+              Fast Setup
+            </span>
+            <span className="flex items-center gap-1">
+              <Heart className="w-4 h-4 text-red-500" />
+              Made with Love
+            </span>
+          </motion.div>
+        </div>
+      ),
+    },
   ];
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (isPlaying && currentSlide < demoSlides.length - 1) {
+      slideTimerRef.current = setTimeout(() => {
+        setCurrentSlide(prev => prev + 1);
+      }, SLIDE_DURATION / playbackSpeed);
+    }
+
+    return () => {
+      if (slideTimerRef.current) {
+        clearTimeout(slideTimerRef.current);
+      }
+    };
+  }, [isPlaying, currentSlide, playbackSpeed, demoSlides.length]);
+
+  // Typing effect for AI slide
+  useEffect(() => {
+    if (demoSlides[currentSlide].id === 'ai-quiz') {
+      const text = 'Calculus fundamentals...';
+      let index = 0;
+      typingRef.current = setInterval(() => {
+        if (index <= text.length) {
+          setTypingText(text.slice(0, index));
+          index++;
+        } else {
+          if (typingRef.current) clearInterval(typingRef.current);
+        }
+      }, 100);
+
+      return () => {
+        if (typingRef.current) clearInterval(typingRef.current);
+        setTypingText('');
+      };
+    }
+  }, [currentSlide]);
+
+  // Count up effect for analytics slide
+  useEffect(() => {
+    if (demoSlides[currentSlide].id === 'analytics') {
+      let count = 0;
+      countUpRef.current = setInterval(() => {
+        count += 1;
+        if (count <= 47) {
+          setCountUp(count);
+        } else {
+          if (countUpRef.current) clearInterval(countUpRef.current);
+        }
+      }, 50);
+
+      return () => {
+        if (countUpRef.current) clearInterval(countUpRef.current);
+        setCountUp(0);
+      };
+    }
+  }, [currentSlide]);
+
+  // Hide controls after inactivity
+  const resetControlsTimeout = useCallback(() => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      resetControlsTimeout();
+
+      switch (e.key) {
+        case 'ArrowRight':
+        case ' ':
+          e.preventDefault();
+          if (currentSlide < demoSlides.length - 1) {
+            setCurrentSlide(prev => prev + 1);
+          }
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (currentSlide > 0) {
+            setCurrentSlide(prev => prev - 1);
+          }
+          break;
+        case 'Escape':
+          onClose();
+          break;
+        case 'p':
+        case 'P':
+          setIsPlaying(prev => !prev);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSlide, demoSlides.length, onClose, resetControlsTimeout]);
+
+  // Mouse move handler for controls visibility
+  useEffect(() => {
+    const handleMouseMove = () => resetControlsTimeout();
+    window.addEventListener('mousemove', handleMouseMove);
+    resetControlsTimeout();
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    };
+  }, [resetControlsTimeout]);
 
   const nextSlide = () => {
     if (currentSlide < demoSlides.length - 1) {
@@ -5866,119 +6447,262 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
     }
   };
 
+  const currentSlideData = demoSlides[currentSlide];
+  const progress = ((currentSlide + 1) / demoSlides.length) * 100;
+
   return (
     <motion.div
+      ref={modalRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden"
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <Play className="w-5 h-5" />
+        {/* Video-like Header with Progress */}
+        <div className="relative">
+          {/* Top gradient overlay */}
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/50 to-transparent z-10 pointer-events-none" />
+
+          {/* Progress bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gray-800 z-20">
+            <motion.div
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-600"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+
+          {/* Controls overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showControls ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-0 left-0 right-0 p-4 sm:p-6 z-20"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center"
+                >
+                  <LogoIcon size="sm" className="text-white" />
+                </motion.div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white">StudyPlanner Demo</h3>
+                  <p className="text-xs sm:text-sm text-white/70">
+                    Slide {currentSlide + 1} of {demoSlides.length}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold">Product Demo</h3>
-                <p className="text-sm text-white/80">See StudyPlanner in action</p>
+
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Speed selector */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/80 hover:text-white hover:bg-white/20 text-xs sm:text-sm"
+                    >
+                      {playbackSpeed}x
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setPlaybackSpeed(1)}>1x Normal</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setPlaybackSpeed(1.5)}>1.5x Fast</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setPlaybackSpeed(2)}>2x Faster</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Play/Pause */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="text-white hover:bg-white/20"
+                >
+                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                </Button>
+
+                {/* Close */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="text-white hover:bg-white/20"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-white hover:bg-white/20"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mt-4 flex gap-2">
-            {demoSlides.map((_, i) => (
-              <div
-                key={i}
-                className={`flex-1 h-1.5 rounded-full transition-all ${
-                  i < currentSlide ? 'bg-white' : i === currentSlide ? 'bg-white' : 'bg-white/30'
-                }`}
-              />
-            ))}
-          </div>
+          </motion.div>
         </div>
 
-        {/* Content */}
-        <div className="p-8">
+        {/* Main Content Area */}
+        <div className="min-h-[400px] sm:min-h-[480px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, x: 100, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -100, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="p-4 sm:p-8 h-full"
             >
+              {/* Slide title and description */}
               <div className="text-center mb-6">
-                <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {demoSlides[currentSlide].title}
-                </h4>
-                <p className="text-gray-500 dark:text-gray-400 mt-2">
-                  {demoSlides[currentSlide].description}
-                </p>
+                <motion.h4
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
+                >
+                  {currentSlideData.title}
+                </motion.h4>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-gray-500 dark:text-gray-400 mt-2 text-sm sm:text-base"
+                >
+                  {currentSlideData.description}
+                </motion.p>
               </div>
-              <div className="min-h-[300px]">
-                {demoSlides[currentSlide].content}
-              </div>
+
+              {/* Slide content */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="max-w-2xl mx-auto"
+              >
+                {currentSlideData.content}
+              </motion.div>
             </motion.div>
           </AnimatePresence>
+
+          {/* Navigation arrows */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showControls ? 1 : 0 }}
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10"
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 text-white hover:bg-black/50 disabled:opacity-30"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showControls ? 1 : 0 }}
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10"
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextSlide}
+              disabled={currentSlide === demoSlides.length - 1}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 text-white hover:bg-black/50 disabled:opacity-30"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </Button>
+          </motion.div>
         </div>
 
-        {/* Footer */}
-        <div className="px-8 pb-8 flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={prevSlide}
-            disabled={currentSlide === 0}
-          >
-            <ChevronLeft className="w-4 h-4 mr-2" /> Previous
-          </Button>
-          <div className="flex items-center gap-2">
-            {demoSlides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentSlide(i)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  i === currentSlide
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 w-8'
-                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'
-                }`}
-              />
-            ))}
+        {/* Footer with slide indicators */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: showControls ? 1 : 0, y: 0 }}
+          className="px-4 sm:px-8 py-4 sm:py-6 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800"
+        >
+          <div className="flex items-center justify-between">
+            {/* Slide dots */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {demoSlides.map((slide, i) => (
+                <button
+                  key={slide.id}
+                  onClick={() => setCurrentSlide(i)}
+                  className={`group relative transition-all duration-300 ${
+                    i === currentSlide
+                      ? 'w-6 sm:w-8 h-2 sm:h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600'
+                      : 'w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                  }`}
+                >
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block">
+                    {slide.title}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Navigation buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={prevSlide}
+                disabled={currentSlide === 0}
+                className="hidden sm:flex"
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" /> Previous
+              </Button>
+
+              {currentSlide < demoSlides.length - 1 ? (
+                <Button
+                  size="sm"
+                  onClick={nextSlide}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                >
+                  Next <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={onClose}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-1" /> Start Now
+                </Button>
+              )}
+            </div>
           </div>
-          {currentSlide < demoSlides.length - 1 ? (
-            <Button
-              onClick={nextSlide}
-              className="bg-gradient-to-r from-blue-500 to-purple-600"
-            >
-              Next <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <Button
-              onClick={onClose}
-              className="bg-gradient-to-r from-green-500 to-emerald-600"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" /> Get Started
-            </Button>
-          )}
-        </div>
+
+          {/* Keyboard shortcuts hint */}
+          <div className="hidden sm:flex items-center justify-center gap-4 mt-4 text-xs text-gray-400">
+            <span>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">←</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded ml-1">→</kbd>
+              Navigate
+            </span>
+            <span>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Space</kbd>
+              Next
+            </span>
+            <span>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">P</kbd>
+              Play/Pause
+            </span>
+            <span>
+              <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Esc</kbd>
+              Close
+            </span>
+          </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
