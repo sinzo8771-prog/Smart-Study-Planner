@@ -1300,7 +1300,7 @@ const StatsCard = ({ title, value, subtitle, icon: Icon, color, onClick, trend }
 };
 
 // ============================================
-// STUDY PLANNER MODULE
+// STUDY PLANNER MODULE (Enhanced)
 // ============================================
 
 interface StudyPlannerProps {
@@ -1317,6 +1317,14 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'subject' | 'task'; id: string } | null>(null);
+
+  // Enhanced filter and view states
+  const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'created'>('dueDate');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Form states
   const [subjectForm, setSubjectForm] = useState({
@@ -1427,6 +1435,19 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     }
   };
 
+  // Cycle through task statuses: pending -> in_progress -> completed -> pending
+  const handleCycleTaskStatus = async (task: Task) => {
+    const statusOrder: Array<'pending' | 'in_progress' | 'completed'> = ['pending', 'in_progress', 'completed'];
+    const currentIndex = statusOrder.indexOf(task.status);
+    const newStatus = statusOrder[(currentIndex + 1) % 3];
+    try {
+      await api.put(`/api/tasks/${task.id}`, { status: newStatus });
+      fetchData();
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
   const resetTaskForm = () => {
     setTaskForm({
       title: '',
@@ -1447,9 +1468,96 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     return Math.round((completed / subjectTasks.length) * 100);
   };
 
+  // Filter and sort tasks
+  const getFilteredTasks = () => {
+    let filtered = [...tasks];
+    
+    // Filter by subject
+    if (selectedSubject) {
+      filtered = filtered.filter(t => t.subjectId === selectedSubject.id);
+    }
+    
+    // Filter by status
+    if (taskFilter !== 'all') {
+      filtered = filtered.filter(t => t.status === taskFilter);
+    }
+    
+    // Filter by priority
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(t => t.priority === priorityFilter);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(t => 
+        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (t.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      );
+    }
+    
+    // Sort tasks
+    switch (sortBy) {
+      case 'dueDate':
+        filtered.sort((a, b) => {
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        });
+        break;
+      case 'priority':
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        filtered.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+        break;
+      case 'created':
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+    }
+    
+    return filtered;
+  };
+
+  // Calendar navigation
+  const goToPrevMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const goToToday = () => {
+    setCurrentMonth(new Date());
+  };
+
+  // Get upcoming tasks (due in next 7 days)
+  const getUpcomingTasks = () => {
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return tasks.filter(t => {
+      if (!t.dueDate || t.status === 'completed') return false;
+      const dueDate = new Date(t.dueDate);
+      return dueDate >= today && dueDate <= nextWeek;
+    }).sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime());
+  };
+
+  // Get overdue tasks
+  const getOverdueTasks = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return tasks.filter(t => {
+      if (!t.dueDate || t.status === 'completed') return false;
+      const dueDate = new Date(t.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      return dueDate < today;
+    }).sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime());
+  };
+
   if (isLoading) {
     return <DashboardSkeleton />;
   }
+
+  const overdueTasks = getOverdueTasks();
+  const upcomingTasks = getUpcomingTasks();
 
   return (
     <div className="space-y-6">
@@ -1483,8 +1591,36 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </div>
       </div>
 
+      {/* Alert for Overdue Tasks */}
+      {overdueTasks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-red-700 dark:text-red-400">
+                    {overdueTasks.length} Overdue Task{overdueTasks.length > 1 ? 's' : ''}
+                  </h4>
+                  <p className="text-sm text-red-600 dark:text-red-300 mt-1">
+                    {overdueTasks.slice(0, 3).map(t => t.title).join(', ')}
+                    {overdueTasks.length > 3 && ` and ${overdueTasks.length - 3} more`}
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" className="border-red-300 text-red-700 hover:bg-red-100">
+                  View All
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatsCard
           title="Total Subjects"
           value={subjects.length}
@@ -1502,13 +1638,56 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
           value={tasks.filter(t => t.status === 'completed').length}
           icon={CheckCircle}
           color="from-green-500 to-green-600"
+          trend={tasks.length > 0 ? { 
+            value: Math.round((tasks.filter(t => t.status === 'completed').length / tasks.length) * 100), 
+            isPositive: true 
+          } : undefined}
         />
         <StatsCard
-          title="Pending"
-          value={tasks.filter(t => t.status === 'pending').length}
+          title="In Progress"
+          value={tasks.filter(t => t.status === 'in_progress').length}
           icon={Clock}
           color="from-orange-500 to-orange-600"
         />
+      </div>
+
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-yellow-100 dark:bg-yellow-800 rounded-lg">
+              <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">Due This Week</p>
+              <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-200">{upcomingTasks.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-red-200 dark:border-red-800">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <p className="text-sm text-red-700 dark:text-red-300">Overdue</p>
+              <p className="text-2xl font-bold text-red-800 dark:text-red-200">{overdueTasks.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
+              <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="text-sm text-green-700 dark:text-green-300">Completion Rate</p>
+              <p className="text-2xl font-bold text-green-800 dark:text-green-200">
+                {tasks.length > 0 ? Math.round((tasks.filter(t => t.status === 'completed').length / tasks.length) * 100) : 0}%
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content */}
@@ -1654,21 +1833,67 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         <TabsContent value="tasks" className="mt-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <CardTitle>All Tasks</CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {/* Search */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search tasks..."
+                      className="pl-9 w-40"
+                    />
+                  </div>
+                  {/* Subject Filter */}
                   <Select
                     value={selectedSubject?.id || 'all'}
                     onValueChange={(value) => setSelectedSubject(value === 'all' ? null : subjects.find(s => s.id === value) || null)}
                   >
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Filter by subject" />
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Subject" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Subjects</SelectItem>
                       {subjects.map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Status Filter */}
+                  <Select value={taskFilter} onValueChange={(v) => setTaskFilter(v as typeof taskFilter)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {/* Priority Filter */}
+                  <Select value={priorityFilter} onValueChange={(v) => setPriorityFilter(v as typeof priorityFilter)}>
+                    <SelectTrigger className="w-28">
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {/* Sort */}
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dueDate">Due Date</SelectItem>
+                      <SelectItem value="priority">Priority</SelectItem>
+                      <SelectItem value="created">Created</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1680,21 +1905,55 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>No tasks yet. Add your first task to get started.</p>
                 </div>
+              ) : getFilteredTasks().length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Filter className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No tasks match your filters.</p>
+                  <Button variant="outline" size="sm" className="mt-2" onClick={() => {
+                    setSelectedSubject(null);
+                    setTaskFilter('all');
+                    setPriorityFilter('all');
+                    setSearchQuery('');
+                  }}>
+                    Clear Filters
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-3">
-                  {tasks
-                    .filter(t => !selectedSubject || t.subjectId === selectedSubject.id)
-                    .map((task) => (
-                      <div
+                  {getFilteredTasks().map((task) => {
+                    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+                    const isDueSoon = task.dueDate && !isOverdue && (() => {
+                      const dueDate = new Date(task.dueDate);
+                      const today = new Date();
+                      const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                      return diffDays <= 3 && diffDays >= 0;
+                    })();
+                    
+                    return (
+                      <motion.div
                         key={task.id}
-                        className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex items-center gap-4 p-4 rounded-lg border transition-all hover:shadow-md ${
+                          isOverdue 
+                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' 
+                            : isDueSoon 
+                              ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                              : 'bg-gray-50 dark:bg-gray-800 border-transparent'
+                        }`}
                       >
+                        {/* Status Toggle */}
                         <button
-                          onClick={() => handleToggleTaskStatus(task)}
-                          className="shrink-0"
+                          onClick={() => handleCycleTaskStatus(task)}
+                          className="shrink-0 group"
+                          title={`Status: ${task.status} (click to change)`}
                         >
                           {task.status === 'completed' ? (
-                            <CheckCircle className="w-5 h-5 text-green-500" />
+                            <CheckCircle className="w-5 h-5 text-green-500 group-hover:scale-110 transition-transform" />
+                          ) : task.status === 'in_progress' ? (
+                            <div className="w-5 h-5 rounded-full border-2 border-blue-500 bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-blue-500" />
+                            </div>
                           ) : (
                             <div className="w-5 h-5 rounded-full border-2 border-gray-300 hover:border-blue-500 transition-colors" />
                           )}
@@ -1704,58 +1963,65 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                           <p className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-400' : ''}`}>
                             {task.title}
                           </p>
-                          <div className="flex items-center gap-3 mt-1">
+                          <div className="flex flex-wrap items-center gap-3 mt-1">
                             <div
                               className="w-2 h-2 rounded-full"
                               style={{ backgroundColor: task.subject?.color }}
                             />
                             <span className="text-sm text-gray-500">{task.subject?.name}</span>
                             {task.dueDate && (
-                              <span className="text-sm text-gray-400">
-                                Due: {formatDate(task.dueDate)}
+                              <span className={`text-sm flex items-center gap-1 ${isOverdue ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                                <Clock className="w-3 h-3" />
+                                {isOverdue ? 'Overdue: ' : 'Due: '}
+                                {formatDate(task.dueDate)}
                               </span>
                             )}
                           </div>
                         </div>
 
-                        <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
-                        <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
+                          <Badge className={getStatusColor(task.status)}>
+                            {task.status === 'in_progress' ? 'In Progress' : task.status}
+                          </Badge>
 
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setEditingTask(task);
-                                setTaskForm({
-                                  title: task.title,
-                                  description: task.description || '',
-                                  status: task.status,
-                                  priority: task.priority,
-                                  dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
-                                  subjectId: task.subjectId,
-                                });
-                                setIsTaskDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setDeleteConfirm({ type: 'task', id: task.id })}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    ))}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingTask(task);
+                                  setTaskForm({
+                                    title: task.title,
+                                    description: task.description || '',
+                                    status: task.status,
+                                    priority: task.priority,
+                                    dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+                                    subjectId: task.subjectId,
+                                  });
+                                  setIsTaskDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeleteConfirm({ type: 'task', id: task.id })}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -1771,27 +2037,16 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   Calendar View
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      const prevMonth = new Date();
-                      prevMonth.setMonth(prevMonth.getMonth() - 1);
-                    }}
-                  >
+                  <Button variant="outline" size="sm" onClick={goToPrevMonth}>
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <span className="text-sm font-medium min-w-[120px] text-center">
-                    {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  <Button variant="ghost" size="sm" onClick={goToToday} className="text-xs">
+                    Today
+                  </Button>
+                  <span className="text-sm font-medium min-w-[140px] text-center">
+                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      const nextMonth = new Date();
-                      nextMonth.setMonth(nextMonth.getMonth() + 1);
-                    }}
-                  >
+                  <Button variant="outline" size="sm" onClick={goToNextMonth}>
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -1812,8 +2067,8 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                 {/* Calendar Days */}
                 {(() => {
                   const today = new Date();
-                  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-                  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+                  const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
                   const startPadding = firstDay.getDay();
                   const totalDays = lastDay.getDate();
                   
@@ -1847,7 +2102,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   
                   // Days of month
                   for (let day = 1; day <= totalDays; day++) {
-                    const date = new Date(today.getFullYear(), today.getMonth(), day);
+                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
                     const dateKey = date.toDateString();
                     const isToday = date.toDateString() === today.toDateString();
                     const dayTasks = tasksByDate[dateKey] || [];
@@ -1858,11 +2113,11 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                         key={day}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: day * 0.01 }}
-                        className={`h-24 rounded-lg border p-1 overflow-hidden transition-colors ${
+                        transition={{ delay: day * 0.005 }}
+                        className={`h-24 rounded-lg border p-1 overflow-hidden transition-colors cursor-pointer ${
                           isToday 
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500' 
-                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md'
                         }`}
                       >
                         <div className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-600' : 'text-gray-500'}`}>
@@ -1926,7 +2181,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
               {/* Legend */}
               <div className="flex flex-wrap items-center gap-4 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <div className="w-3 h-3 rounded-full bg-blue-500 ring-2 ring-blue-500" />
                   <span className="text-xs text-gray-500">Today</span>
                 </div>
                 <div className="flex items-center gap-2">
