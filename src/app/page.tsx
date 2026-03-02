@@ -530,13 +530,104 @@ interface AIChatWidgetProps {
   onClose: () => void;
 }
 
+// Helper to render markdown-like content
+const renderMarkdownText = (text: string) => {
+  // Split by code blocks first
+  const parts = text.split(/(```[\s\S]*?```)/g);
+  
+  return parts.map((part, idx) => {
+    if (part.startsWith('```')) {
+      const codeContent = part.replace(/```\w*\n?/g, '').replace(/```$/g, '');
+      return (
+        <pre key={idx} className="bg-gray-800 text-green-400 p-2 rounded-lg my-2 overflow-x-auto text-xs font-mono">
+          {codeContent}
+        </pre>
+      );
+    }
+    
+    // Process inline formatting
+    return part.split('\n').map((line, lineIdx) => {
+      // Headers
+      if (line.startsWith('### ')) {
+        return <h4 key={`${idx}-${lineIdx}`} className="font-semibold text-base mt-2 mb-1">{line.replace('### ', '')}</h4>;
+      }
+      if (line.startsWith('## ')) {
+        return <h3 key={`${idx}-${lineIdx}`} className="font-bold text-lg mt-2 mb-1">{line.replace('## ', '')}</h3>;
+      }
+      if (line.startsWith('# ')) {
+        return <h2 key={`${idx}-${lineIdx}`} className="font-bold text-xl mt-2 mb-1">{line.replace('# ', '')}</h2>;
+      }
+      
+      // Bullet points
+      if (line.startsWith('• ') || line.startsWith('- ')) {
+        const content = line.replace(/^[•\-] /, '');
+        return (
+          <div key={`${idx}-${lineIdx}`} className="flex gap-2 my-0.5">
+            <span className="text-blue-500 mt-0.5">•</span>
+            <span>{renderInlineFormat(content)}</span>
+          </div>
+        );
+      }
+      
+      // Numbered lists
+      const numberedMatch = line.match(/^(\d+)\.\s/);
+      if (numberedMatch) {
+        const content = line.replace(/^\d+\.\s/, '');
+        return (
+          <div key={`${idx}-${lineIdx}`} className="flex gap-2 my-0.5">
+            <span className="text-blue-500 font-medium min-w-[1.25rem]">{numberedMatch[1]}.</span>
+            <span>{renderInlineFormat(content)}</span>
+          </div>
+        );
+      }
+      
+      // Empty line
+      if (!line.trim()) {
+        return <div key={`${idx}-${lineIdx}`} className="h-1" />;
+      }
+      
+      // Regular text
+      return <p key={`${idx}-${lineIdx}`} className="my-0.5">{renderInlineFormat(line)}</p>;
+    });
+  });
+};
+
+// Helper for inline formatting (bold, italic, code)
+const renderInlineFormat = (text: string) => {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+  
+  return parts.map((part, idx) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={idx} className="font-semibold">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={idx} className="italic">{part.slice(1, -1)}</em>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={idx} className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">{part.slice(1, -1)}</code>;
+    }
+    return part;
+  });
+};
+
 const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
-    { role: 'assistant', content: 'Hello! I\'m your AI Study Assistant. How can I help you today? I can help with study tips, explain concepts, or answer academic questions.' }
+    { 
+      role: 'assistant', 
+      content: '👋 Hello! I\'m your AI Study Assistant.\n\nI can help you with:\n• **Study tips** and techniques\n• **Explaining concepts** in simple terms\n• **Creating study schedules**\n• **Motivation** and encouragement\n• **Test preparation** strategies\n\nHow can I help you today?' 
+    }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const quickPrompts = [
+    { icon: '📚', text: 'Study tips for exams' },
+    { icon: '🧠', text: 'How to improve memory?' },
+    { icon: '⏰', text: 'Help me create a study schedule' },
+    { icon: '💪', text: 'I need motivation to study' },
+  ];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -544,32 +635,62 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
 
-    const userMessage = input.trim();
+  const handleSend = async (messageToSend?: string) => {
+    const message = messageToSend || input.trim();
+    if (!message || isLoading) return;
+
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { role: 'user', content: message }]);
     setIsLoading(true);
 
     try {
+      // Get conversation history (exclude the initial greeting for API)
+      const history = messages.slice(1).map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({ 
+          message,
+          history 
+        }),
       });
       const data = await response.json();
 
       if (data.success) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: '❌ Sorry, I encountered an error. Please try again.' 
+        }]);
       }
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I couldn\'t connect to the AI service. Please try again later.' }]);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: '❌ Sorry, I couldn\'t connect to the AI service. Please try again later.' 
+      }]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleClearHistory = () => {
+    setMessages([
+      { 
+        role: 'assistant', 
+        content: '🔄 Chat cleared! How can I help you today?' 
+      }
+    ]);
   };
 
   if (!isOpen) return null;
@@ -579,58 +700,123 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-24 right-6 w-96 h-[500px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50 overflow-hidden"
+      className="fixed bottom-24 right-4 sm:right-6 w-[calc(100%-2rem)] sm:w-96 h-[520px] max-h-[80vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50 overflow-hidden"
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-            <Bot className="w-5 h-5 text-white" />
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
             <h3 className="font-semibold text-white">AI Study Assistant</h3>
-            <p className="text-xs text-white/80">Powered by AI</p>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
+              <p className="text-xs text-white/80">Online • Ready to help</p>
+            </div>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
-          <X className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleClearHistory} 
+            className="text-white hover:bg-white/20 h-8 w-8"
+            title="Clear chat"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onClose} 
+            className="text-white hover:bg-white/20 h-8 w-8"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${
               msg.role === 'user'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
             }`}>
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              <div className="text-sm leading-relaxed">
+                {msg.role === 'assistant' ? renderMarkdownText(msg.content) : msg.content}
+              </div>
             </div>
-          </div>
+          </motion.div>
         ))}
+        
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-2">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-start"
+          >
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3 flex items-center gap-2">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Thinking...</span>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
+      {/* Quick Prompts */}
+      {messages.length === 1 && (
+        <div className="px-4 pb-2 shrink-0">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Quick questions:</p>
+          <div className="flex flex-wrap gap-2">
+            {quickPrompts.map((prompt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSend(prompt.text)}
+                className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-full transition-colors"
+              >
+                {prompt.icon} {prompt.text}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Input */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
         <div className="flex gap-2">
           <Input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="Ask me anything..."
-            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="Ask me anything about studying..."
+            className="flex-1 text-sm"
+            disabled={isLoading}
           />
-          <Button onClick={handleSend} disabled={isLoading || !input.trim()} className="bg-blue-600 hover:bg-blue-700">
-            <Send className="w-4 h-4" />
+          <Button 
+            onClick={() => handleSend()} 
+            disabled={isLoading || !input.trim()} 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shrink-0"
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
       </div>
@@ -1930,15 +2116,250 @@ interface CoursesModuleProps {
   user: User;
 }
 
+// Course category icons and colors
+const courseCategories = [
+  { name: 'Programming', icon: '💻', color: 'from-blue-500 to-cyan-500' },
+  { name: 'Design', icon: '🎨', color: 'from-pink-500 to-rose-500' },
+  { name: 'Business', icon: '📊', color: 'from-green-500 to-emerald-500' },
+  { name: 'Marketing', icon: '📢', color: 'from-orange-500 to-amber-500' },
+  { name: 'Data Science', icon: '📈', color: 'from-purple-500 to-violet-500' },
+  { name: 'Languages', icon: '🌍', color: 'from-teal-500 to-cyan-500' },
+  { name: 'Photography', icon: '📷', color: 'from-red-500 to-pink-500' },
+  { name: 'Music', icon: '🎵', color: 'from-indigo-500 to-purple-500' },
+  { name: 'Other', icon: '📚', color: 'from-gray-500 to-slate-500' },
+];
+
+const getCategoryInfo = (category: string | undefined) => {
+  return courseCategories.find(c => c.name === category) || courseCategories[courseCategories.length - 1];
+};
+
+// Video Player Component
+const VideoPlayer = ({ url, title }: { url: string; title?: string }) => {
+  const getEmbedUrl = (videoUrl: string) => {
+    // YouTube
+    if (videoUrl.includes('youtube.com/watch')) {
+      const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (videoUrl.includes('youtu.be/')) {
+      const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Vimeo
+    if (videoUrl.includes('vimeo.com/')) {
+      const videoId = videoUrl.split('vimeo.com/')[1]?.split('?')[0];
+      return `https://player.vimeo.com/video/${videoId}`;
+    }
+    // Direct video URL
+    return videoUrl;
+  };
+
+  const isEmbed = url.includes('youtube') || url.includes('vimeo') || url.includes('youtu.be');
+
+  return (
+    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden">
+      {isEmbed ? (
+        <iframe
+          src={getEmbedUrl(url)}
+          title={title || 'Video'}
+          className="w-full h-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <video
+          src={url}
+          controls
+          className="w-full h-full"
+          title={title}
+        >
+          Your browser does not support the video tag.
+        </video>
+      )}
+    </div>
+  );
+};
+
+// Lesson Viewer Component
+const LessonViewer = ({ 
+  module, 
+  onClose, 
+  onComplete, 
+  isCompleted,
+  onNext,
+  onPrev,
+  hasNext,
+  hasPrev,
+  moduleNumber
+}: { 
+  module: Module; 
+  onClose: () => void; 
+  onComplete: () => void;
+  isCompleted: boolean;
+  onNext?: () => void;
+  onPrev?: () => void;
+  hasNext?: boolean;
+  hasPrev?: boolean;
+  moduleNumber: number;
+}) => {
+  // Initialize active tab based on available content
+  const getInitialTab = (): 'content' | 'video' => {
+    if (module.videoUrl) return 'video';
+    if (module.content) return 'content';
+    return 'video';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'content' | 'video'>(getInitialTab());
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="w-full max-w-5xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold">
+              {moduleNumber}
+            </div>
+            <div>
+              <h2 className="font-semibold text-white text-lg">{module.title}</h2>
+              <div className="flex items-center gap-2 text-white/80 text-sm">
+                {module.duration > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {formatDuration(module.duration)}
+                  </span>
+                )}
+                {isCompleted && (
+                  <span className="flex items-center gap-1 text-green-300">
+                    <CheckCircle className="w-3 h-3" />
+                    Completed
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 dark:border-gray-700 shrink-0">
+          {module.videoUrl && (
+            <button
+              onClick={() => setActiveTab('video')}
+              className={`flex items-center gap-2 px-6 py-3 font-medium transition-colors ${
+                activeTab === 'video'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Video className="w-4 h-4" />
+              Video
+            </button>
+          )}
+          {module.content && (
+            <button
+              onClick={() => setActiveTab('content')}
+              className={`flex items-center gap-2 px-6 py-3 font-medium transition-colors ${
+                activeTab === 'content'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Content
+            </button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {activeTab === 'video' && module.videoUrl && (
+            <VideoPlayer url={module.videoUrl} title={module.title} />
+          )}
+          
+          {activeTab === 'content' && module.content && (
+            <div className="prose dark:prose-invert max-w-none">
+              {renderMarkdownText(module.content)}
+            </div>
+          )}
+          
+          {!module.videoUrl && !module.content && (
+            <div className="text-center py-12 text-gray-500">
+              <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No content available for this module.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            {hasPrev && (
+              <Button variant="outline" onClick={onPrev}>
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Previous
+              </Button>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isCompleted ? "outline" : "default"}
+              onClick={onComplete}
+              className={isCompleted ? "" : "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"}
+            >
+              {isCompleted ? (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+                  Completed
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Mark Complete
+                </>
+              )}
+            </Button>
+            
+            {hasNext && (
+              <Button onClick={onNext} className="bg-gradient-to-r from-blue-500 to-purple-600">
+                Next
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const CoursesModule = ({ user }: CoursesModuleProps) => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false);
   const [isModuleDialogOpen, setIsModuleDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'course' | 'module'; id: string } | null>(null);
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterLevel, setFilterLevel] = useState<string>('all');
+  const [filterProgress, setFilterProgress] = useState<string>('all');
 
   const [courseForm, setCourseForm] = useState<{
     title: string;
@@ -1947,6 +2368,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
     level: 'beginner' | 'intermediate' | 'advanced';
     duration: number;
     isPublished: boolean;
+    thumbnail?: string;
   }>({
     title: '',
     description: '',
@@ -1954,6 +2376,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
     level: 'beginner',
     duration: 0,
     isPublished: false,
+    thumbnail: '',
   });
 
   const [moduleForm, setModuleForm] = useState({
@@ -2014,6 +2437,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
       level: 'beginner',
       duration: 0,
       isPublished: false,
+      thumbnail: '',
     });
     setEditingCourse(null);
   };
@@ -2038,11 +2462,58 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
     }
   };
 
+  // Filter courses
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (course.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    const matchesCategory = filterCategory === 'all' || course.category === filterCategory;
+    const matchesLevel = filterLevel === 'all' || course.level === filterLevel;
+    
+    let matchesProgress = true;
+    if (filterProgress === 'not-started') matchesProgress = !course.progress || course.progress === 0;
+    else if (filterProgress === 'in-progress') matchesProgress = (course.progress ?? 0) > 0 && (course.progress ?? 0) < 100;
+    else if (filterProgress === 'completed') matchesProgress = course.progress === 100;
+    
+    return matchesSearch && matchesCategory && matchesLevel && matchesProgress;
+  });
+
+  // Get unique categories from courses
+  const categories = ['all', ...new Set(courses.map(c => c.category).filter(Boolean))];
+
+  // Calculate course stats
+  const getCourseStats = () => {
+    const total = courses.length;
+    const completed = courses.filter(c => c.progress === 100).length;
+    const inProgress = courses.filter(c => (c.progress ?? 0) > 0 && (c.progress ?? 0) < 100).length;
+    return { total, completed, inProgress };
+  };
+
+  // Find current module index and navigation
+  const getCurrentModuleIndex = () => {
+    if (!selectedModule || !selectedCourse?.modules) return -1;
+    return selectedCourse.modules.findIndex(m => m.id === selectedModule.id);
+  };
+
+  const handleNextModule = () => {
+    const index = getCurrentModuleIndex();
+    if (selectedCourse?.modules && index < selectedCourse.modules.length - 1) {
+      setSelectedModule(selectedCourse.modules[index + 1]);
+    }
+  };
+
+  const handlePrevModule = () => {
+    const index = getCurrentModuleIndex();
+    if (index > 0 && selectedCourse?.modules) {
+      setSelectedModule(selectedCourse.modules[index - 1]);
+    }
+  };
+
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
   const isAdmin = user.role === 'admin';
+  const stats = getCourseStats();
 
   return (
     <div className="space-y-6">
@@ -2053,7 +2524,10 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
             {selectedCourse ? selectedCourse.title : 'Courses'}
           </h2>
           <p className="text-gray-500">
-            {selectedCourse ? selectedCourse.description : 'Browse and learn from our course library'}
+            {selectedCourse 
+              ? selectedCourse.description || 'Learn and track your progress'
+              : 'Browse and learn from our course library'
+            }
           </p>
         </div>
         <div className="flex gap-2">
@@ -2063,7 +2537,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
               Back to Courses
             </Button>
           ) : isAdmin && (
-            <Button onClick={() => setIsCourseDialogOpen(true)}>
+            <Button onClick={() => setIsCourseDialogOpen(true)} className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
               <Plus className="w-4 h-4 mr-2" />
               Add Course
             </Button>
@@ -2073,130 +2547,377 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
 
       {selectedCourse ? (
         // Course Detail View
-        <div className="space-y-6">
-          {/* Progress Overview */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-sm text-gray-500">Your Progress</p>
-                  <p className="text-2xl font-bold">{Math.round(selectedCourse.progress || 0)}%</p>
-                </div>
-                <Badge className={getLevelColor(selectedCourse.level)}>{selectedCourse.level}</Badge>
-              </div>
-              <Progress value={selectedCourse.progress || 0} className="h-3" />
-            </CardContent>
-          </Card>
-
-          {/* Modules */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Modules</CardTitle>
-                {isAdmin && (
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setModuleForm({ ...moduleForm, courseId: selectedCourse.id });
-                      setIsModuleDialogOpen(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Module
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {selectedCourse.modules?.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Layers className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No modules yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {selectedCourse.modules?.map((module, index) => (
-                    <div
-                      key={module.id}
-                      className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
-                    >
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">{module.title}</p>
-                        <div className="flex items-center gap-3 text-sm text-gray-500">
-                          {module.duration > 0 && (
-                            <span><Clock className="w-3 h-3 inline mr-1" />{formatDuration(module.duration)}</span>
-                          )}
-                          {module.videoUrl && <span><Video className="w-3 h-3 inline mr-1" />Video</span>}
-                        </div>
-                      </div>
-                      {module.completed !== undefined && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleModuleProgress(module.id, !module.completed)}
-                        >
-                          {module.completed ? (
-                            <CheckCircle className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
-                          )}
-                        </Button>
-                      )}
-                      {isAdmin && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => {
-                              setEditingModule(module);
-                              setModuleForm({
-                                title: module.title,
-                                description: module.description || '',
-                                content: module.content || '',
-                                videoUrl: module.videoUrl || '',
-                                duration: module.duration,
-                                order: module.order,
-                                courseId: selectedCourse.id,
-                              });
-                              setIsModuleDialogOpen(true);
-                            }}>
-                              <Edit className="w-4 h-4 mr-2" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setDeleteConfirm({ type: 'module', id: module.id })}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Progress Overview */}
+            <Card className="overflow-hidden">
+              <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Your Progress</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">{Math.round(selectedCourse.progress || 0)}%</p>
+                      <p className="text-sm text-gray-500">complete</p>
                     </div>
-                  ))}
+                  </div>
+                  <div className="text-right">
+                    <Badge className={getLevelColor(selectedCourse.level)}>{selectedCourse.level}</Badge>
+                    {selectedCourse.duration > 0 && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        {formatDuration(selectedCourse.duration)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <Progress value={selectedCourse.progress || 0} className="h-2" />
+                <div className="flex items-center justify-between mt-3 text-sm text-gray-500">
+                  <span>{selectedCourse.modules?.filter(m => m.completed).length || 0} of {selectedCourse.modules?.length || 0} modules completed</span>
+                  {selectedCourse.progress === 100 && (
+                    <span className="text-green-500 flex items-center gap-1">
+                      <Award className="w-4 h-4" />
+                      Course Complete!
+                    </span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Modules */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Layers className="w-5 h-5" />
+                    Course Modules
+                  </CardTitle>
+                  {isAdmin && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setModuleForm({ 
+                          ...moduleForm, 
+                          courseId: selectedCourse.id,
+                          order: selectedCourse.modules?.length || 0 
+                        });
+                        setIsModuleDialogOpen(true);
+                      }}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Module
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {selectedCourse.modules?.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Layers className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="font-medium">No modules yet</p>
+                    <p className="text-sm">Modules will appear here when added</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedCourse.modules?.map((module, index) => (
+                      <motion.div
+                        key={module.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`group relative flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all ${
+                          module.completed 
+                            ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+                            : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent'
+                        }`}
+                        onClick={() => setSelectedModule(module)}
+                      >
+                        {/* Module Number */}
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm shrink-0 ${
+                          module.completed
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+                        }`}>
+                          {module.completed ? <Check className="w-5 h-5" /> : index + 1}
+                        </div>
+                        
+                        {/* Module Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-white truncate">{module.title}</p>
+                          <div className="flex items-center gap-3 text-sm text-gray-500">
+                            {module.duration > 0 && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {formatDuration(module.duration)}
+                              </span>
+                            )}
+                            {module.videoUrl && (
+                              <span className="flex items-center gap-1">
+                                <Video className="w-3 h-3" />
+                                Video
+                              </span>
+                            )}
+                            {module.content && (
+                              <span className="flex items-center gap-1">
+                                <FileText className="w-3 h-3" />
+                                Content
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedModule(module);
+                            }}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                          {isAdmin && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingModule(module);
+                                  setModuleForm({
+                                    title: module.title,
+                                    description: module.description || '',
+                                    content: module.content || '',
+                                    videoUrl: module.videoUrl || '',
+                                    duration: module.duration,
+                                    order: module.order,
+                                    courseId: selectedCourse.id,
+                                  });
+                                  setIsModuleDialogOpen(true);
+                                }}>
+                                  <Edit className="w-4 h-4 mr-2" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteConfirm({ type: 'module', id: module.id });
+                                  }}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Course Info Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Course Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <Layers className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Modules</p>
+                    <p className="font-semibold">{selectedCourse.modules?.length || 0}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Total Duration</p>
+                    <p className="font-semibold">{formatDuration(selectedCourse.duration)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Level</p>
+                    <p className="font-semibold capitalize">{selectedCourse.level}</p>
+                  </div>
+                </div>
+                {selectedCourse.category && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900 flex items-center justify-center text-lg">
+                      {getCategoryInfo(selectedCourse.category).icon}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Category</p>
+                      <p className="font-semibold">{selectedCourse.category}</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Continue Learning */}
+            {selectedCourse.modules && selectedCourse.modules.length > 0 && (
+              <Card className="bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0">
+                <CardHeader>
+                  <CardTitle className="text-lg text-white">Continue Learning</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const nextModule = selectedCourse.modules.find(m => !m.completed) || selectedCourse.modules[0];
+                    const nextIndex = selectedCourse.modules.indexOf(nextModule);
+                    return (
+                      <>
+                        <p className="text-white/80 text-sm mb-3">Next up:</p>
+                        <Button 
+                          variant="secondary" 
+                          className="w-full justify-start bg-white/20 hover:bg-white/30 text-white border-0"
+                          onClick={() => setSelectedModule(nextModule)}
+                        >
+                          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold mr-2">
+                            {nextIndex + 1}
+                          </div>
+                          {nextModule.title}
+                          <Play className="w-4 h-4 ml-auto" />
+                        </Button>
+                      </>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       ) : (
         // Course List View
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.length === 0 ? (
-            <Card className="col-span-full">
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total Courses</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Completed</p>
+                  <p className="text-2xl font-bold">{stats.completed}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">In Progress</p>
+                  <p className="text-2xl font-bold">{stats.inProgress}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search courses..."
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat === 'all' ? 'All Categories' : cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filterLevel} onValueChange={setFilterLevel}>
+                  <SelectTrigger className="w-full sm:w-32">
+                    <SelectValue placeholder="Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterProgress} onValueChange={setFilterProgress}>
+                  <SelectTrigger className="w-full sm:w-36">
+                    <SelectValue placeholder="Progress" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="not-started">Not Started</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Course Grid */}
+          {filteredCourses.length === 0 ? (
+            <Card>
               <CardContent className="p-12 text-center">
                 <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold mb-2">No courses available</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  {courses.length === 0 ? 'No courses available' : 'No courses match your filters'}
+                </h3>
                 <p className="text-gray-500 mb-4">
-                  {isAdmin ? 'Create your first course to get started.' : 'Check back later for new courses!'}
+                  {isAdmin && courses.length === 0 
+                    ? 'Create your first course to get started.' 
+                    : courses.length === 0 
+                      ? 'Check back later for new courses!'
+                      : 'Try adjusting your search or filters.'
+                  }
                 </p>
-                {isAdmin && (
-                  <Button onClick={() => setIsCourseDialogOpen(true)}>
+                {isAdmin && courses.length === 0 && (
+                  <Button onClick={() => setIsCourseDialogOpen(true)} className="bg-gradient-to-r from-blue-500 to-purple-600">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Course
                   </Button>
@@ -2204,74 +2925,163 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
               </CardContent>
             </Card>
           ) : (
-            courses.map((course) => (
-              <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="h-32 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <GraduationCap className="w-12 h-12 text-white/50" />
-                </div>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{course.title}</CardTitle>
-                    {isAdmin && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => {
-                            setEditingCourse(course);
-                            setCourseForm({
-                              title: course.title,
-                              description: course.description || '',
-                              category: course.category || '',
-                              level: course.level as 'beginner' | 'intermediate' | 'advanced',
-                              duration: course.duration,
-                              isPublished: course.isPublished,
-                            });
-                            setIsCourseDialogOpen(true);
-                          }}>
-                            <Edit className="w-4 h-4 mr-2" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => setDeleteConfirm({ type: 'course', id: course.id })}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                  <CardDescription className="line-clamp-2">{course.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge className={getLevelColor(course.level)}>{course.level}</Badge>
-                    {course.category && <Badge variant="outline">{course.category}</Badge>}
-                    {!course.isPublished && <Badge variant="secondary">Draft</Badge>}
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span>{course._count?.modules || 0} modules</span>
-                    {course.duration > 0 && <span>{formatDuration(course.duration)}</span>}
-                  </div>
-                  <Button className="w-full" onClick={() => handleViewCourse(course)}>
-                    View Course
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCourses.map((course, index) => {
+                const categoryInfo = getCategoryInfo(course.category);
+                return (
+                  <motion.div
+                    key={course.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-md">
+                      {/* Course Thumbnail */}
+                      <div className={`h-36 bg-gradient-to-br ${categoryInfo.color} relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-black/10" />
+                        <div className="absolute top-4 left-4">
+                          <span className="text-3xl">{categoryInfo.icon}</span>
+                        </div>
+                        {course.progress !== undefined && course.progress > 0 && (
+                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+                            <div 
+                              className="h-full bg-white/80 transition-all duration-500"
+                              style={{ width: `${course.progress}%` }}
+                            />
+                          </div>
+                        )}
+                        {course.progress === 100 && (
+                          <div className="absolute top-4 right-4 bg-green-500 text-white rounded-full p-1.5">
+                            <CheckCircle className="w-4 h-4" />
+                          </div>
+                        )}
+                        {isAdmin && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="absolute top-2 right-2 text-white hover:bg-black/20"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => {
+                                setEditingCourse(course);
+                                setCourseForm({
+                                  title: course.title,
+                                  description: course.description || '',
+                                  category: course.category || '',
+                                  level: course.level as 'beginner' | 'intermediate' | 'advanced',
+                                  duration: course.duration,
+                                  isPublished: course.isPublished,
+                                  thumbnail: course.thumbnail || '',
+                                });
+                                setIsCourseDialogOpen(true);
+                              }}>
+                                <Edit className="w-4 h-4 mr-2" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeleteConfirm({ type: 'course', id: course.id })}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                      
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-lg line-clamp-1">{course.title}</CardTitle>
+                        </div>
+                        <CardDescription className="line-clamp-2 text-sm">
+                          {course.description || 'No description available'}
+                        </CardDescription>
+                      </CardHeader>
+                      
+                      <CardContent className="pt-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <Badge className={getLevelColor(course.level)}>{course.level}</Badge>
+                          {course.category && (
+                            <Badge variant="outline" className="text-xs">
+                              {categoryInfo.icon} {course.category}
+                            </Badge>
+                          )}
+                          {!course.isPublished && (
+                            <Badge variant="secondary" className="text-xs">Draft</Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                          <span className="flex items-center gap-1">
+                            <Layers className="w-3 h-3" />
+                            {course._count?.modules || 0} modules
+                          </span>
+                          {course.duration > 0 && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatDuration(course.duration)}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {course.progress !== undefined && course.progress > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                              <span>Progress</span>
+                              <span>{Math.round(course.progress)}%</span>
+                            </div>
+                            <Progress value={course.progress} className="h-1.5" />
+                          </div>
+                        )}
+                        
+                        <Button 
+                          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 group-hover:shadow-lg transition-all"
+                          onClick={() => handleViewCourse(course)}
+                        >
+                          {course.progress !== undefined && course.progress > 0 ? 'Continue' : 'Start'} Learning
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
-        </div>
+        </>
+      )}
+
+      {/* Lesson Viewer Modal */}
+      {selectedModule && selectedCourse && (
+        <LessonViewer
+          module={selectedModule}
+          moduleNumber={(selectedCourse.modules?.findIndex(m => m.id === selectedModule.id) ?? 0) + 1}
+          onClose={() => setSelectedModule(null)}
+          onComplete={() => handleModuleProgress(selectedModule.id, !selectedModule.completed)}
+          isCompleted={selectedModule.completed || false}
+          onNext={handleNextModule}
+          onPrev={handlePrevModule}
+          hasNext={getCurrentModuleIndex() < (selectedCourse.modules?.length ?? 0) - 1}
+          hasPrev={getCurrentModuleIndex() > 0}
+        />
       )}
 
       {/* Course Dialog */}
-      <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
-        <DialogContent>
+      <Dialog open={isCourseDialogOpen} onOpenChange={(open) => { setIsCourseDialogOpen(open); if (!open) resetCourseForm(); }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingCourse ? 'Edit Course' : 'Create New Course'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-blue-600" />
+              {editingCourse ? 'Edit Course' : 'Create New Course'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingCourse ? 'Update course details' : 'Add a new course to your learning platform'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -2287,18 +3097,28 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
               <Textarea
                 value={courseForm.description}
                 onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
-                placeholder="Course description..."
+                placeholder="Describe what students will learn..."
                 rows={3}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Category</Label>
-                <Input
+                <Select
                   value={courseForm.category}
-                  onChange={(e) => setCourseForm({ ...courseForm, category: e.target.value })}
-                  placeholder="e.g., Programming"
-                />
+                  onValueChange={(value) => setCourseForm({ ...courseForm, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courseCategories.slice(0, -1).map(cat => (
+                      <SelectItem key={cat.name} value={cat.name}>
+                        {cat.icon} {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Level</Label>
@@ -2312,9 +3132,9 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
+                    <SelectItem value="beginner">🌱 Beginner</SelectItem>
+                    <SelectItem value="intermediate">🌿 Intermediate</SelectItem>
+                    <SelectItem value="advanced">🌳 Advanced</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -2326,15 +3146,16 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                   type="number"
                   value={courseForm.duration}
                   onChange={(e) => setCourseForm({ ...courseForm, duration: parseInt(e.target.value) || 0 })}
+                  placeholder="e.g., 120"
                 />
               </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2">
+              <div className="flex items-end pb-2">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={courseForm.isPublished}
                     onChange={(e) => setCourseForm({ ...courseForm, isPublished: e.target.checked })}
-                    className="rounded"
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm">Publish immediately</span>
                 </label>
@@ -2342,19 +3163,25 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCourseDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveCourse} disabled={!courseForm.title}>
-              {editingCourse ? 'Update' : 'Create'}
+            <Button variant="outline" onClick={() => { setIsCourseDialogOpen(false); resetCourseForm(); }}>Cancel</Button>
+            <Button onClick={handleSaveCourse} disabled={!courseForm.title} className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+              {editingCourse ? 'Update Course' : 'Create Course'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Module Dialog */}
-      <Dialog open={isModuleDialogOpen} onOpenChange={setIsModuleDialogOpen}>
-        <DialogContent>
+      <Dialog open={isModuleDialogOpen} onOpenChange={(open) => { setIsModuleDialogOpen(open); if (!open) setEditingModule(null); }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingModule ? 'Edit Module' : 'Add Module'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-purple-600" />
+              {editingModule ? 'Edit Module' : 'Add Module'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingModule ? 'Update module content' : 'Add a new learning module'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -2370,16 +3197,18 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
               <Textarea
                 value={moduleForm.description}
                 onChange={(e) => setModuleForm({ ...moduleForm, description: e.target.value })}
+                placeholder="Brief description of this module..."
                 rows={2}
               />
             </div>
             <div>
-              <Label>Content</Label>
+              <Label>Content (Markdown supported)</Label>
               <Textarea
                 value={moduleForm.content}
                 onChange={(e) => setModuleForm({ ...moduleForm, content: e.target.value })}
-                placeholder="Module content (markdown supported)..."
-                rows={4}
+                placeholder="# Module Content&#10;&#10;Write your lesson content here..."
+                rows={5}
+                className="font-mono text-sm"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -2388,7 +3217,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                 <Input
                   value={moduleForm.videoUrl}
                   onChange={(e) => setModuleForm({ ...moduleForm, videoUrl: e.target.value })}
-                  placeholder="https://..."
+                  placeholder="YouTube, Vimeo, or direct URL"
                 />
               </div>
               <div>
@@ -2397,27 +3226,32 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                   type="number"
                   value={moduleForm.duration}
                   onChange={(e) => setModuleForm({ ...moduleForm, duration: parseInt(e.target.value) || 0 })}
+                  placeholder="e.g., 15"
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModuleDialogOpen(false)}>Cancel</Button>
-            <Button onClick={async () => {
-              try {
-                if (editingModule) {
-                  await api.put(`/api/modules/${editingModule.id}`, moduleForm);
-                } else {
-                  await api.post('/api/modules', moduleForm);
+            <Button variant="outline" onClick={() => { setIsModuleDialogOpen(false); setEditingModule(null); }}>Cancel</Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  if (editingModule) {
+                    await api.put(`/api/modules/${editingModule.id}`, moduleForm);
+                  } else {
+                    await api.post('/api/modules', moduleForm);
+                  }
+                  setIsModuleDialogOpen(false);
+                  setEditingModule(null);
+                  if (selectedCourse) handleViewCourse(selectedCourse);
+                } catch (error) {
+                  console.error('Error saving module:', error);
                 }
-                setIsModuleDialogOpen(false);
-                setEditingModule(null);
-                if (selectedCourse) handleViewCourse(selectedCourse);
-              } catch (error) {
-                console.error('Error saving module:', error);
-              }
-            }} disabled={!moduleForm.title}>
-              {editingModule ? 'Update' : 'Create'}
+              }} 
+              disabled={!moduleForm.title}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            >
+              {editingModule ? 'Update Module' : 'Add Module'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2427,9 +3261,9 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {deleteConfirm?.type}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this {deleteConfirm?.type}.
+              This will permanently delete this {deleteConfirm?.type}. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -8324,12 +9158,19 @@ function PageContent() {
         </DashboardLayout>
         
         {/* AI Chat Button */}
-        <Button
-          onClick={() => setIsAIChatOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg z-40"
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <Sparkles className="w-6 h-6 text-white" />
-        </Button>
+          <Button
+            onClick={() => setIsAIChatOpen(true)}
+            className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 shadow-lg shadow-emerald-500/30 z-40"
+          >
+            <Sparkles className="w-6 h-6 text-white" />
+          </Button>
+        </motion.div>
         
         {/* AI Chat Widget */}
         <AnimatePresence>

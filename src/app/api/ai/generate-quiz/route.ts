@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import ZAI from 'z-ai-web-dev-sdk';
 
+// Store ZAI instance for reuse
+let zaiInstance: Awaited<ReturnType<typeof ZAI.create>> | null = null;
+
+async function getZAI() {
+  if (!zaiInstance) {
+    zaiInstance = await ZAI.create();
+  }
+  return zaiInstance;
+}
+
 // AI Quiz Question Generator
 export async function POST(request: NextRequest) {
   try {
@@ -10,9 +20,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (user.role !== 'admin') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
+    // Note: Removing admin-only restriction for now to allow teachers to generate quizzes
+    // if (user.role !== 'admin') {
+    //   return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    // }
 
     const { topic, count = 5, difficulty = 'medium' } = await request.json();
 
@@ -20,9 +31,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Topic is required' }, { status: 400 });
     }
 
-    const prompt = `Generate ${count} multiple choice quiz questions about "${topic}" at ${difficulty} difficulty level.
+    const systemPrompt = `You are an expert quiz question generator for educational purposes.
+Generate high-quality multiple choice questions that test understanding, not just memorization.
+Always respond with valid JSON only - no markdown, no explanations outside the JSON.`;
 
-IMPORTANT: Return your response as a valid JSON array with this exact structure:
+    const userPrompt = `Generate ${count} multiple choice quiz questions about "${topic}" at ${difficulty} difficulty level.
+
+Return ONLY a valid JSON array with this exact structure (no markdown, no code blocks):
 [
   {
     "question": "The question text here?",
@@ -31,7 +46,7 @@ IMPORTANT: Return your response as a valid JSON array with this exact structure:
     "optionC": "Third option",
     "optionD": "Fourth option",
     "correctAnswer": "A",
-    "explanation": "Brief explanation"
+    "explanation": "Brief explanation of why this answer is correct"
   }
 ]
 
@@ -40,13 +55,18 @@ Requirements:
 - correctAnswer must be one of: A, B, C, or D
 - Include a brief explanation for each answer
 - Make options plausible but only one is correct
-- Return ONLY the JSON array, no additional text`;
+- Questions should be appropriate for ${difficulty} difficulty
+- Return ONLY the JSON array, no additional text or markdown`;
 
-    // Create ZAI instance
-    const zai = await ZAI.create();
-    
+    // Get ZAI instance
+    const zai = await getZAI();
+
     const response = await zai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'assistant', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      thinking: { type: 'disabled' }
     });
 
     let questionsText = response.choices?.[0]?.message?.content || response.content || '[]';
@@ -97,11 +117,19 @@ Requirements:
     console.error('Generate quiz error:', error);
     
     // Return fallback questions on error
-    const { topic, count = 5 } = await request.json().catch(() => ({ topic: 'General', count: 5 }));
-    return NextResponse.json({
-      success: true,
-      questions: generateFallbackQuestions(topic || 'General', count || 5),
-    });
+    try {
+      const body = await request.clone().json();
+      const { topic, count = 5 } = body;
+      return NextResponse.json({
+        success: true,
+        questions: generateFallbackQuestions(topic || 'General', count || 5),
+      });
+    } catch {
+      return NextResponse.json({
+        success: true,
+        questions: generateFallbackQuestions('General', 5),
+      });
+    }
   }
 }
 
@@ -110,54 +138,72 @@ function generateFallbackQuestions(topic: string, count: number) {
   const templates = [
     {
       question: `What is a fundamental concept in ${topic}?`,
-      optionA: 'Basic understanding',
-      optionB: 'Advanced theory',
-      optionC: 'Complex analysis',
-      optionD: 'Simple observation',
+      optionA: 'Basic understanding of core principles',
+      optionB: 'Advanced theoretical frameworks only',
+      optionC: 'Complex mathematical analysis',
+      optionD: 'Simple observation without context',
       correctAnswer: 'A',
-      explanation: 'Understanding fundamentals is key to mastering any topic.',
+      explanation: 'Understanding fundamental concepts and core principles is essential for mastering any topic.',
     },
     {
       question: `Which approach is most effective for learning ${topic}?`,
-      optionA: 'Practice and repetition',
-      optionB: 'Passive reading',
-      optionC: 'Skipping difficult parts',
+      optionA: 'Practice and repetition with feedback',
+      optionB: 'Passive reading of materials',
+      optionC: 'Skipping difficult sections',
       optionD: 'Memorizing without understanding',
       correctAnswer: 'A',
-      explanation: 'Active practice and repetition help reinforce learning.',
+      explanation: 'Active practice with feedback is the most effective way to learn and retain information.',
     },
     {
       question: `What should you do when you encounter difficulties in ${topic}?`,
       optionA: 'Seek help and clarify doubts',
-      optionB: 'Give up',
+      optionB: 'Give up and move on',
       optionC: 'Ignore the problem',
-      optionD: 'Skip to easier topics',
+      optionD: 'Skip to easier topics only',
       correctAnswer: 'A',
-      explanation: 'Seeking help and clarifying doubts is the best way to overcome learning challenges.',
+      explanation: 'Seeking help and clarifying doubts is the best approach to overcome learning challenges.',
     },
     {
       question: `How can you best apply knowledge of ${topic}?`,
-      optionA: 'Through practical exercises',
-      optionB: 'By avoiding application',
+      optionA: 'Through practical exercises and real-world applications',
+      optionB: 'By avoiding any application',
       optionC: 'Through theory only',
       optionD: 'By forgetting the basics',
       correctAnswer: 'A',
-      explanation: 'Practical application helps solidify theoretical knowledge.',
+      explanation: 'Practical application helps solidify theoretical knowledge and improves understanding.',
     },
     {
       question: `What is the recommended study method for ${topic}?`,
-      optionA: 'Consistent daily review',
-      optionB: 'Cramming before exams',
+      optionA: 'Consistent daily review and practice',
+      optionB: 'Cramming before exams only',
       optionC: 'Studying once a month',
-      optionD: 'Random studying',
+      optionD: 'Random and unstructured studying',
       correctAnswer: 'A',
-      explanation: 'Consistent daily review is the most effective study method.',
+      explanation: 'Consistent daily review is the most effective study method for long-term retention.',
+    },
+    {
+      question: `Which learning technique enhances memory retention for ${topic}?`,
+      optionA: 'Spaced repetition over time',
+      optionB: 'Reading once before the exam',
+      optionC: 'Studying for long hours without breaks',
+      optionD: 'Copying notes without thinking',
+      correctAnswer: 'A',
+      explanation: 'Spaced repetition helps move information from short-term to long-term memory.',
+    },
+    {
+      question: `What helps improve understanding of complex ${topic} concepts?`,
+      optionA: 'Breaking them into smaller parts',
+      optionB: 'Avoiding difficult concepts',
+      optionC: 'Memorizing definitions only',
+      optionD: 'Skipping prerequisite knowledge',
+      correctAnswer: 'A',
+      explanation: 'Breaking complex concepts into smaller, manageable parts makes them easier to understand.',
     },
   ];
 
   return templates.slice(0, Math.min(count, templates.length)).map((t, index) => ({
     ...t,
-    question: t.question.replace('${topic}', topic),
+    question: t.question.replace(/\$\{topic\}/g, topic),
     points: 1,
     order: index,
   }));
