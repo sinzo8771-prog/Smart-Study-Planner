@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { getDashboardStats, shouldUseStaticData } from '@/lib/data-service';
 import { db } from '@/lib/db';
 
@@ -71,7 +71,7 @@ function calculateStreak(dates: Date[]): { current: number; best: number } {
 // GET: Get statistics based on user role
 export async function GET() {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },

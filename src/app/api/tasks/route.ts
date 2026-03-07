@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 import { sanitizeString, isValidTaskStatus, isValidTaskPriority } from '@/lib/validation';
@@ -48,7 +48,7 @@ let staticTasks = [
 // GET /api/tasks - List all tasks for the authenticated user
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
 
     if (!user) {
       return NextResponse.json(
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
 // POST /api/tasks - Create a new task
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
 
     if (!user) {
       return NextResponse.json(

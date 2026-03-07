@@ -108,3 +108,28 @@ Stage Summary:
 - Auth cookie is set using centralized `setAuthCookie` function
 - Frontend explicitly includes credentials in Firebase auth request
 - Google users can now successfully save subjects and tasks
+
+---
+Task ID: 6
+Agent: Main
+Task: Fix Unauthorized error for all users by supporting both auth systems
+
+Work Log:
+- Identified that API routes only checked custom JWT auth, not NextAuth session
+- Created shared `getAuthenticatedUser` helper in `src/lib/auth-helpers.ts`
+- Updated all API routes to use the shared helper:
+  - `/api/subjects/route.ts`
+  - `/api/subjects/[id]/route.ts`
+  - `/api/tasks/route.ts`
+  - `/api/tasks/[id]/route.ts`
+  - `/api/stats/route.ts`
+- The helper checks NextAuth session first, then falls back to custom JWT
+- Added debug logging to `getCurrentUser` in `src/lib/auth.ts`
+- Updated `createUser` in `data-service.ts` to always set `emailVerified`
+
+Stage Summary:
+- Created unified authentication helper that supports both auth systems
+- All API routes now properly check both NextAuth session and custom JWT
+- Users authenticated via Google (Firebase or NextAuth) can now access all features
+- Email/password users continue to work with custom JWT auth
+- Debug logging helps troubleshoot authentication issues

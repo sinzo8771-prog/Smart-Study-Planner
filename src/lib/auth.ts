@@ -99,12 +99,17 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
 
+    console.log('[Auth] getCurrentUser - token exists:', !!token);
+    
     if (!token) {
+      console.log('[Auth] getCurrentUser - No token found in cookies');
+      console.log('[Auth] Available cookies:', cookieStore.getAll().map(c => c.name));
       return null;
     }
 
     const payload = verifyToken(token);
     if (!payload) {
+      console.log('[Auth] getCurrentUser - Token verification failed');
       // Clear invalid token
       await clearAuthCookie();
       return null;
@@ -113,10 +118,13 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
     // Verify user still exists in database
     const user = await fetchUserById(payload.id);
     if (!user) {
+      console.log('[Auth] getCurrentUser - User not found in database:', payload.id);
       await clearAuthCookie();
       return null;
     }
 
+    console.log('[Auth] getCurrentUser - Success for user:', user.email);
+    
     // Return user data from database (not from token) for security
     return {
       id: user.id,

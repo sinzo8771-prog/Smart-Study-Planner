@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 
@@ -61,7 +61,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
     
     if (!user) {
       return NextResponse.json(
@@ -125,7 +125,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
     
     if (!user) {
       return NextResponse.json(
@@ -229,7 +229,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
     
     if (!user) {
       return NextResponse.json(

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 import { sanitizeString, isValidHexColor } from '@/lib/validation';
@@ -42,7 +42,7 @@ let staticSubjects = [
 // GET /api/subjects - List all subjects for the authenticated user
 export async function GET() {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
 
     if (!user) {
       return NextResponse.json(
@@ -92,7 +92,7 @@ export async function GET() {
 // POST /api/subjects - Create a new subject
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getAuthenticatedUser();
 
     if (!user) {
       return NextResponse.json(
