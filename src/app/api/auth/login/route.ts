@@ -3,6 +3,8 @@ import { findUserByEmail, comparePassword, generateToken, setAuthCookie } from '
 import { checkRateLimit } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
+  console.log('[Login API] POST request received');
+  
   try {
     // Rate limiting - 5 attempts per minute per IP
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
@@ -16,6 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password } = await request.json();
+    console.log('[Login API] Email:', email);
 
     // Validate input
     if (!email || !password) {
@@ -27,6 +30,8 @@ export async function POST(request: NextRequest) {
 
     // Find user
     const user = await findUserByEmail(email);
+    console.log('[Login API] User found:', user ? user.email : 'Not found');
+    
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
@@ -42,8 +47,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('[Login API] Comparing passwords...');
     // Compare password
     const isValidPassword = await comparePassword(password, user.password);
+    console.log('[Login API] Password valid:', isValidPassword);
+    
     if (!isValidPassword) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
@@ -74,6 +82,8 @@ export async function POST(request: NextRequest) {
     // Set cookie
     await setAuthCookie(token);
 
+    console.log('[Login API] Login successful for:', email);
+    
     return NextResponse.json({
       success: true,
       user: {

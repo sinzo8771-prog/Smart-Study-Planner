@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Use 12 salt rounds to match auth.ts
+const SALT_ROUNDS = 12;
+
 async function main() {
   console.log('🌱 Starting seed...');
 
@@ -12,7 +15,7 @@ async function main() {
   });
 
   if (!adminUser) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash('Admin@123456', SALT_ROUNDS);
     adminUser = await prisma.user.create({
       data: {
         name: 'Admin',
@@ -33,7 +36,7 @@ async function main() {
   });
 
   if (!adminUser2) {
-    const hashedPassword2 = await bcrypt.hash('Admin@123456', 10);
+    const hashedPassword2 = await bcrypt.hash('Admin@123456', SALT_ROUNDS);
     adminUser2 = await prisma.user.create({
       data: {
         name: 'Admin',
@@ -63,7 +66,7 @@ async function main() {
     });
 
     if (!existingStudent) {
-      const hashedPassword = await bcrypt.hash(studentData.password, 10);
+      const hashedPassword = await bcrypt.hash(studentData.password, SALT_ROUNDS);
       await prisma.user.create({
         data: {
           name: studentData.name,
