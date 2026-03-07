@@ -117,4 +117,55 @@ export const getFirebaseConfigStatus = () => {
   };
 };
 
+// Sign in with redirect (more reliable than popup)
+export const signInWithGoogleRedirect = async () => {
+  const { auth: authInstance, googleProvider: provider, error } = await getFirebaseAuth();
+  
+  if (error || !authInstance || !provider) {
+    return { error: error || 'Firebase not initialized' };
+  }
+  
+  try {
+    const { signInWithRedirect } = await import('firebase/auth');
+    await signInWithRedirect(authInstance, provider);
+    return { error: null };
+  } catch (err) {
+    console.error('🔥 signInWithRedirect error:', err);
+    return { error: err instanceof Error ? err.message : 'Redirect sign-in failed' };
+  }
+};
+
+// Get redirect result after returning from Google sign-in
+export const getGoogleRedirectResult = async () => {
+  if (typeof window === 'undefined') {
+    return { user: null, error: 'Not available on server side' };
+  }
+  
+  const { auth: authInstance } = await getFirebaseAuth();
+  
+  if (!authInstance) {
+    return { user: null, error: 'Firebase not initialized' };
+  }
+  
+  try {
+    const { getRedirectResult } = await import('firebase/auth');
+    const result = await getRedirectResult(authInstance);
+    
+    if (result && result.user) {
+      return { 
+        user: result.user, 
+        error: null 
+      };
+    }
+    
+    return { user: null, error: null };
+  } catch (err) {
+    console.error('🔥 getRedirectResult error:', err);
+    return { 
+      user: null, 
+      error: err instanceof Error ? err.message : 'Failed to get redirect result' 
+    };
+  }
+};
+
 export { auth, googleProvider };

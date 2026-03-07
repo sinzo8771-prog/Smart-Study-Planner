@@ -9653,45 +9653,64 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       }
       
       if (!auth || !googleProvider) {
-        throw new Error('Firebase authentication could not be initialized. Please check your Firebase project configuration in the Firebase Console.');
+        throw new Error('Firebase authentication could not be initialized.');
       }
       
-      const { signInWithPopup } = await import('firebase/auth');
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      if (!user.email) {
-        throw new Error('Could not get email from Google account. Please ensure your Google account has an email address.');
+      // Try popup first, fall back to redirect if popup fails
+      try {
+        const { signInWithPopup } = await import('firebase/auth');
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        
+        if (!user.email) {
+          throw new Error('Could not get email from Google account.');
+        }
+        
+        // Send the user info to our backend to create a session
+        const response = await fetch('/api/auth/firebase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            idToken: await user.getIdToken(),
+            name: user.displayName,
+            email: user.email,
+            picture: user.photoURL,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create session.');
+        }
+
+        if (!data.success || !data.user) {
+          throw new Error(data.error || 'Authentication failed.');
+        }
+
+        // Show success animation
+        setShowSuccess(true);
+        setTimeout(() => {
+          onSuccess(data.user);
+        }, 800);
+      } catch (popupError) {
+        const errorCode = (popupError as { code?: string })?.code || '';
+        
+        // If popup is blocked or closed, use redirect method
+        if (errorCode === 'auth/popup-blocked' || 
+            errorCode === 'auth/popup-closed-by-user' ||
+            errorCode === 'auth/unauthorized-domain') {
+          console.log('🔥 Popup failed, trying redirect method...');
+          
+          const { signInWithRedirect } = await import('firebase/auth');
+          await signInWithRedirect(auth, googleProvider);
+          // Page will redirect, so we don't need to handle success here
+          return;
+        }
+        
+        throw popupError;
       }
-      
-      // Send the user info to our backend to create a session
-      const response = await fetch('/api/auth/firebase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Include cookies
-        body: JSON.stringify({
-          idToken: await user.getIdToken(),
-          name: user.displayName,
-          email: user.email,
-          picture: user.photoURL,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create session. Please try again.');
-      }
-
-      if (!data.success || !data.user) {
-        throw new Error(data.error || 'Authentication failed. Please try again.');
-      }
-
-      // Show success animation
-      setShowSuccess(true);
-      setTimeout(() => {
-        onSuccess(data.user);
-      }, 800);
     } catch (err) {
       console.error('Google sign-in error:', err);
       
@@ -9700,17 +9719,17 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       const errorCode = (err as { code?: string })?.code || '';
       
       if (errorCode === 'auth/popup-blocked' || errorMessage.includes('auth/popup-blocked')) {
-        setError('Popup was blocked by your browser. Please allow popups for this site and try again.');
+        setError('Popup was blocked. Redirecting to Google sign-in...');
       } else if (errorCode === 'auth/popup-closed-by-user' || errorMessage.includes('auth/popup-closed-by-user')) {
-        setError('Sign-in popup was closed. This usually happens when:\n• The domain is not authorized in Firebase\n• Popup was blocked\n\nPlease check Firebase Console > Authentication > Settings > Authorized domains and add this domain.');
+        setError('Sign-in popup was closed. This usually means the domain is not authorized in Firebase.\n\nPlease add this domain to Firebase Console:\n1. Go to Firebase Console > Authentication > Settings\n2. Add your domain to "Authorized domains"');
       } else if (errorCode === 'auth/unauthorized-domain' || errorMessage.includes('unauthorized-domain')) {
-        setError('This domain is not authorized for Google sign-in. Please add this domain to Firebase Console > Authentication > Settings > Authorized domains.');
+        setError('This domain is not authorized for Google sign-in.\n\nPlease add this domain to Firebase Console:\n1. Go to Firebase Console > Authentication > Settings\n2. Add your domain to "Authorized domains"');
       } else if (errorCode === 'auth/invalid-api-key' || errorMessage.includes('invalid-api-key')) {
         setError('Invalid Firebase API Key. Please check your Firebase configuration.');
       } else if (errorCode === 'auth/network-request-failed' || errorMessage.includes('network-request-failed')) {
-        setError('Network error. Please check your internet connection and try again.');
+        setError('Network error. Please check your internet connection.');
       } else if (errorMessage.includes('Firebase configuration incomplete')) {
-        setError('Firebase is not configured. Google sign-in is currently unavailable. Please try email login instead.');
+        setError('Firebase is not configured. Please try email login instead.');
       } else {
         setError(errorMessage);
       }
