@@ -5,9 +5,9 @@ import { sendVerificationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/validation';
 import { db } from '@/lib/db';
 
-// Check if email service is configured
+// Check if email service is configured (Gmail SMTP)
 function isEmailServiceConfigured(): boolean {
-  return !!process.env.RESEND_API_KEY;
+  return !!(process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
 export async function POST(request: NextRequest) {

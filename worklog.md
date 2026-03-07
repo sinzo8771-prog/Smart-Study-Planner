@@ -133,3 +133,29 @@ Stage Summary:
 - Users authenticated via Google (Firebase or NextAuth) can now access all features
 - Email/password users continue to work with custom JWT auth
 - Debug logging helps troubleshoot authentication issues
+
+---
+Task ID: 7
+Agent: Main
+Task: Configure Gmail SMTP for email sending
+
+Work Log:
+- Installed nodemailer package for SMTP email support
+- Rewrote `src/lib/email.ts` to use Gmail SMTP instead of Resend
+- Configuration uses environment variables:
+  - SMTP_HOST (default: smtp.gmail.com)
+  - SMTP_PORT (default: 587)
+  - SMTP_USER (Gmail address)
+  - SMTP_PASS (Gmail App Password)
+  - EMAIL_FROM (sender email)
+- Updated registration route to check for SMTP credentials
+- Updated .env with Gmail SMTP configuration and instructions
+- Added `testEmailConnection` function for testing SMTP setup
+- Emails are sent with HTML templates for verification and password reset
+
+Stage Summary:
+- Gmail SMTP is now configured for email sending
+- Users need to set SMTP_USER and SMTP_PASS in .env
+- Gmail requires App Password (not regular password) for SMTP
+- Instructions for setup are in .env file
+- If SMTP not configured, emails are logged to console (dev mode)

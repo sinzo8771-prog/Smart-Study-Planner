@@ -1,62 +1,85 @@
-import { Resend } from 'resend';
-
-// Initialize Resend client only if API key is available
-const getResendClient = () => {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return null;
-  }
-  return new Resend(apiKey);
-};
+import nodemailer from 'nodemailer';
 
 // Email configuration
-const EMAIL_FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
+const SMTP_USER = process.env.SMTP_USER || '';
+const SMTP_PASS = process.env.SMTP_PASS || '';
+const EMAIL_FROM = process.env.EMAIL_FROM || SMTP_USER;
 const APP_NAME = 'Smart Study Planner';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+// Check if SMTP is configured
+function isSmtpConfigured(): boolean {
+  return !!(SMTP_USER && SMTP_PASS);
+}
+
+// Create transporter
+function createTransporter() {
+  if (!isSmtpConfigured()) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465, // true for 465, false for other ports
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+  });
+}
 
 export interface EmailOptions {
   to: string;
   subject: string;
   html: string;
+  text?: string;
 }
 
-// Send email using Resend
-export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{ success: boolean; error?: string }> {
-  // If no API key is configured, log the email for development
-  if (!process.env.RESEND_API_KEY) {
-    console.log('📧 Email Service (Development Mode)');
+// Send email using Gmail SMTP
+export async function sendEmail({ to, subject, html, text }: EmailOptions): Promise<{ success: boolean; error?: string }> {
+  // If SMTP is not configured, log the email for development
+  if (!isSmtpConfigured()) {
+    console.log('📧 Email Service (Development Mode - SMTP not configured)');
     console.log('To:', to);
     console.log('Subject:', subject);
-    console.log('HTML:', html);
+    console.log('HTML:', html.substring(0, 500) + '...');
+    console.log('\n💡 To enable email sending, configure SMTP_USER and SMTP_PASS in .env');
     return { success: true };
   }
 
   try {
-    const resend = getResendClient();
-    if (!resend) {
-      console.log('📧 Email Service (No Client - Development Mode)');
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.log('📧 Email Service (No Transporter - Development Mode)');
       console.log('To:', to);
       console.log('Subject:', subject);
       return { success: true };
     }
 
-    const { data, error } = await resend.emails.send({
-      from: EMAIL_FROM,
+    // Verify connection
+    await transporter.verify();
+    console.log('📧 SMTP connection verified');
+
+    // Send email
+    const info = await transporter.sendMail({
+      from: `"${APP_NAME}" <${EMAIL_FROM}>`,
       to,
       subject,
       html,
+      text: text || html.replace(/<[^>]*>/g, ''), // Plain text fallback
     });
 
-    if (error) {
-      console.error('Email sending error:', error);
-      return { success: false, error: error.message };
-    }
-
-    console.log('Email sent successfully:', data);
+    console.log('✅ Email sent successfully:', info.messageId);
     return { success: true };
   } catch (error) {
-    console.error('Email sending error:', error);
-    return { success: false, error: 'Failed to send email' };
+    console.error('❌ Email sending error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to send email' 
+    };
   }
 }
 
@@ -182,4 +205,29 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
     subject: `Reset Your Password - ${APP_NAME}`,
     html: generatePasswordResetEmailHtml(name, resetUrl),
   });
+}
+
+// Test email connection
+export async function testEmailConnection(): Promise<{ success: boolean; error?: string }> {
+  if (!isSmtpConfigured()) {
+    return { 
+      success: false, 
+      error: 'SMTP not configured. Set SMTP_USER and SMTP_PASS environment variables.' 
+    };
+  }
+
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      return { success: false, error: 'Failed to create email transporter' };
+    }
+
+    await transporter.verify();
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to connect to SMTP server' 
+    };
+  }
 }
