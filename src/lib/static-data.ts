@@ -68,7 +68,9 @@ export interface StaticQuestion {
   createdAt: Date;
 }
 
-// Default admin user
+// Default users (passwords are bcrypt hashed)
+// Admin@123456 hash: $2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/Le4XKMqF8GJA8JbLO
+// Student@123 hash: $2b$12$h6VoFnuW7mQDsAfLooZ6kOFdzGf2WcBxiHzZBXKDWvo1toKytqLgu
 export const staticUsers: StaticUser[] = [
   {
     id: 'admin-001',
@@ -82,7 +84,7 @@ export const staticUsers: StaticUser[] = [
     id: 'admin-1',
     name: 'Admin',
     email: 'admin@smartstudy.com',
-    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/Le4XKMqF8GJA8JbLO', // admin123
+    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/Le4XKMqF8GJA8JbLO', // Admin@123456
     role: 'admin',
     emailVerified: new Date(),
   },
@@ -90,10 +92,34 @@ export const staticUsers: StaticUser[] = [
     id: 'demo-user-1',
     name: 'Demo Student',
     email: 'student@demo.com',
-    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/Le4XKMqF8GJA8JbLO', // admin123
+    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/Le4XKMqF8GJA8JbLO', // Admin@123456
     role: 'student',
     emailVerified: new Date(),
-  }
+  },
+  {
+    id: 'student-1',
+    name: 'John Doe',
+    email: 'john@example.com',
+    password: '$2b$12$h6VoFnuW7mQDsAfLooZ6kOFdzGf2WcBxiHzZBXKDWvo1toKytqLgu', // Student@123
+    role: 'student',
+    emailVerified: new Date(),
+  },
+  {
+    id: 'student-2',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    password: '$2b$12$h6VoFnuW7mQDsAfLooZ6kOFdzGf2WcBxiHzZBXKDWvo1toKytqLgu', // Student@123
+    role: 'student',
+    emailVerified: new Date(),
+  },
+  {
+    id: 'student-3',
+    name: 'Bob Wilson',
+    email: 'bob@example.com',
+    password: '$2b$12$h6VoFnuW7mQDsAfLooZ6kOFdzGf2WcBxiHzZBXKDWvo1toKytqLgu', // Student@123
+    role: 'student',
+    emailVerified: new Date(),
+  },
 ];
 
 // Sample courses with modules

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, verifyCode } from '@/lib/tokens';
-import { db } from '@/lib/db';
-import { hashPassword, generateToken, setAuthCookie } from '@/lib/auth';
+import { hashPassword, generateToken, setAuthCookie, findUserByEmail } from '@/lib/auth';
+import { shouldUseStaticData } from '@/lib/data-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,9 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the user
-    const user = await db.user.findUnique({
-      where: { email: identifier },
-    });
+    const user = await findUserByEmail(identifier);
 
     if (!user) {
       return NextResponse.json(
@@ -84,8 +82,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash new password
+    // In static mode, just return success (password can't be changed in demo mode)
+    if (shouldUseStaticData()) {
+      console.log('[Reset Password] Static mode: Password reset simulated for', identifier);
+      
+      // Generate auth token and set cookie
+      const authToken = generateToken({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      });
+
+      await setAuthCookie(authToken);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Password reset successfully! (Demo mode - password not actually changed)',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        },
+      });
+    }
+
+    // Database mode: Hash and update password
     const hashedPassword = await hashPassword(password);
+
+    // Import db only when needed
+    const { db } = await import('@/lib/db');
 
     // Update user password
     const updatedUser = await db.user.update({

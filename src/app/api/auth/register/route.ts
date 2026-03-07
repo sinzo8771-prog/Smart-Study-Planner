@@ -3,7 +3,7 @@ import { createUser, findUserByEmail, generateToken, setAuthCookie } from '@/lib
 import { createVerificationToken } from '@/lib/tokens';
 import { sendVerificationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/validation';
-import { db } from '@/lib/db';
+import { shouldUseStaticData } from '@/lib/data-service';
 
 // Check if email service is configured (Gmail SMTP)
 function isEmailServiceConfigured(): boolean {
@@ -79,68 +79,17 @@ export async function POST(request: NextRequest) {
       role: role || 'student',
     });
 
+    // Check if we're in static/demo mode (Vercel without database)
+    const isStaticMode = shouldUseStaticData();
+    
     // Check if email service is configured
     const emailConfigured = isEmailServiceConfigured();
 
-    if (emailConfigured) {
-      // Production mode: Send verification email with code
-      const { token, code } = await createVerificationToken(email, 'email_verification', 24, true);
+    // In static mode OR when email is not configured, auto-verify and log in
+    if (isStaticMode || !emailConfigured) {
+      // Demo/Development mode: Auto-verify user and log them in
+      console.log('[Auth] Demo/Development mode: Auto-verifying user', email);
       
-      if (!code) {
-        console.error('Failed to generate verification code');
-        // Fall back to auto-verify
-        await db.user.update({
-          where: { id: user.id },
-          data: { emailVerified: new Date() },
-        });
-        const jwtToken = generateToken({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        });
-        await setAuthCookie(jwtToken);
-        return NextResponse.json({
-          success: true,
-          message: 'Account created successfully! You are now logged in.',
-          autoVerified: true,
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          },
-        });
-      }
-
-      const emailResult = await sendVerificationEmail(email, name, code, token);
-      
-      if (!emailResult.success) {
-        console.error('Failed to send verification email:', emailResult.error);
-        return NextResponse.json({
-          success: true,
-          message: 'Account created but verification email could not be sent. Please try resending.',
-          requiresVerification: true,
-          email: email,
-        });
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Account created successfully! A verification code has been sent to your email.',
-        requiresVerification: true,
-        email: email,
-      });
-    } else {
-      // Development/Demo mode: Auto-verify user and log them in
-      console.log('[Auth] Development mode: Auto-verifying user', email);
-      
-      // Update user to verified
-      await db.user.update({
-        where: { id: user.id },
-        data: { emailVerified: new Date() },
-      });
-
       // Generate token and set cookie for auto-login
       const token = generateToken({
         id: user.id,
@@ -162,6 +111,51 @@ export async function POST(request: NextRequest) {
         },
       });
     }
+
+    // Production mode with database: Send verification email with code
+    const { token, code } = await createVerificationToken(email, 'email_verification', 24, true);
+    
+    if (!code) {
+      console.error('Failed to generate verification code');
+      // Fall back to auto-verify
+      const jwtToken = generateToken({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      });
+      await setAuthCookie(jwtToken);
+      return NextResponse.json({
+        success: true,
+        message: 'Account created successfully! You are now logged in.',
+        autoVerified: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        },
+      });
+    }
+
+    const emailResult = await sendVerificationEmail(email, name, code, token);
+    
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+      return NextResponse.json({
+        success: true,
+        message: 'Account created but verification email could not be sent. Please try resending.',
+        requiresVerification: true,
+        email: email,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Account created successfully! A verification code has been sent to your email.',
+      requiresVerification: true,
+      email: email,
+    });
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
