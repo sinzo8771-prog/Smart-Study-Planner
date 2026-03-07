@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createUser, findUserByEmail } from '@/lib/auth';
+import { createUser, findUserByEmail, generateToken, setAuthCookie } from '@/lib/auth';
 import { createVerificationToken } from '@/lib/tokens';
 import { sendVerificationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/validation';
+import { db } from '@/lib/db';
+
+// Check if email service is configured
+function isEmailServiceConfigured(): boolean {
+  return !!process.env.RESEND_API_KEY;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,7 +71,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user (unverified)
+    // Create user
     const user = await createUser({
       name,
       email,
@@ -73,29 +79,61 @@ export async function POST(request: NextRequest) {
       role: role || 'student',
     });
 
-    // Create verification token
-    const token = await createVerificationToken(email, 'email_verification', 24);
+    // Check if email service is configured
+    const emailConfigured = isEmailServiceConfigured();
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, name, token);
-    
-    if (!emailResult.success) {
-      console.error('Failed to send verification email:', emailResult.error);
-      // Still return success but indicate email might need resend
+    if (emailConfigured) {
+      // Production mode: Send verification email
+      const token = await createVerificationToken(email, 'email_verification', 24);
+      const emailResult = await sendVerificationEmail(email, name, token);
+      
+      if (!emailResult.success) {
+        console.error('Failed to send verification email:', emailResult.error);
+        return NextResponse.json({
+          success: true,
+          message: 'Account created but verification email could not be sent. Please try resending.',
+          requiresVerification: true,
+          email: email,
+        });
+      }
+
       return NextResponse.json({
         success: true,
-        message: 'Account created but verification email could not be sent. Please try resending.',
+        message: 'Account created successfully! Please check your email to verify your account.',
         requiresVerification: true,
         email: email,
       });
-    }
+    } else {
+      // Development/Demo mode: Auto-verify user and log them in
+      console.log('[Auth] Development mode: Auto-verifying user', email);
+      
+      // Update user to verified
+      await db.user.update({
+        where: { id: user.id },
+        data: { emailVerified: new Date() },
+      });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Account created successfully! Please check your email to verify your account.',
-      requiresVerification: true,
-      email: email,
-    });
+      // Generate token and set cookie for auto-login
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      });
+      await setAuthCookie(token);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Account created successfully! You are now logged in.',
+        autoVerified: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        },
+      });
+    }
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(

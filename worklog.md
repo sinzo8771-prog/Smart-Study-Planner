@@ -60,3 +60,31 @@ Stage Summary:
 - All API calls now explicitly include `credentials: 'include'` to ensure cookies are sent
 - Cookie `sameSite` changed to `'lax'` which allows same-site requests while maintaining CSRF protection
 - Users can now successfully create subjects and tasks after logging in
+
+---
+Task ID: 4
+Agent: Main
+Task: Fix registration - auto-verify users when email service not available
+
+Work Log:
+- Identified that registration required email verification before login, but no RESEND_API_KEY was configured
+- Updated `/api/auth/register` to detect if email service is configured
+- When email service is NOT configured (development/demo mode):
+  - Auto-verify user by setting `emailVerified` to current date
+  - Generate JWT token and set auth cookie for immediate login
+  - Return user object with `autoVerified: true` flag
+- When email service IS configured (production mode):
+  - Send verification email as before
+  - Require email verification before login
+- Updated frontend `handleEmailRegister` to handle auto-verified response
+  - If `autoVerified` and `user` present, automatically log user in
+  - Otherwise show "check your email" message
+
+Stage Summary:
+- Registration now works in development/demo environment without email service
+- Users are auto-verified and logged in immediately upon registration
+- Tested successfully via curl:
+  - Registration returns `{"success":true,"autoVerified":true,"user":{...}}`
+  - Subject creation returns `{"subject":{...}}` with correct userId
+- All demo users in database are verified: admin@studyplanner.com, john@example.com, etc.
+- Users can now register and immediately use the Study Planner features

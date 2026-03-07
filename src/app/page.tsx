@@ -9778,8 +9778,17 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Show success message asking user to check email
-      setRegistrationSuccess(true);
+      // Check if user was auto-verified and logged in
+      if (data.autoVerified && data.user) {
+        // User is automatically logged in (development/demo mode)
+        setShowSuccess(true);
+        setTimeout(() => {
+          onSuccess(data.user);
+        }, 800);
+      } else {
+        // Show success message asking user to check email (production mode)
+        setRegistrationSuccess(true);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
