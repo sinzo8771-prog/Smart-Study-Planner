@@ -9595,6 +9595,12 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   
+  // Verification code states
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
+  const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
+  const [verifyCodeError, setVerifyCodeError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  
   // Pre-cache Firebase auth instance
   const firebaseAuthRef = useRef<{ auth: typeof import('firebase/auth').Auth | null; googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null }>({ auth: null, googleProvider: null });
 
@@ -9850,6 +9856,83 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
+  // Handle verification code input change
+  const handleCodeChange = (index: number, value: string) => {
+    // Only allow digits
+    if (value && !/^\d$/.test(value)) return;
+
+    const newCode = [...verificationCode];
+    newCode[index] = value;
+    setVerificationCode(newCode);
+    setVerifyCodeError('');
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`code-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  // Handle verification code key down (for backspace navigation)
+  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
+      const prevInput = document.getElementById(`code-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
+  // Handle verification code paste
+  const handleCodePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pastedData) {
+      const newCode = [...verificationCode];
+      for (let i = 0; i < pastedData.length; i++) {
+        newCode[i] = pastedData[i];
+      }
+      setVerificationCode(newCode);
+    }
+  };
+
+  // Handle verify code submission
+  const handleVerifyCode = async () => {
+    const code = verificationCode.join('');
+    if (code.length !== 6) {
+      setVerifyCodeError('Please enter a 6-digit code');
+      return;
+    }
+
+    setVerifyCodeLoading(true);
+    setVerifyCodeError('');
+
+    try {
+      const response = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          code: code,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Verification failed');
+      }
+
+      // Success - show success animation and log in
+      setShowSuccess(true);
+      setTimeout(() => {
+        onSuccess(data.user);
+      }, 800);
+    } catch (err) {
+      setVerifyCodeError(err instanceof Error ? err.message : 'Verification failed');
+    } finally {
+      setVerifyCodeLoading(false);
+    }
+  };
+
   // Get password strength info
   const passwordStrength = calculatePasswordStrength(formData.password);
   const passwordStrengthInfo = getPasswordStrengthColor(passwordStrength);
@@ -9973,25 +10056,87 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-4 sm:py-6"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', damping: 15 }}
-                className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4"
-              >
-                <Mail className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-              </motion.div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">Check Your Email</h3>
-              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-4 px-2">
-                We've sent a verification link to <strong className="break-all">{formData.email}</strong>. Please check your inbox and click the link to verify your account.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => onSwitchMode('login')}
-                className="mt-2 h-10 sm:h-11 text-sm"
-              >
-                Back to Login
-              </Button>
+              {!showSuccess ? (
+                <>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', damping: 15 }}
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4"
+                  >
+                    <Mail className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  </motion.div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">Verify Your Email</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-4 px-2">
+                    We've sent a 6-digit verification code to <strong className="break-all">{formData.email}</strong>
+                  </p>
+                  
+                  {/* 6-digit code input */}
+                  <div className="flex justify-center gap-2 sm:gap-3 mb-4">
+                    {[0, 1, 2, 3, 4, 5].map((index) => (
+                      <input
+                        key={index}
+                        id={`code-${index}`}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={verificationCode[index]}
+                        onChange={(e) => handleCodeChange(index, e.target.value)}
+                        onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                        onPaste={handleCodePaste}
+                        className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
+                        autoFocus={index === 0}
+                      />
+                    ))}
+                  </div>
+
+                  {verifyCodeError && (
+                    <p className="text-red-500 text-xs sm:text-sm mb-3">{verifyCodeError}</p>
+                  )}
+
+                  <Button
+                    onClick={handleVerifyCode}
+                    disabled={verifyCodeLoading || verificationCode.join('').length !== 6}
+                    className="w-full sm:w-auto px-8 h-10 sm:h-11 text-sm bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  >
+                    {verifyCodeLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Verifying...
+                      </>
+                    ) : (
+                      'Verify & Continue'
+                    )}
+                  </Button>
+
+                  <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                    <span>Didn't receive the code?</span>
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                      className="text-blue-500 hover:text-blue-600 font-medium disabled:opacity-50"
+                    >
+                      {resendLoading ? 'Sending...' : resendSuccess ? 'Code sent!' : 'Resend code'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', damping: 15 }}
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4"
+                  >
+                    <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  </motion.div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">Email Verified!</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
+                    Your email has been verified. You're now being logged in...
+                  </p>
+                </>
+              )}
             </motion.div>
           )}
 

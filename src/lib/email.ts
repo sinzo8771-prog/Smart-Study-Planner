@@ -83,8 +83,8 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions): Prom
   }
 }
 
-// Generate verification email HTML
-export function generateVerificationEmailHtml(name: string, verificationUrl: string): string {
+// Generate verification email HTML with code
+export function generateVerificationEmailHtml(name: string, verificationCode: string, verificationUrl: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -108,17 +108,27 @@ export function generateVerificationEmailHtml(name: string, verificationUrl: str
             Welcome to ${APP_NAME}! Please verify your email address to get started with your learning journey.
           </p>
           
-          <a href="${verificationUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-            Verify Email Address
-          </a>
+          <!-- Verification Code Box -->
+          <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #3b82f6; border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 30px;">
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px;">Your verification code is:</p>
+            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #3b82f6; font-family: 'Courier New', monospace;">
+              ${verificationCode}
+            </div>
+            <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 0;">This code will expire in 24 hours</p>
+          </div>
           
-          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; line-height: 1.6;">
-            If the button above doesn't work, copy and paste this link into your browser:<br>
-            <a href="${verificationUrl}" style="color: #3b82f6; word-break: break-all;">${verificationUrl}</a>
+          <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px; line-height: 1.6; text-align: center;">
+            Or click the button below to verify automatically:
           </p>
           
+          <div style="text-align: center;">
+            <a href="${verificationUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+              Verify Email Address
+            </a>
+          </div>
+          
           <p style="color: #9ca3af; font-size: 14px; margin-top: 30px;">
-            This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+            If you didn't create an account, you can safely ignore this email.
           </p>
         </div>
         
@@ -134,8 +144,8 @@ export function generateVerificationEmailHtml(name: string, verificationUrl: str
   `;
 }
 
-// Generate password reset email HTML
-export function generatePasswordResetEmailHtml(name: string, resetUrl: string): string {
+// Generate password reset email HTML with code
+export function generatePasswordResetEmailHtml(name: string, resetCode: string, resetUrl: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -156,20 +166,30 @@ export function generatePasswordResetEmailHtml(name: string, resetUrl: string): 
           <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Reset Your Password</h2>
           <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
             Hi ${name},<br><br>
-            We received a request to reset your password. Click the button below to create a new password.
+            We received a request to reset your password. Use the code below to create a new password.
           </p>
           
-          <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-            Reset Password
-          </a>
+          <!-- Reset Code Box -->
+          <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 30px;">
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px;">Your reset code is:</p>
+            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #f59e0b; font-family: 'Courier New', monospace;">
+              ${resetCode}
+            </div>
+            <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 0;">This code will expire in 1 hour</p>
+          </div>
           
-          <p style="color: #6b7280; font-size: 14px; margin-top: 30px; line-height: 1.6;">
-            If the button above doesn't work, copy and paste this link into your browser:<br>
-            <a href="${resetUrl}" style="color: #3b82f6; word-break: break-all;">${resetUrl}</a>
+          <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px; line-height: 1.6; text-align: center;">
+            Or click the button below to reset automatically:
           </p>
+          
+          <div style="text-align: center;">
+            <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+              Reset Password
+            </a>
+          </div>
           
           <p style="color: #9ca3af; font-size: 14px; margin-top: 30px;">
-            This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+            If you didn't request a password reset, you can safely ignore this email.
           </p>
         </div>
         
@@ -185,25 +205,25 @@ export function generatePasswordResetEmailHtml(name: string, resetUrl: string): 
   `;
 }
 
-// Send verification email
-export async function sendVerificationEmail(email: string, name: string, token: string): Promise<{ success: boolean; error?: string }> {
+// Send verification email with code
+export async function sendVerificationEmail(email: string, name: string, code: string, token: string): Promise<{ success: boolean; error?: string }> {
   const verificationUrl = `${APP_URL}/?verify_token=${token}`;
   
   return sendEmail({
     to: email,
-    subject: `Verify Your Email - ${APP_NAME}`,
-    html: generateVerificationEmailHtml(name, verificationUrl),
+    subject: `Your Verification Code - ${APP_NAME}`,
+    html: generateVerificationEmailHtml(name, code, verificationUrl),
   });
 }
 
-// Send password reset email
-export async function sendPasswordResetEmail(email: string, name: string, token: string): Promise<{ success: boolean; error?: string }> {
+// Send password reset email with code
+export async function sendPasswordResetEmail(email: string, name: string, code: string, token: string): Promise<{ success: boolean; error?: string }> {
   const resetUrl = `${APP_URL}/?reset_token=${token}`;
   
   return sendEmail({
     to: email,
-    subject: `Reset Your Password - ${APP_NAME}`,
-    html: generatePasswordResetEmailHtml(name, resetUrl),
+    subject: `Your Password Reset Code - ${APP_NAME}`,
+    html: generatePasswordResetEmailHtml(name, code, resetUrl),
   });
 }
 

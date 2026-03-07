@@ -6,13 +6,21 @@ export function generateToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Create a verification token
+// Generate a 6-digit verification code
+export function generateVerificationCode(): string {
+  // Generate a random 6-digit code
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Create a verification token with optional code
 export async function createVerificationToken(
   identifier: string,
   type: 'email_verification' | 'password_reset',
-  expiresInHours: number = 24
-): Promise<string> {
+  expiresInHours: number = 24,
+  includeCode: boolean = true
+): Promise<{ token: string; code?: string }> {
   const token = generateToken();
+  const code = includeCode ? generateVerificationCode() : undefined;
   const expires = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
 
   // Delete any existing tokens for this identifier and type
@@ -25,12 +33,13 @@ export async function createVerificationToken(
     data: {
       identifier,
       token,
+      code,
       type,
       expires,
     },
   });
 
-  return token;
+  return { token, code };
 }
 
 // Verify a token
@@ -60,6 +69,60 @@ export async function verifyToken(
   await db.verificationToken.delete({ where: { token } });
 
   return { valid: true, identifier: verificationToken.identifier };
+}
+
+// Verify a code (for email verification)
+export async function verifyCode(
+  code: string,
+  email: string,
+  type: 'email_verification' | 'password_reset' = 'email_verification'
+): Promise<{ valid: boolean; identifier?: string; error?: string }> {
+  const verificationToken = await db.verificationToken.findFirst({
+    where: { 
+      code,
+      identifier: email.toLowerCase().trim(),
+      type,
+    },
+  });
+
+  if (!verificationToken) {
+    return { valid: false, error: 'Invalid verification code' };
+  }
+
+  if (verificationToken.expires < new Date()) {
+    // Delete expired token
+    await db.verificationToken.delete({ where: { id: verificationToken.id } });
+    return { valid: false, error: 'Verification code has expired' };
+  }
+
+  // Delete the token after verification (one-time use)
+  await db.verificationToken.delete({ where: { id: verificationToken.id } });
+
+  return { valid: true, identifier: verificationToken.identifier };
+}
+
+// Get verification token info by email (for resending)
+export async function getVerificationTokenByEmail(
+  email: string,
+  type: 'email_verification' | 'password_reset' = 'email_verification'
+): Promise<{ token: string; code: string | null; expires: Date } | null> {
+  const verificationToken = await db.verificationToken.findFirst({
+    where: { 
+      identifier: email.toLowerCase().trim(),
+      type,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!verificationToken) {
+    return null;
+  }
+
+  return {
+    token: verificationToken.token,
+    code: verificationToken.code,
+    expires: verificationToken.expires,
+  };
 }
 
 // Delete all tokens for an identifier

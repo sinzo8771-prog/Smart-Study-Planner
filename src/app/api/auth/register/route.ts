@@ -83,9 +83,37 @@ export async function POST(request: NextRequest) {
     const emailConfigured = isEmailServiceConfigured();
 
     if (emailConfigured) {
-      // Production mode: Send verification email
-      const token = await createVerificationToken(email, 'email_verification', 24);
-      const emailResult = await sendVerificationEmail(email, name, token);
+      // Production mode: Send verification email with code
+      const { token, code } = await createVerificationToken(email, 'email_verification', 24, true);
+      
+      if (!code) {
+        console.error('Failed to generate verification code');
+        // Fall back to auto-verify
+        await db.user.update({
+          where: { id: user.id },
+          data: { emailVerified: new Date() },
+        });
+        const jwtToken = generateToken({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        });
+        await setAuthCookie(jwtToken);
+        return NextResponse.json({
+          success: true,
+          message: 'Account created successfully! You are now logged in.',
+          autoVerified: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+        });
+      }
+
+      const emailResult = await sendVerificationEmail(email, name, code, token);
       
       if (!emailResult.success) {
         console.error('Failed to send verification email:', emailResult.error);
@@ -99,7 +127,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Account created successfully! Please check your email to verify your account.',
+        message: 'Account created successfully! A verification code has been sent to your email.',
         requiresVerification: true,
         email: email,
       });

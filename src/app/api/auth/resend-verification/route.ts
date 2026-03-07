@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findUserByEmail } from '@/lib/auth';
-import { createVerificationToken, deleteTokensForIdentifier } from '@/lib/tokens';
+import { createVerificationToken } from '@/lib/tokens';
 import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       // Don't reveal if user exists or not for security
       return NextResponse.json({
         success: true,
-        message: 'If an account with that email exists, a verification email has been sent.',
+        message: 'If an account with that email exists, a verification code has been sent.',
       });
     }
 
@@ -33,12 +33,18 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Delete old tokens and create new one
-    await deleteTokensForIdentifier(email, 'email_verification');
-    const token = await createVerificationToken(email, 'email_verification', 24);
+    // Create new verification token with code
+    const { token, code } = await createVerificationToken(email, 'email_verification', 24, true);
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, user.name, token);
+    if (!code) {
+      return NextResponse.json(
+        { error: 'Failed to generate verification code. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    // Send verification email with code
+    const emailResult = await sendVerificationEmail(email, user.name, code, token);
 
     if (!emailResult.success) {
       return NextResponse.json(
@@ -49,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Verification email sent! Please check your inbox.',
+      message: 'Verification code sent! Please check your inbox.',
     });
   } catch (error) {
     console.error('Resend verification error:', error);

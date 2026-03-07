@@ -159,3 +159,51 @@ Stage Summary:
 - Gmail requires App Password (not regular password) for SMTP
 - Instructions for setup are in .env file
 - If SMTP not configured, emails are logged to console (dev mode)
+
+---
+Task ID: 8
+Agent: Main
+Task: Configure user's Gmail SMTP credentials
+
+Work Log:
+- Updated .env with user's Gmail SMTP credentials
+- SMTP_USER and SMTP_PASS configured
+- Tested SMTP connection - verified successfully
+- Email service is now fully operational
+
+Stage Summary:
+- Gmail SMTP connection verified and working
+- Application can now send real emails:
+  - Email verification during registration
+  - Password reset emails
+- Credentials are stored in .env (excluded from git)
+- Ready for production use
+
+---
+Task ID: 9
+Agent: Main
+Task: Implement email verification with 6-digit code
+
+Work Log:
+- Updated prisma schema to add `code` field to VerificationToken model
+- Updated token library to generate 6-digit verification codes
+- Updated email templates to display verification code prominently
+- Created `/api/auth/verify-code` endpoint for code verification
+- Updated registration to send verification code via email
+- Added verification code input UI in AuthModal:
+  - 6 separate input fields for each digit
+  - Auto-focus to next field on input
+  - Backspace navigation support
+  - Paste support for full code
+  - Loading and error states
+- Added resend code functionality
+- Created resend-verification API endpoint
+
+Stage Summary:
+- Email verification now uses 6-digit codes instead of just links
+- Users receive both code and link in email for flexibility
+- Modern OTP-style input interface
+- Auto-login after successful verification
+- Gmail SMTP sends styled emails with verification codes
+- Development mode still auto-verifies for convenience
+- If SMTP not configured, emails are logged to console (dev mode)
