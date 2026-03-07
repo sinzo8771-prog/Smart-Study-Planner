@@ -1493,6 +1493,10 @@ export const staticQuizzes: StaticQuiz[] = [
   }
 ];
 
+// In-memory store for newly registered users (static/demo mode)
+// This allows users to register and login in demo mode
+const registeredUsers: Map<string, StaticUser> = new Map();
+
 // Helper function to check if we should use static data
 export function shouldUseStaticData(): boolean {
   // Use static data if DATABASE_URL is not set or if we're in Vercel without a proper database
@@ -1505,4 +1509,27 @@ export function shouldUseStaticData(): boolean {
   }
   
   return false;
+}
+
+// Add a newly registered user to the in-memory store
+export function addRegisteredUser(user: StaticUser): void {
+  registeredUsers.set(user.email.toLowerCase(), user);
+  console.log('[StaticData] User registered:', user.email);
+}
+
+// Get all users (static + registered) for authentication
+export function getAllUsers(): StaticUser[] {
+  return [...staticUsers, ...Array.from(registeredUsers.values())];
+}
+
+// Find user by email from all sources (static + registered)
+export function findUserByEmailFromAll(email: string): StaticUser | null {
+  const normalizedEmail = email.toLowerCase().trim();
+  
+  // Check registered users first (more recent)
+  const registered = registeredUsers.get(normalizedEmail);
+  if (registered) return registered;
+  
+  // Then check static users
+  return staticUsers.find(u => u.email.toLowerCase() === normalizedEmail) || null;
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findUserByEmail, comparePassword, generateToken, setAuthCookie } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/validation';
+import { shouldUseStaticData } from '@/lib/data-service';
 
 export async function POST(request: NextRequest) {
   console.log('[Login API] POST request received');
@@ -59,8 +60,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
+    // Check if email is verified (skip in static/demo mode)
+    const isStaticMode = shouldUseStaticData();
+    if (!isStaticMode && !user.emailVerified) {
       return NextResponse.json(
         { 
           error: 'Please verify your email address before logging in',

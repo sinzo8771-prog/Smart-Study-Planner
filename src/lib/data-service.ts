@@ -2,7 +2,7 @@
 // Used for Vercel compatibility
 
 import { db } from './db';
-import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers } from './static-data';
+import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, getAllUsers } from './static-data';
 
 // Re-export shouldUseStaticData for use in other modules
 export { shouldUseStaticData };
@@ -170,40 +170,64 @@ export async function getQuizById(id: string) {
 // User operations
 export async function getUserByEmail(email: string) {
   if (shouldUseStaticData()) {
-    return staticUsers.find(u => u.email === email) || null;
+    // Check both static users and registered users
+    return findUserByEmailFromAll(email);
   }
 
   try {
     return await db.user.findUnique({ where: { email } });
   } catch (error) {
     console.error('[DataService] getUserByEmail error, falling back to static:', error);
-    return staticUsers.find(u => u.email === email) || null;
+    return findUserByEmailFromAll(email);
   }
 }
 
 export async function getUserById(id: string) {
   if (shouldUseStaticData()) {
-    return staticUsers.find(u => u.id === id) || null;
+    // Check both static users and registered users
+    const staticUser = staticUsers.find(u => u.id === id);
+    if (staticUser) return staticUser;
+    
+    // Check registered users
+    const allUsers = getAllUsers();
+    return allUsers.find(u => u.id === id) || null;
   }
 
   try {
     return await db.user.findUnique({ where: { id } });
   } catch (error) {
     console.error('[DataService] getUserById error, falling back to static:', error);
-    return staticUsers.find(u => u.id === id) || null;
+    const allUsers = getAllUsers();
+    return allUsers.find(u => u.id === id) || null;
   }
 }
 
 export async function createUser(data: { name: string; email: string; password?: string; role: string; image?: string | null; emailVerified?: Date | null }) {
   if (shouldUseStaticData()) {
-    // Return a mock user for demo purposes
-    return {
-      id: `user-${Date.now()}`,
+    // Check if user already exists
+    const existing = findUserByEmailFromAll(data.email);
+    if (existing) {
+      throw new Error('User already exists');
+    }
+    
+    // Create user with hashed password stored
+    const newUser = {
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: data.name,
-      email: data.email,
+      email: data.email.toLowerCase(),
+      password: data.password, // Already hashed by auth.ts
       role: data.role,
       image: data.image || null,
       emailVerified: data.emailVerified || new Date(),
+    };
+    
+    // Store in the registered users map
+    addRegisteredUser(newUser);
+    
+    console.log('[DataService] Created new user in static mode:', data.email);
+    
+    return {
+      ...newUser,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
