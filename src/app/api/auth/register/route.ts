@@ -100,10 +100,11 @@ export async function POST(request: NextRequest) {
     });
     console.log('[Register API] User created:', user.id);
 
-    // In static mode OR when email is not configured, auto-verify and log in
-    if (isStaticMode || !emailConfigured) {
-      // Demo/Development mode: Auto-verify user and log them in
-      console.log('[Register API] Demo/Development mode: Auto-verifying user', email);
+    // Only auto-verify when email service is NOT configured
+    // If SMTP is configured, always send verification email (even in static mode)
+    if (!emailConfigured) {
+      // No email service configured: Auto-verify user and log them in
+      console.log('[Register API] No SMTP configured: Auto-verifying user', email);
       
       // Generate token and set cookie for auto-login
       console.log('[Register API] Generating token...');
@@ -131,8 +132,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Production mode with database: Send verification email with code
-    console.log('[Register API] Production mode: Sending verification email...');
+    // Email service is configured: Send verification email with code
+    console.log('[Register API] SMTP configured: Sending verification email to', email);
     const { token, code } = await createVerificationToken(email, 'email_verification', 24, true);
     
     if (!code) {
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log('[Register API] Verification email sent');
+    console.log('[Register API] Verification email sent successfully');
     return NextResponse.json({
       success: true,
       message: 'Account created successfully! A verification code has been sent to your email.',
