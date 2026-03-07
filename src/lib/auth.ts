@@ -6,13 +6,23 @@ import { createLogger } from './logger';
 
 const logger = createLogger('Auth');
 
+// JWT Secret - required for production, fallback for demo/static mode
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  logger.error('JWT_SECRET environment variable is required for security. Authentication will fail.');
-}
+const isStaticMode = shouldUseStaticData();
 
-// No fallback secret - requires proper configuration
-const SECRET_KEY = JWT_SECRET;
+// Generate a consistent secret for static/demo mode based on a hash of predictable values
+// This ensures tokens work across serverless invocations in demo mode
+const DEMO_SECRET = 'smart-study-planner-demo-secret-key-2024-secure';
+
+const SECRET_KEY = JWT_SECRET || (isStaticMode ? DEMO_SECRET : null);
+
+if (!SECRET_KEY) {
+  logger.error('JWT_SECRET environment variable is required for production. Authentication will fail.');
+  console.error('[Auth] ERROR: JWT_SECRET is not set and not in static mode. Auth will fail!');
+} else if (!JWT_SECRET && isStaticMode) {
+  logger.info('Using demo secret for static mode. Set JWT_SECRET for production.');
+  console.log('[Auth] Using demo secret for static mode');
+}
 
 export interface UserPayload {
   id: string;

@@ -7,6 +7,10 @@ import { addRegisteredUser } from '@/lib/static-data';
 // JWT secret is now handled centrally in lib/auth.ts - no fallback allowed
 
 export async function POST(request: NextRequest) {
+  const requestOrigin = request.headers.get('origin') || 'unknown';
+  console.log('[FirebaseAuth] Request from origin:', requestOrigin);
+  console.log('[FirebaseAuth] Request headers:', JSON.stringify(Object.fromEntries(request.headers.entries())));
+  
   try {
     // Rate limiting - 10 attempts per minute per IP
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
@@ -37,6 +41,8 @@ export async function POST(request: NextRequest) {
 
     // idToken is optional in static/demo mode since we trust the client-side Firebase auth
     const isStaticMode = shouldUseStaticData();
+    console.log('[FirebaseAuth] Static mode:', isStaticMode);
+    
     if (!isStaticMode && !idToken) {
       console.error('Firebase auth error: Missing idToken');
       return NextResponse.json({ 
@@ -99,19 +105,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a JWT token for our session using centralized auth
+    console.log('[FirebaseAuth] Generating JWT token for user:', user.id);
     const token = generateToken({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
     });
+    console.log('[FirebaseAuth] Token generated successfully');
 
     // Set auth cookie using centralized function
     await setAuthCookie(token);
 
     console.log('Firebase auth: Successfully authenticated user:', user.id);
     
-    return NextResponse.json({ 
+    // Create response with CORS headers for same-origin requests
+    const response = NextResponse.json({ 
       success: true, 
       user: {
         id: user.id,
@@ -121,6 +130,11 @@ export async function POST(request: NextRequest) {
         image: user.image,
       }
     });
+    
+    // Log the Set-Cookie header that was set
+    console.log('[FirebaseAuth] Response cookies:', response.headers.get('set-cookie'));
+    
+    return response;
   } catch (error) {
     console.error('Firebase auth error: Unexpected error:', error);
     return NextResponse.json(

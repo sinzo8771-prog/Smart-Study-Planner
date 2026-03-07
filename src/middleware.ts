@@ -3,8 +3,8 @@ import type { NextRequest } from 'next/server';
 
 // Security headers configuration
 const securityHeaders = {
-  // Prevent clickjacking
-  'X-Frame-Options': 'DENY',
+  // Prevent clickjacking - but allow same-origin for OAuth
+  'X-Frame-Options': 'SAMEORIGIN',
   // Prevent MIME type sniffing
   'X-Content-Type-Options': 'nosniff',
   // XSS protection
@@ -13,8 +13,6 @@ const securityHeaders = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   // Permissions policy
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
-  // Cross-Origin-Opener-Policy - allows popups for OAuth flows
-  'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   // Content Security Policy
   'Content-Security-Policy': [
     "default-src 'self'",
