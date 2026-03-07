@@ -2,7 +2,7 @@
 // Used for Vercel compatibility
 
 import { db } from './db';
-import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, getAllUsers } from './static-data';
+import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, findUserByIdFromAll } from './static-data';
 
 // Re-export shouldUseStaticData for use in other modules
 export { shouldUseStaticData };
@@ -184,21 +184,15 @@ export async function getUserByEmail(email: string) {
 
 export async function getUserById(id: string) {
   if (shouldUseStaticData()) {
-    // Check both static users and registered users
-    const staticUser = staticUsers.find(u => u.id === id);
-    if (staticUser) return staticUser;
-    
-    // Check registered users
-    const allUsers = getAllUsers();
-    return allUsers.find(u => u.id === id) || null;
+    // Use the optimized lookup function
+    return findUserByIdFromAll(id);
   }
 
   try {
     return await db.user.findUnique({ where: { id } });
   } catch (error) {
     console.error('[DataService] getUserById error, falling back to static:', error);
-    const allUsers = getAllUsers();
-    return allUsers.find(u => u.id === id) || null;
+    return findUserByIdFromAll(id);
   }
 }
 

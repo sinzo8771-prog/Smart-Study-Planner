@@ -1514,7 +1514,7 @@ export function shouldUseStaticData(): boolean {
 // Add a newly registered user to the in-memory store
 export function addRegisteredUser(user: StaticUser): void {
   registeredUsers.set(user.email.toLowerCase(), user);
-  console.log('[StaticData] User registered:', user.email);
+  console.log('[StaticData] User registered:', user.email, 'ID:', user.id);
 }
 
 // Get all users (static + registered) for authentication
@@ -1532,4 +1532,20 @@ export function findUserByEmailFromAll(email: string): StaticUser | null {
   
   // Then check static users
   return staticUsers.find(u => u.email.toLowerCase() === normalizedEmail) || null;
+}
+
+// Find user by ID from all sources (static + registered)
+export function findUserByIdFromAll(id: string): StaticUser | null {
+  // Check static users first
+  const staticUser = staticUsers.find(u => u.id === id);
+  if (staticUser) return staticUser;
+  
+  // Check registered users (need to iterate since map is keyed by email)
+  for (const user of registeredUsers.values()) {
+    if (user.id === id) {
+      return user;
+    }
+  }
+  
+  return null;
 }
