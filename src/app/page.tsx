@@ -372,7 +372,10 @@ const api = {
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
     
     try {
-      const res = await fetch(url, { signal: controller.signal });
+      const res = await fetch(url, { 
+        signal: controller.signal,
+        credentials: 'include', // Include cookies
+      });
       clearTimeout(timeoutId);
       
       if (!res.ok) {
@@ -399,6 +402,7 @@ const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
         signal: controller.signal,
+        credentials: 'include', // Include cookies
       });
       clearTimeout(timeoutId);
       
@@ -426,6 +430,7 @@ const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
         signal: controller.signal,
+        credentials: 'include', // Include cookies
       });
       clearTimeout(timeoutId);
       
@@ -451,6 +456,7 @@ const api = {
       const res = await fetch(url, { 
         method: 'DELETE',
         signal: controller.signal,
+        credentials: 'include', // Include cookies
       });
       clearTimeout(timeoutId);
       
