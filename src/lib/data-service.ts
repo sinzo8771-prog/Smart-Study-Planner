@@ -194,7 +194,7 @@ export async function getUserById(id: string) {
   }
 }
 
-export async function createUser(data: { name: string; email: string; password?: string; role: string; image?: string | null }) {
+export async function createUser(data: { name: string; email: string; password?: string; role: string; image?: string | null; emailVerified?: Date | null }) {
   if (shouldUseStaticData()) {
     // Return a mock user for demo purposes
     return {
@@ -203,14 +203,23 @@ export async function createUser(data: { name: string; email: string; password?:
       email: data.email,
       role: data.role,
       image: data.image || null,
-      emailVerified: new Date(),
+      emailVerified: data.emailVerified || new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
   }
 
   try {
-    return await db.user.create({ data });
+    return await db.user.create({ 
+      data: {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        image: data.image || null,
+        emailVerified: data.emailVerified || new Date(), // Auto-verify OAuth users
+      }
+    });
   } catch (error) {
     console.error('[DataService] createUser error:', error);
     // Return mock user on error
@@ -220,7 +229,7 @@ export async function createUser(data: { name: string; email: string; password?:
       email: data.email,
       role: data.role,
       image: data.image || null,
-      emailVerified: new Date(),
+      emailVerified: data.emailVerified || new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };

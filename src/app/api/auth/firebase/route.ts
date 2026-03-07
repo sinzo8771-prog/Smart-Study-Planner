@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateToken } from '@/lib/auth';
+import { generateToken, setAuthCookie } from '@/lib/auth';
 import { getUserByEmail, createUser, updateUser } from '@/lib/data-service';
 import { checkRateLimit } from '@/lib/validation';
 
@@ -58,12 +58,13 @@ export async function POST(request: NextRequest) {
     let user = await getUserByEmail(email);
 
     if (!user) {
-      // Create new user
+      // Create new user with emailVerified since Google verifies emails
       user = await createUser({
         email,
         name: name || email.split('@')[0],
         image: picture || null,
         role: 'student',
+        emailVerified: new Date(), // Google has verified this email
       });
       console.log('Firebase auth: Created new user:', user.id);
     } else {
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
       if (!user.image && picture) {
         user = await updateUser(user.id, { 
           image: picture, 
-          emailVerified: new Date() 
+          emailVerified: user.emailVerified || new Date() 
         });
       }
       console.log('Firebase auth: Found existing user:', user.id);
@@ -85,7 +86,12 @@ export async function POST(request: NextRequest) {
       role: user.role,
     });
 
-    const response = NextResponse.json({ 
+    // Set auth cookie using centralized function
+    await setAuthCookie(token);
+
+    console.log('Firebase auth: Successfully authenticated user:', user.id);
+    
+    return NextResponse.json({ 
       success: true, 
       user: {
         id: user.id,
@@ -95,18 +101,6 @@ export async function POST(request: NextRequest) {
         image: user.image,
       }
     });
-
-    // Set the auth cookie with security settings
-    response.cookies.set('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // Allows cookies with same-site requests
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
-
-    console.log('Firebase auth: Successfully authenticated user:', user.id);
-    return response;
   } catch (error) {
     console.error('Firebase auth error: Unexpected error:', error);
     return NextResponse.json(

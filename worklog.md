@@ -88,3 +88,23 @@ Stage Summary:
   - Subject creation returns `{"subject":{...}}` with correct userId
 - All demo users in database are verified: admin@studyplanner.com, john@example.com, etc.
 - Users can now register and immediately use the Study Planner features
+
+---
+Task ID: 5
+Agent: Main
+Task: Fix Google OAuth users getting Unauthorized error
+
+Work Log:
+- Identified that Google OAuth users were getting "Unauthorized" when saving subjects
+- Updated `createUser` in `data-service.ts` to accept and set `emailVerified` parameter
+- Updated Firebase auth route to:
+  - Set `emailVerified` for new Google users (Google verifies emails)
+  - Use centralized `setAuthCookie` function for consistent cookie handling
+- Updated frontend `handleGoogleLogin` to include `credentials: 'include'` in fetch call
+- Google users are now properly authenticated with verified emails
+
+Stage Summary:
+- Google OAuth users are now auto-verified upon registration
+- Auth cookie is set using centralized `setAuthCookie` function
+- Frontend explicitly includes credentials in Firebase auth request
+- Google users can now successfully save subjects and tasks
