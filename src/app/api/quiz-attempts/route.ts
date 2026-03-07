@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { shouldUseStaticData, getQuizById } from '@/lib/data-service';
 import { db } from '@/lib/db';
+
+// In-memory storage for quiz attempts in static mode
+const staticQuizAttempts: Map<string, Array<{
+  id: string;
+  quizId: string;
+  userId: string;
+  score: number;
+  totalPoints: number;
+  earnedPoints: number;
+  answers: string;
+  startedAt: Date;
+  completedAt: Date | null;
+  timeTaken: number;
+  passed: boolean;
+}>> = new Map();
 
 // GET: Get user's quiz attempts
 export async function GET(request: NextRequest) {
@@ -15,6 +31,28 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const quizId = searchParams.get('quizId');
+
+    // Static mode
+    if (shouldUseStaticData()) {
+      const userAttempts = staticQuizAttempts.get(user.id) || [];
+      
+      let filteredAttempts = userAttempts;
+      if (quizId) {
+        filteredAttempts = userAttempts.filter(a => a.quizId === quizId);
+      }
+
+      return NextResponse.json({
+        success: true,
+        attempts: filteredAttempts.map(attempt => ({
+          ...attempt,
+          quiz: {
+            id: attempt.quizId,
+            title: `Quiz ${attempt.quizId}`,
+            passingScore: 60,
+          },
+        })),
+      });
+    }
 
     // Build filter
     const where: Record<string, unknown> = { userId: user.id };
@@ -75,6 +113,82 @@ export async function POST(request: NextRequest) {
         { error: 'Quiz ID and answers are required' },
         { status: 400 }
       );
+    }
+
+    // Static mode
+    if (shouldUseStaticData()) {
+      const quiz = await getQuizById(quizId);
+      if (!quiz) {
+        return NextResponse.json(
+          { error: 'Quiz not found' },
+          { status: 404 }
+        );
+      }
+
+      // Calculate score from static quiz data
+      let earnedPoints = 0;
+      let totalPoints = 0;
+      const gradedAnswers: Record<string, { 
+        userAnswer: string; 
+        correctAnswer: string; 
+        isCorrect: boolean; 
+        points: number; 
+        earnedPoints: number;
+        explanation?: string;
+      }> = {};
+
+      for (const question of quiz.questions) {
+        totalPoints += question.points;
+        const userAnswer = answers[question.id] || '';
+        const isCorrect = userAnswer === question.correctAnswer;
+        const pointsEarned = isCorrect ? question.points : 0;
+        earnedPoints += pointsEarned;
+
+        gradedAnswers[question.id] = {
+          userAnswer,
+          correctAnswer: question.correctAnswer,
+          isCorrect,
+          points: question.points,
+          earnedPoints: pointsEarned,
+          explanation: question.explanation || undefined,
+        };
+      }
+
+      const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
+      const passed = score >= quiz.passingScore;
+
+      // Store attempt in memory
+      const attempt = {
+        id: `attempt-${Date.now()}`,
+        quizId,
+        userId: user.id,
+        score,
+        totalPoints,
+        earnedPoints,
+        answers: JSON.stringify(gradedAnswers),
+        startedAt: new Date(),
+        completedAt: new Date(),
+        timeTaken: timeTaken || 0,
+        passed,
+      };
+
+      // Get or create user attempts array
+      const userAttempts = staticQuizAttempts.get(user.id) || [];
+      userAttempts.unshift(attempt);
+      staticQuizAttempts.set(user.id, userAttempts);
+
+      return NextResponse.json({
+        success: true,
+        attempt: {
+          ...attempt,
+          quiz: {
+            id: quizId,
+            title: quiz.title,
+            passingScore: quiz.passingScore,
+          },
+          gradedAnswers,
+        },
+      });
     }
 
     // Get quiz with questions (including correct answers for grading)
