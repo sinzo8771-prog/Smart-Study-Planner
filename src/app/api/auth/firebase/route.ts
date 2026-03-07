@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateToken, setAuthCookie } from '@/lib/auth';
-import { getUserByEmail, createUser, updateUser } from '@/lib/data-service';
+import { getUserByEmail, createUser, updateUser, shouldUseStaticData } from '@/lib/data-service';
 import { checkRateLimit } from '@/lib/validation';
+import { addRegisteredUser } from '@/lib/static-data';
 
 // JWT secret is now handled centrally in lib/auth.ts - no fallback allowed
 
@@ -34,7 +35,9 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    if (!idToken) {
+    // idToken is optional in static/demo mode since we trust the client-side Firebase auth
+    const isStaticMode = shouldUseStaticData();
+    if (!isStaticMode && !idToken) {
       console.error('Firebase auth error: Missing idToken');
       return NextResponse.json({ 
         success: false,
@@ -59,14 +62,31 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       // Create new user with emailVerified since Google verifies emails
-      user = await createUser({
+      const userData = {
         email,
         name: name || email.split('@')[0],
         image: picture || null,
-        role: 'student',
+        role: 'student' as const,
         emailVerified: new Date(), // Google has verified this email
-      });
-      console.log('Firebase auth: Created new user:', user.id);
+      };
+      
+      if (isStaticMode) {
+        // In static mode, create user in memory store
+        const newUser = {
+          id: `google-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          ...userData,
+          password: undefined, // No password for Google users
+        };
+        addRegisteredUser(newUser);
+        user = newUser;
+        console.log('Firebase auth: Created new Google user in static mode:', user.id);
+      } else {
+        user = await createUser({
+          ...userData,
+          password: '', // Empty password for Google users - they use OAuth
+        });
+        console.log('Firebase auth: Created new user:', user.id);
+      }
     } else {
       // Update user info if needed
       if (!user.image && picture) {

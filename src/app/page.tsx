@@ -9614,15 +9614,66 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     // Check Firebase configuration and pre-initialize on mount
     if (isFirebaseConfigured()) {
       // Pre-load Firebase in the background
-      getFirebaseAuth().then(({ auth, googleProvider }) => {
+      getFirebaseAuth().then(async ({ auth, googleProvider }) => {
         firebaseAuthRef.current = { auth, googleProvider };
         setFirebaseReady(!!auth && !!googleProvider);
+        
+        // Check for redirect result (when returning from Google sign-in)
+        if (auth) {
+          try {
+            const { getRedirectResult } = await import('firebase/auth');
+            const result = await getRedirectResult(auth);
+            
+            if (result && result.user) {
+              console.log('🔥 Google redirect result received:', result.user.email);
+              const user = result.user;
+              
+              if (!user.email) {
+                throw new Error('Could not get email from Google account.');
+              }
+              
+              // Send the user info to our backend to create a session
+              const response = await fetch('/api/auth/firebase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                  idToken: await user.getIdToken(),
+                  name: user.displayName,
+                  email: user.email,
+                  picture: user.photoURL,
+                }),
+              });
+
+              const data = await response.json();
+
+              if (!response.ok) {
+                throw new Error(data.error || 'Failed to create session.');
+              }
+
+              if (data.success && data.user) {
+                // Show success animation
+                setShowSuccess(true);
+                setTimeout(() => {
+                  onSuccess(data.user);
+                }, 800);
+              }
+            }
+          } catch (redirectError) {
+            console.error('🔥 Redirect result error:', redirectError);
+            // Don't show error if it's just "no redirect result"
+            const errorCode = (redirectError as { code?: string })?.code || '';
+            if (errorCode !== 'auth/no-auth-event') {
+              setError(redirectError instanceof Error ? redirectError.message : 'Google sign-in failed');
+            }
+          }
+        }
       }).catch((err) => {
         console.error('Firebase pre-initialization error:', err);
         setFirebaseReady(false);
       });
     }
-  }, []);
+  }, [onSuccess]);
   
   // Reset states when mode changes
   useEffect(() => {
