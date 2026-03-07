@@ -1,0 +1,148 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+// Security headers configuration
+const securityHeaders = {
+  // Prevent clickjacking
+  'X-Frame-Options': 'DENY',
+  // Prevent MIME type sniffing
+  'X-Content-Type-Options': 'nosniff',
+  // XSS protection
+  'X-XSS-Protection': '1; mode=block',
+  // Referrer policy
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // Permissions policy
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  // Content Security Policy
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.googletagmanager.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https: http:",
+    "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join('; '),
+  // Strict Transport Security (HSTS)
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+};
+
+// Rate limiting store (in-memory for demo, use Redis in production)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Rate limiting configuration
+const rateLimitConfig = {
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 100, // max requests per window
+};
+
+// Check rate limit
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(ip, { count: 1, resetTime: now + rateLimitConfig.windowMs });
+    return true;
+  }
+
+  if (record.count >= rateLimitConfig.maxRequests) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+
+// Clean up expired rate limit entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of rateLimitStore.entries()) {
+    if (now > record.resetTime) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}, 60 * 1000);
+
+// CORS configuration
+const allowedOrigins = [
+  process.env.NEXT_PUBLIC_APP_URL,
+  'http://localhost:3000',
+].filter(Boolean);
+
+export function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+
+  // Get client IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+             request.headers.get('x-real-ip') ||
+             'unknown';
+
+  // Apply rate limiting for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    if (!checkRateLimit(ip)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '60',
+          },
+        }
+      );
+    }
+  }
+
+  // Apply security headers
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+    // console.log(`Setting header: ${key}: ${value}`);
+  });
+
+  // Handle CORS for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    const origin = request.headers.get('origin');
+    
+    // Check if origin is allowed
+    if (origin && allowedOrigins.includes(origin)) {
+      response.headers.set('Access-Control-Allow-Origin', origin);
+      response.headers.set('Access-Control-Allow-Credentials', 'true');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      response.headers.set('Access-Control-Max-Age', '86400');
+    }
+
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: response.headers,
+      });
+    }
+  }
+
+  // Log API requests in development
+  if (process.env.NODE_ENV === 'development' && request.nextUrl.pathname.startsWith('/api/')) {
+    console.log(`[${new Date().toISOString()}] ${request.method} ${request.nextUrl.pathname} - IP: ${ip}`);
+  }
+
+  return response;
+}
+
+// Configure which routes use this middleware
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files (public folder)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+  ],
+};

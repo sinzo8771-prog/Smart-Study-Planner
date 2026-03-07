@@ -2,10 +2,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { getUserById as fetchUserById, getUserByEmail as fetchUserByEmail, createUser as createDbUser, shouldUseStaticData } from './data-service';
+import { createLogger } from './logger';
+
+const logger = createLogger('Auth');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  console.error('[Auth] ERROR: JWT_SECRET environment variable is required for security. Authentication will fail.');
+  logger.error('JWT_SECRET environment variable is required for security. Authentication will fail.');
 }
 
 // No fallback secret - requires proper configuration
@@ -56,7 +59,7 @@ export function generateToken(payload: UserPayload): string {
 // Verify JWT token with proper error handling
 export function verifyToken(token: string): UserPayload | null {
   if (!SECRET_KEY) {
-    console.error('[Auth] JWT_SECRET is not configured');
+    logger.error('JWT_SECRET is not configured');
     return null;
   }
   try {
@@ -67,9 +70,9 @@ export function verifyToken(token: string): UserPayload | null {
     return decoded as UserPayload;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      console.log('[Auth] Token expired');
+      logger.debug('Token expired');
     } else if (error instanceof jwt.JsonWebTokenError) {
-      console.log('[Auth] Invalid token');
+      logger.debug('Invalid token');
     }
     return null;
   }
@@ -99,17 +102,17 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
 
-    console.log('[Auth] getCurrentUser - token exists:', !!token);
+    logger.debug(`Token exists: ${!!token}`);
     
     if (!token) {
-      console.log('[Auth] getCurrentUser - No token found in cookies');
-      console.log('[Auth] Available cookies:', cookieStore.getAll().map(c => c.name));
+      logger.debug('No token found in cookies');
+      logger.debug(`Available cookies: ${cookieStore.getAll().map(c => c.name).join(', ')}`);
       return null;
     }
 
     const payload = verifyToken(token);
     if (!payload) {
-      console.log('[Auth] getCurrentUser - Token verification failed');
+      logger.debug('Token verification failed');
       // Clear invalid token
       await clearAuthCookie();
       return null;
@@ -118,12 +121,12 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
     // Verify user still exists in database
     const user = await fetchUserById(payload.id);
     if (!user) {
-      console.log('[Auth] getCurrentUser - User not found in database:', payload.id);
+      logger.debug(`User not found in database: ${payload.id}`);
       await clearAuthCookie();
       return null;
     }
 
-    console.log('[Auth] getCurrentUser - Success for user:', user.email);
+    logger.debug(`Success for user: ${user.email}`);
     
     // Return user data from database (not from token) for security
     return {
@@ -133,7 +136,8 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
       role: user.role,
     };
   } catch (error) {
-    console.error('[Auth] getCurrentUser error:', error);
+    logger.error('getCurrentUser error');
+    logger.error(error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
 }
