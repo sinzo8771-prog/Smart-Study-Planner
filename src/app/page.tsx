@@ -66,6 +66,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart as RechartsLineChart, Line, Area, AreaChart, Legend } from 'recharts';
 import { Logo, LogoIcon } from '@/components/logo';
+import { useToast } from '@/hooks/use-toast';
 
 // ============================================
 // TYPES
@@ -1594,6 +1595,7 @@ interface StudyPlannerProps {
 }
 
 const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
+  const { toast } = useToast();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
@@ -1603,6 +1605,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'subject' | 'task'; id: string } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form states
   const [subjectForm, setSubjectForm] = useState({
@@ -1648,27 +1651,45 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
 
   // Subject handlers
   const handleSaveSubject = async () => {
+    setIsSaving(true);
     try {
       if (editingSubject) {
         await api.put(`/api/subjects/${editingSubject.id}`, subjectForm);
+        toast({ title: 'Success', description: 'Subject updated successfully' });
       } else {
         await api.post('/api/subjects', subjectForm);
+        toast({ title: 'Success', description: 'Subject created successfully' });
       }
       setIsSubjectDialogOpen(false);
       resetSubjectForm();
       fetchData();
     } catch (error) {
       console.error('Error saving subject:', error);
+      const message = error instanceof Error ? error.message : 'Failed to save subject. Please try again.';
+      toast({ 
+        title: 'Error', 
+        description: message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleDeleteSubject = async (id: string) => {
     try {
       await api.delete(`/api/subjects/${id}`);
+      toast({ title: 'Success', description: 'Subject deleted successfully' });
       setDeleteConfirm(null);
       fetchData();
     } catch (error) {
       console.error('Error deleting subject:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete subject. Please try again.';
+      toast({ 
+        title: 'Error', 
+        description: message,
+        variant: 'destructive'
+      });
     }
   };
 
@@ -1679,27 +1700,45 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
 
   // Task handlers
   const handleSaveTask = async () => {
+    setIsSaving(true);
     try {
       if (editingTask) {
         await api.put(`/api/tasks/${editingTask.id}`, taskForm);
+        toast({ title: 'Success', description: 'Task updated successfully' });
       } else {
         await api.post('/api/tasks', taskForm);
+        toast({ title: 'Success', description: 'Task created successfully' });
       }
       setIsTaskDialogOpen(false);
       resetTaskForm();
       fetchData();
     } catch (error) {
       console.error('Error saving task:', error);
+      const message = error instanceof Error ? error.message : 'Failed to save task. Please try again.';
+      toast({ 
+        title: 'Error', 
+        description: message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleDeleteTask = async (id: string) => {
     try {
       await api.delete(`/api/tasks/${id}`);
+      toast({ title: 'Success', description: 'Task deleted successfully' });
       setDeleteConfirm(null);
       fetchData();
     } catch (error) {
       console.error('Error deleting task:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete task. Please try again.';
+      toast({ 
+        title: 'Error', 
+        description: message,
+        variant: 'destructive'
+      });
     }
   };
 
@@ -1710,6 +1749,12 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
       fetchData();
     } catch (error) {
       console.error('Error updating task:', error);
+      const message = error instanceof Error ? error.message : 'Failed to update task status. Please try again.';
+      toast({ 
+        title: 'Error', 
+        description: message,
+        variant: 'destructive'
+      });
     }
   };
 
@@ -2283,10 +2328,11 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSubjectDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsSubjectDialogOpen(false)} disabled={isSaving}>
               Cancel
             </Button>
-            <Button onClick={handleSaveSubject} disabled={!subjectForm.name}>
+            <Button onClick={handleSaveSubject} disabled={!subjectForm.name || isSaving}>
+              {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               {editingSubject ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
@@ -2381,10 +2427,11 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsTaskDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsTaskDialogOpen(false)} disabled={isSaving}>
               Cancel
             </Button>
-            <Button onClick={handleSaveTask} disabled={!taskForm.title || !taskForm.subjectId}>
+            <Button onClick={handleSaveTask} disabled={!taskForm.title || !taskForm.subjectId || isSaving}>
+              {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               {editingTask ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
