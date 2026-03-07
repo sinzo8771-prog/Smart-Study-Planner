@@ -81,13 +81,21 @@ export function verifyToken(token: string): UserPayload | null {
 // Set auth cookie with security settings
 export async function setAuthCookie(token: string) {
   const cookieStore = await cookies();
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isVercel = process.env.VERCEL === '1';
+  
   cookieStore.set('auth_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax', // Allows cookies with same-site requests and top-level navigations
+    // On Vercel, always use secure since it's HTTPS
+    // In local development, use secure only if explicitly production mode
+    secure: isProduction || isVercel,
+    // Use 'lax' for same-site requests (works with OAuth redirects)
+    sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: '/',
   });
+  
+  console.log('[Auth] Cookie set - secure:', isProduction || isVercel, 'vercel:', isVercel);
 }
 
 // Clear auth cookie
@@ -102,11 +110,16 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
 
-    logger.debug(`Token exists: ${!!token}`);
+    const debugInfo = {
+      hasToken: !!token,
+      nodeEnv: process.env.NODE_ENV,
+      vercel: process.env.VERCEL,
+      allCookies: cookieStore.getAll().map(c => c.name),
+    };
+    console.log('[Auth] getCurrentUser debug:', JSON.stringify(debugInfo));
     
     if (!token) {
       logger.debug('No token found in cookies');
-      logger.debug(`Available cookies: ${cookieStore.getAll().map(c => c.name).join(', ')}`);
       return null;
     }
 
@@ -118,15 +131,31 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
       return null;
     }
 
-    // Verify user still exists in database
+    console.log('[Auth] Token payload:', JSON.stringify({ id: payload.id, email: payload.email, role: payload.role }));
+
+    // In static mode (Vercel without database), trust the JWT token directly
+    // This is necessary because the in-memory user store doesn't persist between serverless invocations
+    if (shouldUseStaticData()) {
+      console.log('[Auth] Static mode - trusting JWT token for user:', payload.email);
+      return {
+        id: payload.id,
+        email: payload.email,
+        name: payload.name,
+        role: payload.role,
+      };
+    }
+
+    // In database mode, verify user still exists in database
     const user = await fetchUserById(payload.id);
     if (!user) {
       logger.debug(`User not found in database: ${payload.id}`);
+      console.log('[Auth] User not found for ID:', payload.id);
       await clearAuthCookie();
       return null;
     }
 
     logger.debug(`Success for user: ${user.email}`);
+    console.log('[Auth] User authenticated:', user.email);
     
     // Return user data from database (not from token) for security
     return {
@@ -138,6 +167,7 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
   } catch (error) {
     logger.error('getCurrentUser error');
     logger.error(error instanceof Error ? error.message : 'Unknown error');
+    console.error('[Auth] getCurrentUser error:', error);
     return null;
   }
 }

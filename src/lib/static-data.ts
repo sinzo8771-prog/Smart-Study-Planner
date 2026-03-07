@@ -1536,16 +1536,25 @@ export function findUserByEmailFromAll(email: string): StaticUser | null {
 
 // Find user by ID from all sources (static + registered)
 export function findUserByIdFromAll(id: string): StaticUser | null {
+  console.log('[StaticData] findUserByIdFromAll called with ID:', id);
+  console.log('[StaticData] Registered users count:', registeredUsers.size);
+  console.log('[StaticData] Static users count:', staticUsers.length);
+  
   // Check static users first
   const staticUser = staticUsers.find(u => u.id === id);
-  if (staticUser) return staticUser;
+  if (staticUser) {
+    console.log('[StaticData] Found in static users:', staticUser.email);
+    return staticUser;
+  }
   
   // Check registered users (need to iterate since map is keyed by email)
   for (const user of registeredUsers.values()) {
     if (user.id === id) {
+      console.log('[StaticData] Found in registered users:', user.email);
       return user;
     }
   }
   
+  console.log('[StaticData] User not found for ID:', id);
   return null;
 }

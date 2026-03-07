@@ -13,6 +13,8 @@ const securityHeaders = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   // Permissions policy
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  // Cross-Origin-Opener-Policy - allows popups for OAuth flows
+  'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   // Content Security Policy
   'Content-Security-Policy': [
     "default-src 'self'",
@@ -68,11 +70,24 @@ setInterval(() => {
   }
 }, 60 * 1000);
 
-// CORS configuration
-const allowedOrigins = [
-  process.env.NEXT_PUBLIC_APP_URL,
-  'http://localhost:3000',
-].filter(Boolean);
+// CORS configuration - Allow all Vercel preview/production URLs and localhost
+const getAllowedOrigins = () => {
+  const origins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    'http://localhost:3000',
+  ].filter(Boolean) as string[];
+
+  // In production, also allow the Vercel URL
+  if (process.env.VERCEL_URL) {
+    origins.push(`https://${process.env.VERCEL_URL}`);
+  }
+
+  // Allow all vercel.app subdomains for preview deployments
+  // This is handled dynamically in the CORS check below
+  return origins;
+};
+
+const allowedOrigins = getAllowedOrigins();
 
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
@@ -108,8 +123,17 @@ export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin');
     
-    // Check if origin is allowed
-    if (origin && allowedOrigins.includes(origin)) {
+    // Check if origin is allowed (static list or vercel.app subdomain)
+    const isAllowed = origin && (
+      allowedOrigins.includes(origin) ||
+      // Allow any vercel.app subdomain for preview deployments
+      origin.endsWith('.vercel.app') ||
+      // Allow localhost on any port
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:')
+    );
+    
+    if (isAllowed && origin) {
       response.headers.set('Access-Control-Allow-Origin', origin);
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
