@@ -43,3 +43,20 @@ Stage Summary:
 - Loading spinner shows when saving to indicate progress
 - Buttons are disabled during save to prevent double submissions
 - Improved UX with visible feedback for all CRUD operations
+
+---
+Task ID: 3
+Agent: Main
+Task: Fix Unauthorized error when saving subjects
+
+Work Log:
+- Identified that API fetch calls were not including credentials (cookies)
+- Added `credentials: 'include'` to all API helper methods (get, post, put, delete)
+- Changed cookie `sameSite` setting from `'strict'` to `'lax'` for better compatibility
+- The `sameSite: 'strict'` setting was preventing cookies from being sent with fetch POST requests
+
+Stage Summary:
+- Fixed root cause: Browser wasn't sending auth cookies with API POST requests
+- All API calls now explicitly include `credentials: 'include'` to ensure cookies are sent
+- Cookie `sameSite` changed to `'lax'` which allows same-site requests while maintaining CSRF protection
+- Users can now successfully create subjects and tasks after logging in
