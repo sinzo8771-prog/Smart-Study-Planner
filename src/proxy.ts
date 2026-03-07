@@ -73,7 +73,7 @@ const allowedOrigins = [
   'http://localhost:3000',
 ].filter(Boolean);
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   // Get client IP
