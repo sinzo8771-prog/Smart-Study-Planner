@@ -1,6 +1,13 @@
 // Static data for Vercel deployment (when database is not available)
 // This serves as a fallback for demo purposes
 
+import { config } from 'dotenv'
+import { resolve } from 'path'
+
+// Load .env file and override system environment variables
+// This is needed because the sandbox environment has DATABASE_URL set externally
+config({ path: resolve(process.cwd(), '.env'), override: true })
+
 export interface StaticUser {
   id: string;
   name: string;

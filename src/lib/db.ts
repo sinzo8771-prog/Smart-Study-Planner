@@ -1,3 +1,10 @@
+import { config } from 'dotenv'
+import { resolve } from 'path'
+
+// Load .env file and override system environment variables
+// This is needed because the sandbox environment has DATABASE_URL set externally
+config({ path: resolve(process.cwd(), '.env'), override: true })
+
 import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
