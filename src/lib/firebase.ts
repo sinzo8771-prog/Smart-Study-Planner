@@ -1,8 +1,9 @@
 // Firebase is only initialized on the client side
-// Environment variables are embedded at build time
+// Supports both build-time (NEXT_PUBLIC_) and runtime config
 
 let auth: typeof import('firebase/auth').Auth | null = null;
 let googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null = null;
+let runtimeConfig: typeof firebaseConfig | null = null;
 
 // Firebase config - values are embedded at build time
 const firebaseConfig = {
@@ -15,6 +16,29 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "",
 };
 
+// Get config - prefer runtime config if available, fallback to build-time
+function getConfig() {
+  return runtimeConfig || firebaseConfig;
+}
+
+// Fetch runtime config from API
+async function fetchRuntimeConfig() {
+  if (runtimeConfig) return runtimeConfig;
+  
+  try {
+    const response = await fetch('/api/config');
+    const data = await response.json();
+    if (data.isConfigured && data.firebase) {
+      runtimeConfig = data.firebase;
+      console.log('🔥 Firebase: Loaded runtime config');
+      return runtimeConfig;
+    }
+  } catch (error) {
+    console.warn('🔥 Firebase: Could not fetch runtime config:', error);
+  }
+  return firebaseConfig;
+}
+
 export const getFirebaseAuth = async () => {
   if (typeof window === 'undefined') {
     return { auth: null, googleProvider: null, error: 'Not available on server side' };
@@ -24,17 +48,25 @@ export const getFirebaseAuth = async () => {
     return { auth, googleProvider, error: null };
   }
 
+  // Try to get runtime config first (in case build-time config is empty)
+  const config = await fetchRuntimeConfig();
+
   const { initializeApp, getApps } = await import('firebase/app');
   const { getAuth, GoogleAuthProvider } = await import('firebase/auth');
 
   // Validate config
-  if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+  if (!config.apiKey || !config.authDomain || !config.projectId) {
     const missingVars = [];
-    if (!firebaseConfig.apiKey) missingVars.push('NEXT_PUBLIC_FIREBASE_API_KEY');
-    if (!firebaseConfig.authDomain) missingVars.push('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
-    if (!firebaseConfig.projectId) missingVars.push('NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+    if (!config.apiKey) missingVars.push('NEXT_PUBLIC_FIREBASE_API_KEY');
+    if (!config.authDomain) missingVars.push('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
+    if (!config.projectId) missingVars.push('NEXT_PUBLIC_FIREBASE_PROJECT_ID');
     
-    console.error('Firebase configuration is incomplete. Missing:', missingVars.join(', '));
+    console.error('🔥 Firebase configuration is incomplete. Missing:', missingVars.join(', '));
+    console.error('🔥 Firebase config:', {
+      apiKey: config.apiKey ? `${config.apiKey.substring(0, 10)}...` : 'MISSING',
+      authDomain: config.authDomain || 'MISSING',
+      projectId: config.projectId || 'MISSING',
+    });
     return { 
       auth: null, 
       googleProvider: null, 
@@ -43,7 +75,7 @@ export const getFirebaseAuth = async () => {
   }
 
   try {
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    const app = getApps().length === 0 ? initializeApp(config) : getApps()[0];
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
     
@@ -55,10 +87,11 @@ export const getFirebaseAuth = async () => {
       prompt: 'select_account',
     });
 
-    console.log('Firebase initialized successfully');
+    console.log('🔥 Firebase initialized successfully');
+    console.log('🔥 Using authDomain:', config.authDomain);
     return { auth, googleProvider, error: null };
   } catch (error) {
-    console.error('Firebase initialization error:', error);
+    console.error('🔥 Firebase initialization error:', error);
     return { 
       auth: null, 
       googleProvider: null, 
@@ -69,15 +102,17 @@ export const getFirebaseAuth = async () => {
 
 // Helper to check if Firebase is configured
 export const isFirebaseConfigured = () => {
-  return !!(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId);
+  const config = getConfig();
+  return !!(config.apiKey && config.authDomain && config.projectId);
 };
 
 // Get Firebase config status for debugging
 export const getFirebaseConfigStatus = () => {
+  const config = getConfig();
   return {
-    apiKey: firebaseConfig.apiKey ? '✓ Set' : '✗ Missing',
-    authDomain: firebaseConfig.authDomain ? '✓ Set' : '✗ Missing',
-    projectId: firebaseConfig.projectId ? '✓ Set' : '✗ Missing',
+    apiKey: config.apiKey ? '✓ Set' : '✗ Missing',
+    authDomain: config.authDomain ? '✓ Set' : '✗ Missing',
+    projectId: config.projectId ? '✓ Set' : '✗ Missing',
     isConfigured: isFirebaseConfigured(),
   };
 };
