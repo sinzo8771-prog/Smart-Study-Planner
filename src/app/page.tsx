@@ -9697,19 +9697,20 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       
       // Handle specific Firebase errors
       const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
+      const errorCode = (err as { code?: string })?.code || '';
       
-      if (errorMessage.includes('invalid-api-key') || errorMessage.includes('invalid_api_key')) {
-        setError('Invalid Firebase API Key. Please verify your Firebase configuration.');
-      } else if (errorMessage.includes('auth/unauthorized-domain') || errorMessage.includes('unauthorized-domain')) {
-        setError('This domain is not authorized for Google sign-in. Please contact support or try a different login method.');
-      } else if (errorMessage.includes('auth/popup-blocked')) {
-        setError('Popup was blocked by your browser. Please allow popups and try again.');
-      } else if (errorMessage.includes('auth/popup-closed-by-user')) {
-        setError('Sign-in was cancelled. Please try again.');
-      } else if (errorMessage.includes('auth/network-request-failed')) {
+      if (errorCode === 'auth/popup-blocked' || errorMessage.includes('auth/popup-blocked')) {
+        setError('Popup was blocked by your browser. Please allow popups for this site and try again.');
+      } else if (errorCode === 'auth/popup-closed-by-user' || errorMessage.includes('auth/popup-closed-by-user')) {
+        setError('Sign-in popup was closed. This usually happens when:\n• The domain is not authorized in Firebase\n• Popup was blocked\n\nPlease check Firebase Console > Authentication > Settings > Authorized domains and add this domain.');
+      } else if (errorCode === 'auth/unauthorized-domain' || errorMessage.includes('unauthorized-domain')) {
+        setError('This domain is not authorized for Google sign-in. Please add this domain to Firebase Console > Authentication > Settings > Authorized domains.');
+      } else if (errorCode === 'auth/invalid-api-key' || errorMessage.includes('invalid-api-key')) {
+        setError('Invalid Firebase API Key. Please check your Firebase configuration.');
+      } else if (errorCode === 'auth/network-request-failed' || errorMessage.includes('network-request-failed')) {
         setError('Network error. Please check your internet connection and try again.');
       } else if (errorMessage.includes('Firebase configuration incomplete')) {
-        setError('Firebase is not configured. Google sign-in is currently unavailable. Please try again later.');
+        setError('Firebase is not configured. Google sign-in is currently unavailable. Please try email login instead.');
       } else {
         setError(errorMessage);
       }
