@@ -88,8 +88,6 @@ const getAllowedOrigins = () => {
 const allowedOrigins = getAllowedOrigins();
 
 export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-
   // Get client IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
              request.headers.get('x-real-ip') ||
@@ -111,10 +109,36 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Handle CORS preflight for API routes first
+  if (request.nextUrl.pathname.startsWith('/api/') && request.method === 'OPTIONS') {
+    const origin = request.headers.get('origin');
+    const isAllowed = origin && (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:')
+    );
+    
+    const headers: Record<string, string> = {
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Cookie',
+      'Access-Control-Max-Age': '86400',
+    };
+    
+    if (isAllowed && origin) {
+      headers['Access-Control-Allow-Origin'] = origin;
+      headers['Access-Control-Allow-Credentials'] = 'true';
+    }
+    
+    return new NextResponse(null, { status: 204, headers });
+  }
+
+  // Continue to the route handler
+  const response = NextResponse.next();
+
   // Apply security headers
   Object.entries(securityHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
-    // console.log(`Setting header: ${key}: ${value}`);
   });
 
   // Handle CORS for API routes
@@ -135,16 +159,8 @@ export function middleware(request: NextRequest) {
       response.headers.set('Access-Control-Allow-Origin', origin);
       response.headers.set('Access-Control-Allow-Credentials', 'true');
       response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cookie');
       response.headers.set('Access-Control-Max-Age', '86400');
-    }
-
-    // Handle preflight requests
-    if (request.method === 'OPTIONS') {
-      return new NextResponse(null, {
-        status: 204,
-        headers: response.headers,
-      });
     }
   }
 
