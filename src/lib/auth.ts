@@ -94,18 +94,25 @@ export async function setAuthCookie(token: string) {
   const isProduction = process.env.NODE_ENV === 'production';
   const isVercel = process.env.VERCEL === '1';
   
-  cookieStore.set('auth_token', token, {
+  // Cookie settings for auth
+  // - sameSite: 'lax' allows cookies on same-origin requests and top-level navigations
+  // - This works for OAuth redirects because they are top-level navigations
+  // - secure: true is required on Vercel (HTTPS)
+  const cookieOptions = {
     httpOnly: true,
-    // On Vercel, always use secure since it's HTTPS
-    // In local development, use secure only if explicitly production mode
-    secure: isProduction || isVercel,
-    // Use 'lax' for same-site requests (works with OAuth redirects)
-    sameSite: 'lax',
+    secure: true, // Always true for Vercel (HTTPS)
+    sameSite: 'lax' as const, // Allows OAuth redirects to work
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: '/',
-  });
+  };
   
-  console.log('[Auth] Cookie set - secure:', isProduction || isVercel, 'vercel:', isVercel);
+  cookieStore.set('auth_token', token, cookieOptions);
+  
+  console.log('[Auth] Cookie set with options:', JSON.stringify({
+    ...cookieOptions,
+    isProduction,
+    isVercel
+  }));
 }
 
 // Clear auth cookie
