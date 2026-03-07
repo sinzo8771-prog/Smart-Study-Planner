@@ -1,16 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/tokens';
+import { verifyToken, verifyCode } from '@/lib/tokens';
 import { db } from '@/lib/db';
 import { hashPassword, generateToken, setAuthCookie } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, password, confirmPassword } = await request.json();
+    const { token, code, email, password, confirmPassword } = await request.json();
 
-    // Validate input
-    if (!token || !password || !confirmPassword) {
+    // Support both token-based and code-based reset
+    let identifier: string | undefined;
+
+    if (token) {
+      // Token-based reset (from email link)
+      const result = await verifyToken(token, 'password_reset');
+      if (!result.valid) {
+        return NextResponse.json(
+          { error: result.error || 'Invalid or expired reset token' },
+          { status: 400 }
+        );
+      }
+      identifier = result.identifier;
+    } else if (code && email) {
+      // Code-based reset (from verification code input)
+      const result = await verifyCode(code, email, 'password_reset');
+      if (!result.valid) {
+        return NextResponse.json(
+          { error: result.error || 'Invalid or expired verification code' },
+          { status: 400 }
+        );
+      }
+      identifier = result.identifier;
+    } else {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: 'Token or verification code is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password
+    if (!password || !confirmPassword) {
+      return NextResponse.json(
+        { error: 'Password and confirmation are required' },
         { status: 400 }
       );
     }
@@ -42,19 +72,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify the token
-    const result = await verifyToken(token, 'password_reset');
-
-    if (!result.valid) {
-      return NextResponse.json(
-        { error: result.error || 'Invalid or expired reset token' },
-        { status: 400 }
-      );
-    }
-
     // Find the user
     const user = await db.user.findUnique({
-      where: { email: result.identifier },
+      where: { email: identifier },
     });
 
     if (!user) {

@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
       // Don't reveal if user exists or not for security
       return NextResponse.json({
         success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.',
+        message: 'If an account with that email exists, a password reset code has been sent.',
+        requiresCodeInput: true,
       });
     }
 
@@ -50,25 +51,29 @@ export async function POST(request: NextRequest) {
     if (!user.password) {
       return NextResponse.json({
         success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.',
+        message: 'If an account with that email exists, a password reset code has been sent.',
+        requiresCodeInput: true,
       });
     }
 
-    // Delete old reset tokens and create new one
+    // Delete old reset tokens and create new one with code
     await deleteTokensForIdentifier(email, 'password_reset');
-    const token = await createVerificationToken(email, 'password_reset', 1); // 1 hour expiry
+    const { token, code } = await createVerificationToken(email, 'password_reset', 1); // 1 hour expiry
 
-    // Send password reset email
-    const emailResult = await sendPasswordResetEmail(email, user.name, token);
+    // Send password reset email with code
+    if (code) {
+      const emailResult = await sendPasswordResetEmail(email, user.name, code, token);
 
-    if (!emailResult.success) {
-      console.error('Failed to send password reset email:', emailResult.error);
-      // Still return success to not reveal information
+      if (!emailResult.success) {
+        console.error('Failed to send password reset email:', emailResult.error);
+        // Still return success to not reveal information
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'If an account with that email exists, a password reset link has been sent.',
+      message: 'If an account with that email exists, a password reset code has been sent.',
+      requiresCodeInput: true,
     });
   } catch (error) {
     console.error('Forgot password error:', error);

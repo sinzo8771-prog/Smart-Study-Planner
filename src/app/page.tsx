@@ -36,7 +36,7 @@ import {
   Video, Check, XCircle, HelpCircle, RefreshCw, Download, Upload, UserCog,
   LayoutDashboard, ListTodo, GraduationCap as GradCap, Building2, Sparkles,
   MessageCircle, Send, Bot, Loader2, Twitter, Github, Linkedin, Mail, ArrowUp,
-  Heart, ExternalLink, Key, Bell
+  Heart, ExternalLink, Key, Bell, KeyRound, Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9599,8 +9599,13 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
   const [verifyCodeError, setVerifyCodeError] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
-  
+
+  // Reset password states
+  const [resetPasswordData, setResetPasswordData] = useState({ password: '', confirmPassword: '' });
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState('');
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false);
+
   // Pre-cache Firebase auth instance
   const firebaseAuthRef = useRef<{ auth: typeof import('firebase/auth').Auth | null; googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null }>({ auth: null, googleProvider: null });
 
@@ -9933,6 +9938,58 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
+  // Handle reset password with code submission
+  const handleResetPassword = async () => {
+    const code = verificationCode.join('');
+    if (code.length !== 6) {
+      setResetPasswordError('Please enter a 6-digit code');
+      return;
+    }
+
+    if (resetPasswordData.password !== resetPasswordData.confirmPassword) {
+      setResetPasswordError('Passwords do not match');
+      return;
+    }
+
+    if (resetPasswordData.password.length < 8) {
+      setResetPasswordError('Password must be at least 8 characters');
+      return;
+    }
+
+    setResetPasswordLoading(true);
+    setResetPasswordError('');
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          code: code,
+          password: resetPasswordData.password,
+          confirmPassword: resetPasswordData.confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Password reset failed');
+      }
+
+      // Success - show success animation and log in
+      setResetPasswordSuccess(true);
+      setShowSuccess(true);
+      setTimeout(() => {
+        onSuccess(data.user);
+      }, 800);
+    } catch (err) {
+      setResetPasswordError(err instanceof Error ? err.message : 'Password reset failed');
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
   // Get password strength info
   const passwordStrength = calculatePasswordStrength(formData.password);
   const passwordStrengthInfo = getPasswordStrengthColor(passwordStrength);
@@ -10204,46 +10261,202 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
 
               {/* Forgot Password Form */}
               {mode === 'forgot-password' && (
-                <form onSubmit={handleForgotPassword} className="space-y-3 sm:space-y-4">
-                  <FloatingInput
-                    id="forgot-email"
-                    label="Email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(v) => setFormData({ ...formData, email: v })}
-                    icon={Mail}
-                    placeholder="Enter your email"
-                    focusedField={focusedField}
-                    onFocus={setFocusedField}
-                    onBlur={() => setFocusedField(null)}
-                  />
-                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                    <Button
-                      type="submit"
-                      disabled={emailLoading || !formData.email}
-                      className="w-full py-4 sm:py-5 md:py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 text-sm sm:text-base min-h-[48px]"
+                <>
+                  {!forgotPasswordSuccess ? (
+                    // Step 1: Enter email
+                    <form onSubmit={handleForgotPassword} className="space-y-3 sm:space-y-4">
+                      <FloatingInput
+                        id="forgot-email"
+                        label="Email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(v) => setFormData({ ...formData, email: v })}
+                        icon={Mail}
+                        placeholder="Enter your email"
+                        focusedField={focusedField}
+                        onFocus={setFocusedField}
+                        onBlur={() => setFocusedField(null)}
+                      />
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                        <Button
+                          type="submit"
+                          disabled={emailLoading || !formData.email}
+                          className="w-full py-4 sm:py-5 md:py-6 h-auto rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 text-sm sm:text-base min-h-[48px]"
+                        >
+                          {emailLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
+                              Sending...
+                            </>
+                          ) : (
+                            'Send Reset Code'
+                          )}
+                        </Button>
+                      </motion.div>
+                      <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                        Remember your password?{' '}
+                        <button
+                          type="button"
+                          onClick={() => onSwitchMode('login')}
+                          className="text-blue-500 hover:text-blue-600 font-medium"
+                        >
+                          Back to Login
+                        </button>
+                      </p>
+                    </form>
+                  ) : (
+                    // Step 2: Enter code + new password
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center space-y-4"
                     >
-                      {emailLoading ? (
+                      {!resetPasswordSuccess && (
                         <>
-                          <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
-                          Sending...
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', damping: 15 }}
+                            className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4"
+                          >
+                            <KeyRound className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                          </motion.div>
+                          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">Reset Your Password</h3>
+                          <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-4 px-2">
+                            We've sent a 6-digit code to <strong className="break-all">{formData.email}</strong>
+                          </p>
+                          
+                          {/* 6-digit code input */}
+                          <div className="flex justify-center gap-2 sm:gap-3 mb-4">
+                            {[0, 1, 2, 3, 4, 5].map((index) => (
+                              <input
+                                key={index}
+                                id={`reset-code-${index}`}
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={1}
+                                value={verificationCode[index]}
+                                onChange={(e) => handleCodeChange(index, e.target.value)}
+                                onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                                onPaste={handleCodePaste}
+                                className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
+                                autoFocus={index === 0}
+                              />
+                            ))}
+                          </div>
+
+                          {/* New Password Fields */}
+                          <div className="space-y-3 mt-4">
+                            <div className="relative">
+                              <div className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                              </div>
+                              <Input
+                                type={showPassword ? 'text' : 'password'}
+                                value={resetPasswordData.password}
+                                onChange={(e) => setResetPasswordData({ ...resetPasswordData, password: e.target.value })}
+                                placeholder="New Password"
+                                className="pl-10 sm:pl-12 pr-10 sm:pr-12 py-4 sm:py-5 h-auto text-base sm:text-lg min-h-[48px]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                              >
+                                {showPassword ? <Eye className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5 opacity-50" />}
+                              </button>
+                            </div>
+
+                            {/* Password strength indicator */}
+                            {resetPasswordData.password && (
+                              <div className="px-1">
+                                <div className="flex gap-1 mb-1">
+                                  {[1, 2, 3, 4, 5].map((level) => (
+                                    <div
+                                      key={level}
+                                      className={`h-1 flex-1 rounded-full transition-all ${
+                                        level <= calculatePasswordStrength(resetPasswordData.password)
+                                          ? getPasswordStrengthColor(calculatePasswordStrength(resetPasswordData.password)).bar
+                                          : 'bg-gray-200 dark:bg-gray-700'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <p className={`text-xs ${getPasswordStrengthColor(calculatePasswordStrength(resetPasswordData.password)).text}`}>
+                                  {getPasswordStrengthColor(calculatePasswordStrength(resetPasswordData.password)).label}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="relative">
+                              <div className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                              </div>
+                              <Input
+                                type={showPassword ? 'text' : 'password'}
+                                value={resetPasswordData.confirmPassword}
+                                onChange={(e) => setResetPasswordData({ ...resetPasswordData, confirmPassword: e.target.value })}
+                                placeholder="Confirm New Password"
+                                className="pl-10 sm:pl-12 py-4 sm:py-5 h-auto text-base sm:text-lg min-h-[48px]"
+                              />
+                            </div>
+                          </div>
+
+                          {resetPasswordError && (
+                            <p className="text-red-500 text-xs sm:text-sm">{resetPasswordError}</p>
+                          )}
+
+                          <Button
+                            onClick={handleResetPassword}
+                            disabled={resetPasswordLoading || verificationCode.join('').length !== 6 || !resetPasswordData.password || !resetPasswordData.confirmPassword}
+                            className="w-full sm:w-auto px-8 h-10 sm:h-11 text-sm bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                          >
+                            {resetPasswordLoading ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                Resetting...
+                              </>
+                            ) : (
+                              'Reset Password'
+                            )}
+                          </Button>
+
+                          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-4">
+                            Didn't receive the code?{' '}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                setResendLoading(true);
+                                try {
+                                  const response = await fetch('/api/auth/forgot-password', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ email: formData.email }),
+                                  });
+                                  if (response.ok) {
+                                    setResendSuccess(true);
+                                    setTimeout(() => setResendSuccess(false), 3000);
+                                  }
+                                } catch {
+                                  // Silent fail
+                                } finally {
+                                  setResendLoading(false);
+                                }
+                              }}
+                              disabled={resendLoading}
+                              className="text-blue-500 hover:text-blue-600 font-medium disabled:opacity-50"
+                            >
+                              {resendLoading ? 'Sending...' : 'Resend code'}
+                            </button>
+                          </p>
+                          {resendSuccess && (
+                            <p className="text-green-500 text-xs sm:text-sm">New code sent!</p>
+                          )}
                         </>
-                      ) : (
-                        'Send Reset Link'
                       )}
-                    </Button>
-                  </motion.div>
-                  <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                    Remember your password?{' '}
-                    <button
-                      type="button"
-                      onClick={() => onSwitchMode('login')}
-                      className="text-blue-500 hover:text-blue-600 font-medium"
-                    >
-                      Back to Login
-                    </button>
-                  </p>
-                </form>
+                    </motion.div>
+                  )}
+                </>
               )}
 
               {/* Login and Register Forms */}
