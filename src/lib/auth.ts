@@ -8,18 +8,27 @@ const logger = createLogger('Auth');
 
 // JWT Secret - required for production, fallback for demo/static mode
 const JWT_SECRET = process.env.JWT_SECRET;
-const isStaticMode = shouldUseStaticData();
 
 // Generate a consistent secret for static/demo mode based on a hash of predictable values
 // This ensures tokens work across serverless invocations in demo mode
 const DEMO_SECRET = 'smart-study-planner-demo-secret-key-2024-secure';
 
-const SECRET_KEY = JWT_SECRET || (isStaticMode ? DEMO_SECRET : null);
+// Get the secret key - check static mode dynamically since env vars may not be available at module load time
+function getSecretKey(): string {
+  const isStatic = shouldUseStaticData();
+  const key = JWT_SECRET || (isStatic ? DEMO_SECRET : '');
+  
+  if (!key) {
+    logger.error('JWT_SECRET environment variable is required for production. Authentication will fail.');
+    console.error('[Auth] ERROR: JWT_SECRET is not set and not in static mode. Auth will fail!');
+  }
+  
+  return key;
+}
 
-if (!SECRET_KEY) {
-  logger.error('JWT_SECRET environment variable is required for production. Authentication will fail.');
-  console.error('[Auth] ERROR: JWT_SECRET is not set and not in static mode. Auth will fail!');
-} else if (!JWT_SECRET && isStaticMode) {
+// Log secret key status at startup for debugging
+const startupKey = getSecretKey();
+if (startupKey === DEMO_SECRET) {
   logger.info('Using demo secret for static mode. Set JWT_SECRET for production.');
   console.log('[Auth] Using demo secret for static mode');
 }
@@ -49,7 +58,8 @@ export async function comparePassword(password: string, hashedPassword: string):
 
 // Generate JWT token with proper expiration
 export function generateToken(payload: UserPayload): string {
-  if (!SECRET_KEY) {
+  const secretKey = getSecretKey();
+  if (!secretKey) {
     throw new Error('JWT_SECRET is not configured. Cannot generate token.');
   }
   return jwt.sign(
@@ -57,7 +67,7 @@ export function generateToken(payload: UserPayload): string {
       ...payload,
       iat: Math.floor(Date.now() / 1000),
     },
-    SECRET_KEY,
+    secretKey,
     { 
       expiresIn: '7d',
       issuer: 'smart-study-planner',
@@ -68,12 +78,13 @@ export function generateToken(payload: UserPayload): string {
 
 // Verify JWT token with proper error handling
 export function verifyToken(token: string): UserPayload | null {
-  if (!SECRET_KEY) {
+  const secretKey = getSecretKey();
+  if (!secretKey) {
     logger.error('JWT_SECRET is not configured');
     return null;
   }
   try {
-    const decoded = jwt.verify(token, SECRET_KEY, {
+    const decoded = jwt.verify(token, secretKey, {
       issuer: 'smart-study-planner',
       audience: 'smart-study-planner-users',
     });

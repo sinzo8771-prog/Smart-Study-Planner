@@ -1498,17 +1498,67 @@ export const staticQuizzes: StaticQuiz[] = [
 const registeredUsers: Map<string, StaticUser> = new Map();
 
 // Helper function to check if we should use static data
+// This is the key function that determines whether to use the database or in-memory data
 export function shouldUseStaticData(): boolean {
-  // Use static data if DATABASE_URL is not set or if we're in Vercel without a proper database
   const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) return true;
   
-  // If using SQLite in production (Vercel), use static data instead
-  if (process.env.VERCEL === '1' && dbUrl.includes('file:')) {
+  // Log for debugging
+  const debugInfo = {
+    hasDbUrl: !!dbUrl,
+    dbUrlPrefix: dbUrl ? dbUrl.substring(0, 30) : 'none',
+    vercel: process.env.VERCEL,
+    nodeEnv: process.env.NODE_ENV,
+  };
+  console.log('[StaticData] Checking static mode:', JSON.stringify(debugInfo));
+  
+  // No database URL configured - use static mode
+  if (!dbUrl || dbUrl.trim() === '') {
+    console.log('[StaticData] No DATABASE_URL, using static mode');
     return true;
   }
   
-  return false;
+  // Check if we're in a serverless/production environment
+  // Vercel sets VERCEL='1', but we also check for other serverless platforms
+  const isServerless = 
+    process.env.VERCEL === '1' || 
+    process.env.VERCEL !== undefined ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined ||
+    process.env.NETLIFY === 'true' ||
+    process.env.CF_PAGES !== undefined;
+  
+  // Check if it's a SQLite URL (file:)
+  // SQLite URLs look like: file:./dev.db or file:/path/to/db
+  const isSqlite = dbUrl.startsWith('file:');
+  
+  // Check if it's a production database (PostgreSQL, MySQL, etc.)
+  const isProductionDb = 
+    dbUrl.startsWith('postgresql://') || 
+    dbUrl.startsWith('postgres://') ||
+    dbUrl.startsWith('mysql://');
+  
+  // If we have a production database URL, use database mode
+  if (isProductionDb) {
+    console.log('[StaticData] Production database URL detected, using database mode');
+    return false;
+  }
+  
+  // SQLite doesn't work in serverless environments (ephemeral filesystem)
+  // In serverless, we MUST use static mode for SQLite
+  if (isSqlite && isServerless) {
+    console.log('[StaticData] SQLite detected in serverless environment, using static mode');
+    return true;
+  }
+  
+  // SQLite in local development - use database mode
+  if (isSqlite) {
+    console.log('[StaticData] SQLite in local development, using database mode');
+    return false;
+  }
+  
+  // DATABASE_URL is set but not a recognized format
+  // This could be an invalid URL or a placeholder - use static mode to be safe
+  console.log('[StaticData] DATABASE_URL not recognized as valid format, using static mode');
+  return true;
 }
 
 // Add a newly registered user to the in-memory store

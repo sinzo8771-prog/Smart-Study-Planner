@@ -14,6 +14,14 @@ export async function POST(request: NextRequest) {
   console.log('[Register API] POST request received');
   
   try {
+    // Check if we're in static/demo mode FIRST (before any database operations)
+    const isStaticMode = shouldUseStaticData();
+    console.log('[Register API] Static mode:', isStaticMode);
+    
+    // Check if email service is configured
+    const emailConfigured = isEmailServiceConfigured();
+    console.log('[Register API] Email configured:', emailConfigured);
+    
     // Rate limiting - 3 registrations per hour per IP
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const rateLimit = checkRateLimit(`register:${ip}`, 3, 3600000);
@@ -91,14 +99,6 @@ export async function POST(request: NextRequest) {
       role: role || 'student',
     });
     console.log('[Register API] User created:', user.id);
-
-    // Check if we're in static/demo mode (Vercel without database)
-    const isStaticMode = shouldUseStaticData();
-    console.log('[Register API] Static mode:', isStaticMode);
-    
-    // Check if email service is configured
-    const emailConfigured = isEmailServiceConfigured();
-    console.log('[Register API] Email configured:', emailConfigured);
 
     // In static mode OR when email is not configured, auto-verify and log in
     if (isStaticMode || !emailConfigured) {

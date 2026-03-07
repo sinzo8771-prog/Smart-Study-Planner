@@ -59,14 +59,16 @@ function checkRateLimit(ip: string): boolean {
 }
 
 // Clean up expired rate limit entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of rateLimitStore.entries()) {
-    if (now > record.resetTime) {
-      rateLimitStore.delete(ip);
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, record] of rateLimitStore.entries()) {
+      if (now > record.resetTime) {
+        rateLimitStore.delete(ip);
+      }
     }
-  }
-}, 60 * 1000);
+  }, 60 * 1000);
+}
 
 // CORS configuration - Allow all Vercel preview/production URLs and localhost
 const getAllowedOrigins = () => {
@@ -87,7 +89,8 @@ const getAllowedOrigins = () => {
 
 const allowedOrigins = getAllowedOrigins();
 
-export function proxy(request: NextRequest) {
+// CRITICAL: Must export 'middleware' function for Next.js to recognize it
+export function middleware(request: NextRequest) {
   // Get client IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
              request.headers.get('x-real-ip') ||

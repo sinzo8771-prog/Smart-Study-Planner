@@ -252,3 +252,51 @@ Stage Summary:
 - CORS configured for API routes
 - Ready for production deployment
 - If SMTP not configured, emails are logged to console (dev mode)
+
+---
+Task ID: 11
+Agent: Main
+Task: Fix registration 500 error and middleware not running
+
+Work Log:
+- Identified that middleware file was named `proxy.ts` with exported `proxy` function
+- Next.js requires the file to be `middleware.ts` with exported `middleware` function
+- Created proper `middleware.ts` file with correct function name
+- Deleted old `proxy.ts` file
+- Fixed JWT secret key calculation in `auth.ts`:
+  - Changed from static calculation at module load time to dynamic function
+  - Created `getSecretKey()` function that checks `shouldUseStaticData()` dynamically
+  - This ensures the demo secret is used when in static/demo mode
+- Updated `generateToken()` and `verifyToken()` to use dynamic `getSecretKey()`
+
+Stage Summary:
+- Critical fix: Middleware now runs properly (was completely broken before)
+- File renamed: `proxy.ts` → `middleware.ts`
+- Function renamed: `proxy()` → `middleware()`
+- JWT secret now dynamically determined based on static mode
+- Registration should now work without 500 errors
+- All CORS and security headers from middleware now properly applied
+
+---
+Task ID: 12
+Agent: Main
+Task: Fix DATABASE_URL detection for serverless environments
+
+Work Log:
+- Identified that `shouldUseStaticData()` was returning `false` incorrectly
+- On Vercel, DATABASE_URL may be empty or SQLite (file:) which doesn't work
+- Updated detection logic:
+  - Added detailed debug logging to understand environment
+  - Check for serverless environments (VERCEL, AWS Lambda, Netlify, Cloudflare)
+  - Detect SQLite URLs (file:) and force static mode in serverless
+  - Detect production database URLs (postgresql://, mysql://) for database mode
+  - Fall back to static mode if DATABASE_URL is invalid/unrecognized
+- Updated registration API to check static mode BEFORE database operations
+- This prevents Prisma from failing before we detect static mode
+
+Stage Summary:
+- Robust DATABASE_URL detection for serverless environments
+- Registration API checks static mode first (before any DB operations)
+- SQLite in serverless → static mode (required because of ephemeral filesystem)
+- PostgreSQL/MySQL → database mode (production databases work in serverless)
+- Empty/invalid DATABASE_URL → static mode (safe fallback)
