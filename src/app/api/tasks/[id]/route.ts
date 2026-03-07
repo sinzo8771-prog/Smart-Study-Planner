@@ -1,10 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { shouldUseStaticData } from '@/lib/data-service';
 
 // Valid status and priority values
 const VALID_STATUSES = ['pending', 'in_progress', 'completed'];
 const VALID_PRIORITIES = ['low', 'medium', 'high'];
+
+// Static tasks store for demo mode
+let staticTasksStore: Array<{
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  dueDate: Date | null;
+  subjectId: string;
+  userId: string;
+  createdAt: Date;
+  subject: { id: string; name: string; color: string };
+}> | null = null;
+
+// Initialize static tasks store
+function getStaticTasks() {
+  if (!staticTasksStore) {
+    staticTasksStore = [
+      {
+        id: 'task-1',
+        title: 'Complete Chapter 3 exercises',
+        description: 'Work through all practice problems',
+        status: 'pending',
+        priority: 'high',
+        dueDate: new Date(Date.now() + 86400000),
+        subjectId: 'subject-1',
+        userId: 'demo-user',
+        createdAt: new Date(),
+        subject: { id: 'subject-1', name: 'Mathematics', color: '#6366f1' },
+      },
+      {
+        id: 'task-2',
+        title: 'Watch lecture video',
+        description: 'Physics mechanics lecture',
+        status: 'in_progress',
+        priority: 'medium',
+        dueDate: new Date(Date.now() + 172800000),
+        subjectId: 'subject-2',
+        userId: 'demo-user',
+        createdAt: new Date(),
+        subject: { id: 'subject-2', name: 'Physics', color: '#f59e0b' },
+      },
+      {
+        id: 'task-3',
+        title: 'Submit programming assignment',
+        description: 'Complete the React project',
+        status: 'completed',
+        priority: 'high',
+        dueDate: new Date(Date.now() - 86400000),
+        subjectId: 'subject-3',
+        userId: 'demo-user',
+        createdAt: new Date(),
+        subject: { id: 'subject-3', name: 'Computer Science', color: '#10b981' },
+      },
+    ];
+  }
+  return staticTasksStore;
+}
 
 // GET /api/tasks/[id] - Get single task
 export async function GET(
@@ -22,6 +82,21 @@ export async function GET(
     }
 
     const { id } = await params;
+
+    // Use static data for Vercel deployment without database
+    if (shouldUseStaticData()) {
+      const tasks = getStaticTasks();
+      const task = tasks.find(t => t.id === id);
+      
+      if (!task) {
+        return NextResponse.json(
+          { error: 'Task not found' },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json({ task });
+    }
 
     const task = await db.task.findFirst({
       where: {
@@ -76,6 +151,48 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const { title, description, status, priority, dueDate, subjectId } = body;
+
+    // Use static data for Vercel deployment without database
+    if (shouldUseStaticData()) {
+      const tasks = getStaticTasks();
+      const taskIndex = tasks.findIndex(t => t.id === id);
+      
+      if (taskIndex === -1) {
+        return NextResponse.json(
+          { error: 'Task not found' },
+          { status: 404 }
+        );
+      }
+      
+      // Validate status if provided
+      if (status !== undefined && !VALID_STATUSES.includes(status)) {
+        return NextResponse.json(
+          { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
+          { status: 400 }
+        );
+      }
+
+      // Validate priority if provided
+      if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
+        return NextResponse.json(
+          { error: `Invalid priority. Must be one of: ${VALID_PRIORITIES.join(', ')}` },
+          { status: 400 }
+        );
+      }
+      
+      // Update the task
+      tasks[taskIndex] = {
+        ...tasks[taskIndex],
+        title: title !== undefined ? title.trim() : tasks[taskIndex].title,
+        description: description !== undefined ? (description?.trim() || null) : tasks[taskIndex].description,
+        status: status !== undefined ? status : tasks[taskIndex].status,
+        priority: priority !== undefined ? priority : tasks[taskIndex].priority,
+        dueDate: dueDate !== undefined ? (dueDate ? new Date(dueDate) : null) : tasks[taskIndex].dueDate,
+        subjectId: subjectId !== undefined ? subjectId : tasks[taskIndex].subjectId,
+      };
+      
+      return NextResponse.json({ task: tasks[taskIndex] });
+    }
 
     // Check if task exists and belongs to user
     const existingTask = await db.task.findFirst({
@@ -182,6 +299,25 @@ export async function DELETE(
     }
 
     const { id } = await params;
+
+    // Use static data for Vercel deployment without database
+    if (shouldUseStaticData()) {
+      const tasks = getStaticTasks();
+      const taskIndex = tasks.findIndex(t => t.id === id);
+      
+      if (taskIndex === -1) {
+        return NextResponse.json(
+          { error: 'Task not found' },
+          { status: 404 }
+        );
+      }
+      
+      tasks.splice(taskIndex, 1);
+      
+      return NextResponse.json({
+        message: 'Task deleted successfully',
+      });
+    }
 
     // Check if task exists and belongs to user
     const existingTask = await db.task.findFirst({

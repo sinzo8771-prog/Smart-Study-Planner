@@ -5,7 +5,8 @@ import { shouldUseStaticData } from '@/lib/data-service';
 import { sanitizeString, isValidHexColor } from '@/lib/validation';
 
 // Static subjects for demo mode (Vercel without database)
-const staticSubjects = [
+// Using let to allow mutation for demo mode
+let staticSubjects = [
   {
     id: 'subject-1',
     name: 'Mathematics',
@@ -167,6 +168,8 @@ export async function POST(request: NextRequest) {
         tasks: [],
         _count: { tasks: 0 },
       };
+      // Add to static subjects array for persistence in demo mode
+      staticSubjects.push(mockSubject);
       return NextResponse.json({ subject: mockSubject }, { status: 201 });
     }
 

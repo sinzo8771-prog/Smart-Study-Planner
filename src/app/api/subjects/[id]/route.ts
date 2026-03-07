@@ -1,6 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { shouldUseStaticData } from '@/lib/data-service';
+
+// Import the mutable static subjects array from the parent route
+// Note: In a real app, you'd use a shared data store
+let staticSubjectsStore: Array<{
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  examDate: Date | null;
+  createdAt: Date;
+  tasks: unknown[];
+  _count: { tasks: number };
+}> | null = null;
+
+// Initialize static subjects store
+function getStaticSubjects() {
+  if (!staticSubjectsStore) {
+    staticSubjectsStore = [
+      {
+        id: 'subject-1',
+        name: 'Mathematics',
+        description: 'Algebra, Calculus, and Statistics',
+        color: '#6366f1',
+        examDate: null,
+        createdAt: new Date(),
+        tasks: [],
+        _count: { tasks: 3 },
+      },
+      {
+        id: 'subject-2',
+        name: 'Physics',
+        description: 'Mechanics and Thermodynamics',
+        color: '#f59e0b',
+        examDate: null,
+        createdAt: new Date(),
+        tasks: [],
+        _count: { tasks: 2 },
+      },
+      {
+        id: 'subject-3',
+        name: 'Computer Science',
+        description: 'Programming and Algorithms',
+        color: '#10b981',
+        examDate: null,
+        createdAt: new Date(),
+        tasks: [],
+        _count: { tasks: 4 },
+      },
+    ];
+  }
+  return staticSubjectsStore;
+}
 
 // GET /api/subjects/[id] - Get single subject with tasks
 export async function GET(
@@ -18,6 +71,21 @@ export async function GET(
     }
 
     const { id } = await params;
+
+    // Use static data for Vercel deployment without database
+    if (shouldUseStaticData()) {
+      const subjects = getStaticSubjects();
+      const subject = subjects.find(s => s.id === id);
+      
+      if (!subject) {
+        return NextResponse.json(
+          { error: 'Subject not found' },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json({ subject });
+    }
 
     const subject = await db.subject.findFirst({
       where: {
@@ -69,6 +137,30 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const { name, description, color, examDate } = body;
+
+    // Use static data for Vercel deployment without database
+    if (shouldUseStaticData()) {
+      const subjects = getStaticSubjects();
+      const subjectIndex = subjects.findIndex(s => s.id === id);
+      
+      if (subjectIndex === -1) {
+        return NextResponse.json(
+          { error: 'Subject not found' },
+          { status: 404 }
+        );
+      }
+      
+      // Update the subject
+      subjects[subjectIndex] = {
+        ...subjects[subjectIndex],
+        name: name !== undefined ? name.trim() : subjects[subjectIndex].name,
+        description: description !== undefined ? (description?.trim() || null) : subjects[subjectIndex].description,
+        color: color !== undefined ? color : subjects[subjectIndex].color,
+        examDate: examDate !== undefined ? (examDate ? new Date(examDate) : null) : subjects[subjectIndex].examDate,
+      };
+      
+      return NextResponse.json({ subject: subjects[subjectIndex] });
+    }
 
     // Check if subject exists and belongs to user
     const existingSubject = await db.subject.findFirst({
@@ -147,6 +239,27 @@ export async function DELETE(
     }
 
     const { id } = await params;
+
+    // Use static data for Vercel deployment without database
+    if (shouldUseStaticData()) {
+      const subjects = getStaticSubjects();
+      const subjectIndex = subjects.findIndex(s => s.id === id);
+      
+      if (subjectIndex === -1) {
+        return NextResponse.json(
+          { error: 'Subject not found' },
+          { status: 404 }
+        );
+      }
+      
+      const deletedSubject = subjects[subjectIndex];
+      subjects.splice(subjectIndex, 1);
+      
+      return NextResponse.json({
+        message: 'Subject deleted successfully',
+        deletedTasksCount: deletedSubject._count.tasks,
+      });
+    }
 
     // Check if subject exists and belongs to user
     const existingSubject = await db.subject.findFirst({

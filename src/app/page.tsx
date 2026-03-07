@@ -9895,7 +9895,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-all"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-all z-20"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -10681,7 +10681,7 @@ const AdminLoginModal = ({ onClose, onSuccess }: AdminLoginModalProps) => {
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-all"
+            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-all z-20"
           >
             <X className="w-5 h-5" />
           </button>

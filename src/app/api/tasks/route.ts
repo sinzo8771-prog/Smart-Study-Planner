@@ -5,7 +5,8 @@ import { shouldUseStaticData } from '@/lib/data-service';
 import { sanitizeString, isValidTaskStatus, isValidTaskPriority } from '@/lib/validation';
 
 // Static tasks for demo mode (Vercel without database)
-const staticTasks = [
+// Using let to allow mutation for demo mode
+let staticTasks = [
   {
     id: 'task-1',
     title: 'Complete Chapter 3 exercises',
@@ -231,6 +232,9 @@ export async function POST(request: NextRequest) {
 
     // Use static data for Vercel deployment without database
     if (shouldUseStaticData()) {
+      // Find the subject to get its name and color
+      const subject = staticTasks.find(t => t.subjectId === subjectId)?.subject || { id: subjectId, name: 'Subject', color: '#6366f1' };
+      
       const mockTask = {
         id: `task-${Date.now()}`,
         title: sanitizeString(title.trim()),
@@ -241,8 +245,10 @@ export async function POST(request: NextRequest) {
         subjectId,
         userId: user.id,
         createdAt: new Date(),
-        subject: { id: subjectId, name: 'Subject', color: '#6366f1' },
+        subject,
       };
+      // Add to static tasks array for persistence in demo mode
+      staticTasks.push(mockTask);
       return NextResponse.json({ task: mockTask }, { status: 201 });
     }
 
