@@ -3019,6 +3019,7 @@ interface QuizModuleProps {
 }
 
 const QuizModule = ({ user }: QuizModuleProps) => {
+  const { toast } = useToast();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
@@ -3158,17 +3159,32 @@ const QuizModule = ({ user }: QuizModuleProps) => {
   const handleSubmitQuiz = useCallback(async () => {
     if (!selectedQuiz) return;
     setIsTimerRunning(false);
+    
+    // Calculate time taken (total duration - remaining time)
+    const totalDuration = (selectedQuiz.duration || 30) * 60;
+    const timeTaken = totalDuration - timeLeft;
+    
     try {
       const data = await api.post<{ attempt: QuizAttempt }>('/api/quiz-attempts', {
         quizId: selectedQuiz.id,
         answers,
+        timeTaken,
       });
       setAttempt(data.attempt);
       setIsTakingQuiz(false);
+      toast({
+        title: 'Quiz Submitted!',
+        description: `Your score: ${Math.round(data.attempt.score)}%`,
+      });
     } catch (error) {
       console.error('Error submitting quiz:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to submit quiz. Please try again.',
+        variant: 'destructive',
+      });
     }
-  }, [selectedQuiz, answers]);
+  }, [selectedQuiz, answers, timeLeft, toast]);
 
   const addQuestion = () => {
     setQuizForm({
@@ -3314,7 +3330,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
               <Button variant="outline" onClick={() => setIsTakingQuiz(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmitQuiz} disabled={Object.keys(answers).length < (selectedQuiz?.questions?.length || 0)}>
+              <Button type="button" onClick={handleSubmitQuiz} disabled={Object.keys(answers).length < (selectedQuiz?.questions?.length || 0)}>
                 Submit Quiz
               </Button>
             </>
@@ -3463,7 +3479,9 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                     
                     {currentQuestionIndex === (selectedQuiz.questions?.length || 0) - 1 ? (
                       <Button 
+                        type="button"
                         onClick={handleSubmitQuiz}
+                        disabled={Object.keys(answers).length < (selectedQuiz.questions?.length || 0)}
                         className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                       >
                         Submit Quiz <CheckCircle className="w-4 h-4 ml-2" />

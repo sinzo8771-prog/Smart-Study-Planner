@@ -152,6 +152,7 @@ export async function getQuizById(id: string) {
   if (shouldUseStaticData()) {
     const quiz = staticQuizzes.find(q => q.id === id && q.isPublished);
     if (!quiz) return null;
+    // Return the quiz with questions for taking the quiz
     return { ...quiz, questionCount: quiz.questions.length };
   }
 
