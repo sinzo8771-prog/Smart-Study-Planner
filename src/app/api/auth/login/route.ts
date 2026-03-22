@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUserByEmail, comparePassword, generateToken, setAuthCookie } from '@/lib/auth';
+import { findUserByEmail, comparePassword, generateToken } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/validation';
 import { shouldUseStaticData } from '@/lib/data-service';
 
@@ -81,12 +81,10 @@ export async function POST(request: NextRequest) {
       role: user.role,
     });
 
-    // Set cookie
-    await setAuthCookie(token);
-
     console.log('[Login API] Login successful for:', email);
     
-    return NextResponse.json({
+    // Create response
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -96,6 +94,19 @@ export async function POST(request: NextRequest) {
         image: user.image,
       },
     });
+    
+    // Set cookie directly on the response object for reliability
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: true, // Always true for Vercel (HTTPS)
+      sameSite: 'lax', // Allows OAuth redirects to work
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+    
+    console.log('[Login API] Cookie set on response');
+    
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

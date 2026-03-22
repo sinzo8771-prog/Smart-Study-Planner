@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, verifyCode } from '@/lib/tokens';
-import { hashPassword, generateToken, setAuthCookie, findUserByEmail } from '@/lib/auth';
+import { hashPassword, generateToken, findUserByEmail } from '@/lib/auth';
 import { shouldUseStaticData } from '@/lib/data-service';
+
+// Helper to create response with auth cookie
+function createAuthResponse(data: object, token: string) {
+  const response = NextResponse.json(data);
+  response.cookies.set('auth_token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/',
+  });
+  return response;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -86,7 +99,7 @@ export async function POST(request: NextRequest) {
     if (shouldUseStaticData()) {
       console.log('[Reset Password] Static mode: Password reset simulated for', identifier);
       
-      // Generate auth token and set cookie
+      // Generate auth token
       const authToken = generateToken({
         id: user.id,
         email: user.email,
@@ -94,9 +107,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
       });
 
-      await setAuthCookie(authToken);
-
-      return NextResponse.json({
+      return createAuthResponse({
         success: true,
         message: 'Password reset successfully! (Demo mode - password not actually changed)',
         user: {
@@ -105,7 +116,7 @@ export async function POST(request: NextRequest) {
           name: user.name,
           role: user.role,
         },
-      });
+      }, authToken);
     }
 
     // Database mode: Hash and update password
@@ -123,7 +134,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Generate auth token and set cookie
+    // Generate auth token
     const authToken = generateToken({
       id: updatedUser.id,
       email: updatedUser.email,
@@ -131,9 +142,7 @@ export async function POST(request: NextRequest) {
       role: updatedUser.role,
     });
 
-    await setAuthCookie(authToken);
-
-    return NextResponse.json({
+    return createAuthResponse({
       success: true,
       message: 'Password reset successfully!',
       user: {
@@ -142,7 +151,7 @@ export async function POST(request: NextRequest) {
         name: updatedUser.name,
         role: updatedUser.role,
       },
-    });
+    }, authToken);
   } catch (error) {
     console.error('Reset password error:', error);
     return NextResponse.json(

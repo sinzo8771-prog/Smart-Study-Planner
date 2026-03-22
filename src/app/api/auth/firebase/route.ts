@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateToken, setAuthCookie } from '@/lib/auth';
+import { generateToken } from '@/lib/auth';
 import { getUserByEmail, createUser, updateUser, shouldUseStaticData } from '@/lib/data-service';
 import { checkRateLimit } from '@/lib/validation';
 import { addRegisteredUser } from '@/lib/static-data';
@@ -112,14 +112,9 @@ export async function POST(request: NextRequest) {
       name: user.name,
       role: user.role,
     });
-    console.log('[FirebaseAuth] Token generated successfully');
+    console.log('[FirebaseAuth] Token generated successfully, length:', token.length);
 
-    // Set auth cookie using centralized function
-    await setAuthCookie(token);
-
-    console.log('Firebase auth: Successfully authenticated user:', user.id);
-    
-    // Create response with CORS headers for same-origin requests
+    // Create response first
     const response = NextResponse.json({ 
       success: true, 
       user: {
@@ -131,8 +126,23 @@ export async function POST(request: NextRequest) {
       }
     });
     
+    // Set cookie directly on the response object for reliability
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true, // Always true for Vercel (HTTPS)
+      sameSite: 'lax' as const, // Allows OAuth redirects to work
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    };
+    
+    response.cookies.set('auth_token', token, cookieOptions);
+    
     // Log the Set-Cookie header that was set
-    console.log('[FirebaseAuth] Response cookies:', response.headers.get('set-cookie'));
+    const setCookieHeader = response.headers.get('set-cookie');
+    console.log('[FirebaseAuth] Set-Cookie header present:', !!setCookieHeader);
+    console.log('[FirebaseAuth] Cookie options:', JSON.stringify(cookieOptions));
+    
+    console.log('Firebase auth: Successfully authenticated user:', user.id);
     
     return response;
   } catch (error) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateToken, setAuthCookie } from '@/lib/auth';
+import { generateToken } from '@/lib/auth';
 
 // Hardcoded admin credentials - in production, use environment variables
 const ADMIN_CREDENTIALS = {
@@ -40,10 +40,8 @@ export async function POST(request: NextRequest) {
       role: ADMIN_CREDENTIALS.role,
     });
 
-    // Set cookie
-    await setAuthCookie(token);
-
-    return NextResponse.json({
+    // Create response and set cookie directly
+    const response = NextResponse.json({
       success: true,
       user: {
         id: 'admin-001',
@@ -53,6 +51,16 @@ export async function POST(request: NextRequest) {
         image: null,
       },
     });
+    
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Admin login error:', error);
     return NextResponse.json(

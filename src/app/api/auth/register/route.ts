@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createUser, findUserByEmail, generateToken, setAuthCookie } from '@/lib/auth';
+import { createUser, findUserByEmail, generateToken } from '@/lib/auth';
 import { createVerificationToken } from '@/lib/tokens';
 import { sendVerificationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/validation';
@@ -8,6 +8,19 @@ import { shouldUseStaticData } from '@/lib/data-service';
 // Check if email service is configured (Gmail SMTP)
 function isEmailServiceConfigured(): boolean {
   return !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+// Helper to create response with auth cookie
+function createAuthResponse(data: object, token: string) {
+  const response = NextResponse.json(data);
+  response.cookies.set('auth_token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/',
+  });
+  return response;
 }
 
 export async function POST(request: NextRequest) {
@@ -106,7 +119,7 @@ export async function POST(request: NextRequest) {
       // No email service configured: Auto-verify user and log them in
       console.log('[Register API] No SMTP configured: Auto-verifying user', email);
       
-      // Generate token and set cookie for auto-login
+      // Generate token for auto-login
       console.log('[Register API] Generating token...');
       const token = generateToken({
         id: user.id,
@@ -115,11 +128,8 @@ export async function POST(request: NextRequest) {
         role: user.role,
       });
       
-      console.log('[Register API] Setting auth cookie...');
-      await setAuthCookie(token);
-
-      console.log('[Register API] Registration successful');
-      return NextResponse.json({
+      console.log('[Register API] Registration successful with auto-login');
+      return createAuthResponse({
         success: true,
         message: 'Account created successfully! You are now logged in.',
         autoVerified: true,
@@ -129,12 +139,12 @@ export async function POST(request: NextRequest) {
           name: user.name,
           role: user.role,
         },
-      });
+      }, token);
     }
 
     // Email service is configured: Send verification email with code
     console.log('[Register API] SMTP configured: Sending verification email to', email);
-    const { token, code } = await createVerificationToken(email, 'email_verification', 24, true);
+    const { token: verifyToken, code } = await createVerificationToken(email, 'email_verification', 24, true);
     
     if (!code) {
       console.error('[Register API] Failed to generate verification code');
@@ -145,8 +155,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
       });
-      await setAuthCookie(jwtToken);
-      return NextResponse.json({
+      return createAuthResponse({
         success: true,
         message: 'Account created successfully! You are now logged in.',
         autoVerified: true,
@@ -156,10 +165,10 @@ export async function POST(request: NextRequest) {
           name: user.name,
           role: user.role,
         },
-      });
+      }, jwtToken);
     }
 
-    const emailResult = await sendVerificationEmail(email, name, code, token);
+    const emailResult = await sendVerificationEmail(email, name, code, verifyToken);
     
     if (!emailResult.success) {
       console.error('[Register API] Failed to send verification email:', emailResult.error);

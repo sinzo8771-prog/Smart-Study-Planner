@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/tokens';
 import { db } from '@/lib/db';
-import { generateToken, setAuthCookie } from '@/lib/auth';
+import { generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       data: { emailVerified: new Date() },
     });
 
-    // Generate auth token and set cookie
+    // Generate auth token
     const authToken = generateToken({
       id: updatedUser.id,
       email: updatedUser.email,
@@ -64,9 +64,8 @@ export async function POST(request: NextRequest) {
       role: updatedUser.role,
     });
 
-    await setAuthCookie(authToken);
-
-    return NextResponse.json({
+    // Create response and set cookie directly
+    const response = NextResponse.json({
       success: true,
       message: 'Email verified successfully!',
       user: {
@@ -76,6 +75,16 @@ export async function POST(request: NextRequest) {
         role: updatedUser.role,
       },
     });
+    
+    response.cookies.set('auth_token', authToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Email verification error:', error);
     return NextResponse.json(

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyCode } from '@/lib/tokens';
 import { db } from '@/lib/db';
-import { generateToken, setAuthCookie } from '@/lib/auth';
+import { generateToken } from '@/lib/auth';
 
 // POST /api/auth/verify-code - Verify email with code
 export async function POST(request: NextRequest) {
@@ -51,18 +51,18 @@ export async function POST(request: NextRequest) {
       data: { emailVerified: new Date() },
     });
 
-    // Generate token and set cookie for auto-login
+    // Generate token for auto-login
     const token = generateToken({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
     });
-    await setAuthCookie(token);
 
     console.log('[Auth] Email verified successfully for:', email);
 
-    return NextResponse.json({
+    // Create response and set cookie directly
+    const response = NextResponse.json({
       success: true,
       message: 'Email verified successfully! You are now logged in.',
       user: {
@@ -73,6 +73,16 @@ export async function POST(request: NextRequest) {
         image: user.image,
       },
     });
+    
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Verify code error:', error);
     return NextResponse.json(
