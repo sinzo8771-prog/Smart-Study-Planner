@@ -11700,6 +11700,20 @@ function PageContent() {
     }
   };
 
+  // Verify session after login to ensure cookie is properly set
+  const verifySession = async () => {
+    try {
+      const data = await api.get<{ user: User | null }>('/api/auth/session');
+      if (data.user) {
+        setUser(data.user);
+        return true;
+      }
+    } catch {
+      // Session verification failed
+    }
+    return false;
+  };
+
   const handleViewChange = (view: string) => {
     if (view !== currentView) {
       setViewLoading(view);
@@ -11818,10 +11832,19 @@ function PageContent() {
             mode={authMode}
             onClose={() => setAuthMode(null)}
             onSwitchMode={setAuthMode}
-            onSuccess={(u) => {
-              setUser(u);
-              setAuthMode(null);
-              handleViewChange('dashboard');
+            onSuccess={async (_u) => {
+              // Verify the session was actually established (cookie set correctly)
+              // before showing the dashboard
+              setIsLoading(true);
+              const success = await verifySession();
+              setIsLoading(false);
+              if (success) {
+                setAuthMode(null);
+                handleViewChange('dashboard');
+              } else {
+                // Session verification failed - show error
+                setAuthMode(null);
+              }
             }}
             initialError={oauthError}
           />
@@ -11829,10 +11852,17 @@ function PageContent() {
         {showAdminLogin && (
           <AdminLoginModal
             onClose={() => setShowAdminLogin(false)}
-            onSuccess={(u) => {
-              setUser(u);
-              setShowAdminLogin(false);
-              handleViewChange('dashboard');
+            onSuccess={async (_u) => {
+              // Verify the session was actually established
+              setIsLoading(true);
+              const success = await verifySession();
+              setIsLoading(false);
+              if (success) {
+                setShowAdminLogin(false);
+                handleViewChange('dashboard');
+              } else {
+                setShowAdminLogin(false);
+              }
             }}
           />
         )}
@@ -11848,10 +11878,13 @@ function PageContent() {
               url.searchParams.delete('reset_token');
               window.history.replaceState({}, '', url);
             }}
-            onSuccess={(u) => {
-              setUser(u);
-              setVerificationToken(null);
-              handleViewChange('dashboard');
+            onSuccess={async (_u) => {
+              // Verify session after verification
+              const success = await verifySession();
+              if (success) {
+                setVerificationToken(null);
+                handleViewChange('dashboard');
+              }
             }}
           />
         )}
