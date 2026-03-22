@@ -118,7 +118,10 @@ export async function getQuizzes() {
       courseId: q.courseId,
       duration: q.duration,
       passingScore: q.passingScore,
+      category: q.category || 'General',
+      difficulty: q.difficulty || 'beginner',
       questionCount: q.questions.length,
+      _count: { questions: q.questions.length },
     }));
   }
 
@@ -137,7 +140,10 @@ export async function getQuizzes() {
       courseId: q.courseId,
       duration: q.duration,
       passingScore: q.passingScore,
+      category: q.category || 'General',
+      difficulty: q.difficulty || 'beginner',
       questionCount: q.questions.length,
+      _count: { questions: q.questions.length },
     }));
   }
 }

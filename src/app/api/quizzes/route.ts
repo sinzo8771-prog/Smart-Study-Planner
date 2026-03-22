@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
         passingScore: quizPassingScore,
         isPublished: true,
         category: category || 'General',
+        difficulty: quizDifficulty,
         createdBy: user.id,
         questions: questions ? {
           create: questions.map((q: Record<string, unknown>, index: number) => ({

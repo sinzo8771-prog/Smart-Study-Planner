@@ -205,6 +205,8 @@ model Quiz {
   duration    Int      @default(30) // in minutes
   passingScore Int     @default(60) // percentage
   isPublished Boolean  @default(false)
+  category    String?  @default("General") // Programming, Mathematics, Science, etc.
+  difficulty  String   @default("beginner") // beginner, intermediate, advanced
   createdBy   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -214,6 +216,7 @@ model Quiz {
 
   @@index([createdBy])
   @@index([courseId])
+  @@index([category])
 }
 
 model Question {

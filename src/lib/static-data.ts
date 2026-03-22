@@ -47,6 +47,8 @@ export interface StaticQuiz {
   duration: number;
   passingScore: number;
   isPublished: boolean;
+  category?: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -827,6 +829,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 15,
     passingScore: 60,
     isPublished: true,
+    category: 'Programming',
+    difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -911,6 +915,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 20,
     passingScore: 70,
     isPublished: true,
+    category: 'Mathematics',
+    difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -995,6 +1001,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 20,
     passingScore: 60,
     isPublished: true,
+    category: 'Science',
+    difficulty: 'intermediate',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1079,6 +1087,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 15,
     passingScore: 60,
     isPublished: true,
+    category: 'Data Science',
+    difficulty: 'intermediate',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1163,6 +1173,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 10,
     passingScore: 70,
     isPublished: true,
+    category: 'Language',
+    difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1247,6 +1259,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 12,
     passingScore: 60,
     isPublished: true,
+    category: 'Business',
+    difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1331,6 +1345,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 15,
     passingScore: 70,
     isPublished: true,
+    category: 'Programming',
+    difficulty: 'advanced',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1415,6 +1431,8 @@ export const staticQuizzes: StaticQuiz[] = [
     duration: 20,
     passingScore: 65,
     isPublished: true,
+    category: 'Mathematics',
+    difficulty: 'advanced',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
