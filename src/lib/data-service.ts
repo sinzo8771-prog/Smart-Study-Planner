@@ -1,7 +1,7 @@
 // Data service that handles both database and static data
 // Used for Vercel compatibility
 
-import { db } from './db';
+import { db, runMigrations } from './db';
 import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, findUserByIdFromAll } from './static-data';
 
 // Re-export shouldUseStaticData for use in other modules
@@ -126,6 +126,9 @@ export async function getQuizzes() {
   }
 
   try {
+    // Run migrations before querying Quiz table
+    await runMigrations();
+
     return await db.quiz.findMany({
       where: { isPublished: true },
       include: { _count: { select: { questions: true } } },
@@ -157,6 +160,9 @@ export async function getQuizById(id: string) {
   }
 
   try {
+    // Run migrations before querying Quiz table
+    await runMigrations();
+
     const quiz = await db.quiz.findFirst({
       where: { id, isPublished: true },
       include: {

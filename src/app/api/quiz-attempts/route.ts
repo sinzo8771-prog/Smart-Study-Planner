@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { shouldUseStaticData, getQuizById } from '@/lib/data-service';
-import { db } from '@/lib/db';
+import { db, runMigrations } from '@/lib/db';
 
 // In-memory storage for quiz attempts in static mode
 const staticQuizAttempts: Map<string, Array<{
@@ -190,6 +190,9 @@ export async function POST(request: NextRequest) {
         },
       });
     }
+
+    // Run migrations before querying Quiz table
+    await runMigrations();
 
     // Get quiz with questions (including correct answers for grading)
     const quiz = await db.quiz.findUnique({

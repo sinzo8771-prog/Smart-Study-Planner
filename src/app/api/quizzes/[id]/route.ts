@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuizById, shouldUseStaticData } from '@/lib/data-service';
 import { getCurrentUser, isAdmin } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, runMigrations } from '@/lib/db';
 import { sanitizeString } from '@/lib/validation';
 
 // GET: Get a single quiz by ID with questions
@@ -71,6 +71,8 @@ export async function PUT(
     }
 
     // Check if quiz exists
+    await runMigrations();
+
     const existingQuiz = await db.quiz.findUnique({
       where: { id },
     });
@@ -148,6 +150,8 @@ export async function DELETE(
     }
 
     // Check if quiz exists
+    await runMigrations();
+
     const existingQuiz = await db.quiz.findUnique({
       where: { id },
     });

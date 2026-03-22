@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuizzes, shouldUseStaticData } from '@/lib/data-service';
 import { getCurrentUser, isAdmin } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, runMigrations } from '@/lib/db';
 import { sanitizeString, isValidCourseLevel } from '@/lib/validation';
 
 // Static quizzes for demo mode (Vercel without database)
@@ -179,6 +179,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Course not found' }, { status: 404 });
       }
     }
+
+    // Run migrations before creating quiz
+    await runMigrations();
 
     // Create quiz in database
     const quiz = await db.quiz.create({
