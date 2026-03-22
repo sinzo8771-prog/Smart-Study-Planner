@@ -18,14 +18,30 @@ export async function getCourses(filters?: { category?: string; level?: string }
       courses = courses.filter(c => c.level === filters.level);
     }
     return courses.map(c => ({
-      ...c,
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      thumbnail: c.thumbnail,
+      category: c.category,
+      level: c.level,
+      duration: c.duration,
+      isPublished: c.isPublished,
+      createdBy: c.createdBy,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
       modules: c.modules.map(m => ({
         id: m.id,
         title: m.title,
+        description: m.description,
+        content: m.content,
+        videoUrl: m.videoUrl,
         duration: m.duration,
         order: m.order,
+        courseId: m.courseId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
       })),
-      moduleCount: c.modules.length,
+      _count: { modules: c.modules.length },
     }));
   }
 
@@ -46,18 +62,34 @@ export async function getCourses(filters?: { category?: string; level?: string }
       orderBy: { createdAt: 'desc' },
     });
 
-    return courses.map(c => ({ ...c, moduleCount: c._count.modules }));
+    return courses;
   } catch (error) {
     console.error('[DataService] getCourses error, falling back to static:', error);
     return staticCourses.filter(c => c.isPublished).map(c => ({
-      ...c,
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      thumbnail: c.thumbnail,
+      category: c.category,
+      level: c.level,
+      duration: c.duration,
+      isPublished: c.isPublished,
+      createdBy: c.createdBy,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
       modules: c.modules.map(m => ({
         id: m.id,
         title: m.title,
+        description: m.description,
+        content: m.content,
+        videoUrl: m.videoUrl,
         duration: m.duration,
         order: m.order,
+        courseId: m.courseId,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
       })),
-      moduleCount: c.modules.length,
+      _count: { modules: c.modules.length },
     }));
   }
 }
@@ -66,7 +98,21 @@ export async function getCourseById(id: string) {
   if (shouldUseStaticData()) {
     const course = staticCourses.find(c => c.id === id && c.isPublished);
     if (!course) return null;
-    return { ...course, moduleCount: course.modules.length };
+    return {
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      thumbnail: course.thumbnail,
+      category: course.category,
+      level: course.level,
+      duration: course.duration,
+      isPublished: course.isPublished,
+      createdBy: course.createdBy,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt,
+      modules: course.modules,
+      _count: { modules: course.modules.length },
+    };
   }
 
   try {
@@ -78,12 +124,26 @@ export async function getCourseById(id: string) {
       },
     });
     if (!course) return null;
-    return { ...course, moduleCount: course._count.modules };
+    return course;
   } catch (error) {
     console.error('[DataService] getCourseById error, falling back to static:', error);
     const course = staticCourses.find(c => c.id === id && c.isPublished);
     if (!course) return null;
-    return { ...course, moduleCount: course.modules.length };
+    return {
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      thumbnail: course.thumbnail,
+      category: course.category,
+      level: course.level,
+      duration: course.duration,
+      isPublished: course.isPublished,
+      createdBy: course.createdBy,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt,
+      modules: course.modules,
+      _count: { modules: course.modules.length },
+    };
   }
 }
 

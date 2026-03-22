@@ -3,46 +3,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { getCourses, shouldUseStaticData } from '@/lib/data-service';
 import { db } from '@/lib/db';
 
-// Static courses for demo mode
-const staticCoursesList = [
-  {
-    id: 'course-1',
-    title: 'Introduction to Web Development',
-    description: 'Learn the fundamentals of web development including HTML, CSS, and JavaScript.',
-    thumbnail: null,
-    category: 'Programming',
-    level: 'beginner',
-    duration: 120,
-    isPublished: true,
-    createdAt: new Date(),
-    _count: { modules: 4 },
-  },
-  {
-    id: 'course-2',
-    title: 'Mathematics: Algebra Fundamentals',
-    description: 'Master the basics of algebra including equations, inequalities, and functions.',
-    thumbnail: null,
-    category: 'Mathematics',
-    level: 'beginner',
-    duration: 90,
-    isPublished: true,
-    createdAt: new Date(),
-    _count: { modules: 4 },
-  },
-  {
-    id: 'course-3',
-    title: 'Data Science with Python',
-    description: 'Learn data analysis, visualization, and machine learning basics using Python.',
-    thumbnail: null,
-    category: 'Data Science',
-    level: 'intermediate',
-    duration: 180,
-    isPublished: true,
-    createdAt: new Date(),
-    _count: { modules: 4 },
-  },
-];
-
 // GET: List all published courses
 export async function GET(request: NextRequest) {
   try {
@@ -50,21 +10,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || undefined;
     const level = searchParams.get('level') || undefined;
 
-    // Use static data for Vercel
-    if (shouldUseStaticData()) {
-      let filtered = [...staticCoursesList];
-      if (category) {
-        filtered = filtered.filter(c => c.category === category);
-      }
-      if (level) {
-        filtered = filtered.filter(c => c.level === level);
-      }
-      return NextResponse.json({
-        success: true,
-        courses: filtered,
-      });
-    }
-
+    // Use the data service which handles both static and database modes
     const courses = await getCourses({ category, level });
 
     return NextResponse.json({
@@ -73,10 +19,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get courses error:', error);
-    // Fallback to static data
+    // Fallback to empty array on error
     return NextResponse.json({
       success: true,
-      courses: staticCoursesList,
+      courses: [],
     });
   }
 }
