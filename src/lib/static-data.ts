@@ -124,16 +124,16 @@ export const staticUsers: StaticUser[] = [
   },
 ];
 
-// Sample courses with modules
+// Sample courses with modules - Real YouTube courses
 export const staticCourses: StaticCourse[] = [
   {
     id: 'course-1',
-    title: 'Introduction to Web Development',
-    description: 'Learn the fundamentals of web development including HTML, CSS, and JavaScript. Perfect for beginners who want to start their journey in web development.',
-    thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800',
-    category: 'Programming',
+    title: 'HTML & CSS Full Course - Beginner to Pro',
+    description: 'Learn HTML and CSS from scratch with this comprehensive course. Build real websites and master responsive design.',
+    thumbnail: 'https://i.ytimg.com/vi/pQN-pnXPaVg/maxresdefault.jpg',
+    category: 'Web Development',
     level: 'beginner',
-    duration: 120,
+    duration: 360,
     isPublished: true,
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -141,45 +141,19 @@ export const staticCourses: StaticCourse[] = [
     modules: [
       {
         id: 'mod-1-1',
-        title: 'Getting Started with HTML',
+        title: 'Introduction to HTML',
         description: 'Learn the basics of HTML and document structure',
-        content: `# Getting Started with HTML
+        content: `# Introduction to HTML
 
-## What is HTML?
+This module covers the fundamentals of HTML (HyperText Markup Language), the standard language for creating web pages.
 
-HTML (HyperText Markup Language) is the standard markup language for creating web pages. It describes the structure of a web page using a series of elements.
-
-## Basic Structure
-
-Every HTML document has a basic structure:
-
-\`\`\`html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My First Page</title>
-</head>
-<body>
-    <h1>Hello, World!</h1>
-    <p>This is my first web page.</p>
-</body>
-</html>
-\`\`\`
-
-## Key Concepts
-
-- **Elements**: Building blocks of HTML
-- **Tags**: Labels that define elements
-- **Attributes**: Additional information about elements
-
-## Practice Exercise
-
-Create a simple HTML page with:
-1. A heading with your name
-2. A paragraph about yourself
-3. A list of your hobbies`,
-        videoUrl: null,
-        duration: 15,
+## What You'll Learn
+- HTML document structure
+- Common HTML elements
+- Semantic HTML
+- Best practices`,
+        videoUrl: 'https://www.youtube.com/watch?v=pQN-pnXPaVg&t=0s',
+        duration: 45,
         order: 1,
         courseId: 'course-1',
         createdAt: new Date(),
@@ -188,42 +162,18 @@ Create a simple HTML page with:
       {
         id: 'mod-1-2',
         title: 'CSS Fundamentals',
-        description: 'Style your web pages with CSS',
+        description: 'Master CSS styling and selectors',
         content: `# CSS Fundamentals
 
-## What is CSS?
+Learn how to style your HTML with CSS (Cascading Style Sheets).
 
-CSS (Cascading Style Sheets) controls the visual presentation of HTML elements.
-
-## Basic Syntax
-
-\`\`\`css
-selector {
-    property: value;
-}
-
-/* Example */
-h1 {
-    color: blue;
-    font-size: 24px;
-}
-\`\`\`
-
-## Selectors
-
-- **Element**: \`p { }\`
-- **Class**: \`.my-class { }\`
-- **ID**: \`#my-id { }\`
-
-## The Box Model
-
-Every element is a box with:
-- Content
-- Padding
-- Border
-- Margin`,
-        videoUrl: null,
-        duration: 20,
+## Topics Covered
+- CSS selectors
+- Box model
+- Colors and typography
+- Layout basics`,
+        videoUrl: 'https://www.youtube.com/watch?v=pQN-pnXPaVg&t=1800s',
+        duration: 60,
         order: 2,
         courseId: 'course-1',
         createdAt: new Date(),
@@ -231,41 +181,19 @@ Every element is a box with:
       },
       {
         id: 'mod-1-3',
-        title: 'JavaScript Basics',
-        description: 'Add interactivity with JavaScript',
-        content: `# JavaScript Basics
+        title: 'Responsive Design with Flexbox',
+        description: 'Create responsive layouts with Flexbox',
+        content: `# Responsive Design with Flexbox
 
-## What is JavaScript?
+Master the Flexbox layout system for building responsive designs.
 
-JavaScript is a programming language that makes web pages interactive.
-
-## Variables
-
-\`\`\`javascript
-// Modern JavaScript
-let name = "John";
-const age = 25;
-\`\`\`
-
-## Functions
-
-\`\`\`javascript
-function greet(name) {
-    return "Hello, " + name + "!";
-}
-
-// Arrow functions
-const greetArrow = (name) => \`Hello, \${name}!\`;
-\`\`\`
-
-## DOM Manipulation
-
-\`\`\`javascript
-const heading = document.querySelector('h1');
-heading.textContent = 'New Title';
-\`\`\``,
-        videoUrl: null,
-        duration: 25,
+## Flexbox Properties
+- flex-direction
+- justify-content
+- align-items
+- flex-wrap`,
+        videoUrl: 'https://www.youtube.com/watch?v=pQN-pnXPaVg&t=5400s',
+        duration: 50,
         order: 3,
         courseId: 'course-1',
         createdAt: new Date(),
@@ -273,29 +201,41 @@ heading.textContent = 'New Title';
       },
       {
         id: 'mod-1-4',
-        title: 'Building Your First Website',
-        description: 'Put it all together',
-        content: `# Building Your First Website
+        title: 'CSS Grid Layout',
+        description: 'Build complex layouts with CSS Grid',
+        content: `# CSS Grid Layout
 
-## Project Overview
+Learn CSS Grid for creating complex two-dimensional layouts.
 
-Let's create a personal portfolio page using HTML, CSS, and JavaScript!
-
-## Steps
-
-1. **HTML Structure** - Create sections for header, hero, about, projects, contact
-2. **Styling** - Add CSS for responsive layout, colors, typography
-3. **Interactivity** - Add JavaScript for mobile menu, smooth scrolling
-
-## Best Practices
-
-1. Mobile-first design
-2. Semantic HTML
-3. Accessible content
-4. Performance optimization`,
-        videoUrl: null,
-        duration: 30,
+## Grid Concepts
+- grid-template-columns
+- grid-template-rows
+- grid-gap
+- Grid areas`,
+        videoUrl: 'https://www.youtube.com/watch?v=pQN-pnXPaVg&t=9000s',
+        duration: 55,
         order: 4,
+        courseId: 'course-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-1-5',
+        title: 'Build a Complete Website Project',
+        description: 'Put your skills together and build a real website',
+        content: `# Build a Complete Website Project
+
+Apply everything you've learned by building a complete, responsive website from scratch.
+
+## Project Features
+- Responsive navigation
+- Hero section
+- Feature cards
+- Contact form
+- Footer`,
+        videoUrl: 'https://www.youtube.com/watch?v=pQN-pnXPaVg&t=12000s',
+        duration: 90,
+        order: 5,
         courseId: 'course-1',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -304,12 +244,12 @@ Let's create a personal portfolio page using HTML, CSS, and JavaScript!
   },
   {
     id: 'course-2',
-    title: 'Mathematics: Algebra Fundamentals',
-    description: 'Master the basics of algebra including equations, inequalities, and functions. Build a strong foundation for advanced mathematics.',
-    thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800',
-    category: 'Mathematics',
+    title: 'JavaScript Programming Full Course',
+    description: 'Master JavaScript from basics to advanced concepts. Learn modern ES6+ features, DOM manipulation, async programming, and build real projects.',
+    thumbnail: 'https://i.ytimg.com/vi/EfAl9bwzV7I/maxresdefault.jpg',
+    category: 'Programming',
     level: 'beginner',
-    duration: 90,
+    duration: 480,
     isPublished: true,
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -317,25 +257,19 @@ Let's create a personal portfolio page using HTML, CSS, and JavaScript!
     modules: [
       {
         id: 'mod-2-1',
-        title: 'Understanding Variables and Expressions',
-        description: 'Learn what variables are and how to write algebraic expressions',
-        content: `# Variables and Expressions
+        title: 'JavaScript Basics & Variables',
+        description: 'Introduction to JavaScript, variables, and data types',
+        content: `# JavaScript Basics
 
-## What is a Variable?
+Learn the fundamentals of JavaScript programming.
 
-A variable is a symbol (usually a letter) that represents an unknown number.
-
-**Example**: In \`x + 5\`, x is a variable.
-
-## Evaluating Expressions
-
-To evaluate an expression, substitute the variable with a number.
-
-**Example**: Evaluate \`3x + 2\` when \`x = 4\`
-
-\`3(4) + 2 = 12 + 2 = 14\``,
-        videoUrl: null,
-        duration: 15,
+## Topics
+- Variables (let, const, var)
+- Data types
+- Type coercion
+- Operators`,
+        videoUrl: 'https://www.youtube.com/watch?v=EfAl9bwzV7I&t=0s',
+        duration: 40,
         order: 1,
         courseId: 'course-2',
         createdAt: new Date(),
@@ -343,26 +277,19 @@ To evaluate an expression, substitute the variable with a number.
       },
       {
         id: 'mod-2-2',
-        title: 'Solving Linear Equations',
-        description: 'Learn to solve equations with one variable',
-        content: `# Solving Linear Equations
+        title: 'Functions & Scope',
+        description: 'Master functions, arrow functions, and scope',
+        content: `# Functions & Scope
 
-## Golden Rule
+Understand how functions work in JavaScript.
 
-Whatever you do to one side, you must do to the other!
-
-## Example
-
-Solve: \`2x + 3 = 11\`
-
-\`\`\`
-2x + 3 = 11
-2x + 3 - 3 = 11 - 3
-2x = 8
-x = 4
-\`\`\``,
-        videoUrl: null,
-        duration: 20,
+## Concepts
+- Function declarations
+- Arrow functions
+- Scope (global, function, block)
+- Closures`,
+        videoUrl: 'https://www.youtube.com/watch?v=EfAl9bwzV7I&t=2400s',
+        duration: 45,
         order: 2,
         courseId: 'course-2',
         createdAt: new Date(),
@@ -370,24 +297,19 @@ x = 4
       },
       {
         id: 'mod-2-3',
-        title: 'Working with Inequalities',
-        description: 'Understand and solve inequalities',
-        content: `# Working with Inequalities
+        title: 'Arrays & Objects',
+        description: 'Work with arrays, objects, and array methods',
+        content: `# Arrays & Objects
 
-## Inequality Symbols
+Master data structures in JavaScript.
 
-| Symbol | Meaning |
-|--------|---------|
-| < | Less than |
-| > | Greater than |
-| ≤ | Less than or equal to |
-| ≥ | Greater than or equal to |
-
-## Important Rule
-
-When multiplying or dividing by a negative number, flip the inequality sign!`,
-        videoUrl: null,
-        duration: 15,
+## Array Methods
+- map, filter, reduce
+- find, some, every
+- spread operator
+- destructuring`,
+        videoUrl: 'https://www.youtube.com/watch?v=EfAl9bwzV7I&t=5100s',
+        duration: 50,
         order: 3,
         courseId: 'course-2',
         createdAt: new Date(),
@@ -395,28 +317,40 @@ When multiplying or dividing by a negative number, flip the inequality sign!`,
       },
       {
         id: 'mod-2-4',
-        title: 'Introduction to Functions',
-        description: 'Learn what functions are and how to use them',
-        content: `# Introduction to Functions
+        title: 'DOM Manipulation',
+        description: 'Interact with web pages using the DOM',
+        content: `# DOM Manipulation
 
-## What is a Function?
+Learn to interact with HTML elements using JavaScript.
 
-A function is a relationship where each input has exactly one output.
-
-**Notation**: \`f(x)\` read as "f of x"
-
-## Example
-
-\`f(x) = 2x + 3\`
-
-| x | f(x) |
-|---|------|
-| 0 | 3 |
-| 1 | 5 |
-| 2 | 7 |`,
-        videoUrl: null,
-        duration: 20,
+## DOM Methods
+- querySelector, querySelectorAll
+- createElement
+- addEventListener
+- Event bubbling`,
+        videoUrl: 'https://www.youtube.com/watch?v=EfAl9bwzV7I&t=8000s',
+        duration: 55,
         order: 4,
+        courseId: 'course-2',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-2-5',
+        title: 'Async JavaScript & Promises',
+        description: 'Master asynchronous programming in JavaScript',
+        content: `# Async JavaScript
+
+Understand asynchronous programming patterns.
+
+## Async Concepts
+- Callbacks
+- Promises
+- async/await
+- Fetch API`,
+        videoUrl: 'https://www.youtube.com/watch?v=EfAl9bwzV7I&t=11000s',
+        duration: 60,
+        order: 5,
         courseId: 'course-2',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -425,12 +359,12 @@ A function is a relationship where each input has exactly one output.
   },
   {
     id: 'course-3',
-    title: 'Data Science with Python',
-    description: 'Learn data analysis, visualization, and machine learning basics using Python. Perfect for aspiring data scientists.',
-    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800',
-    category: 'Data Science',
+    title: 'React JS Full Course for Beginners',
+    description: 'Learn React from scratch. Build modern web applications with components, hooks, state management, and more.',
+    thumbnail: 'https://i.ytimg.com/vi/bMknfKXIFA8/maxresdefault.jpg',
+    category: 'Web Development',
     level: 'intermediate',
-    duration: 180,
+    duration: 720,
     isPublished: true,
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -438,27 +372,19 @@ A function is a relationship where each input has exactly one output.
     modules: [
       {
         id: 'mod-3-1',
-        title: 'Python for Data Science',
-        description: 'Python basics tailored for data science',
-        content: `# Python for Data Science
+        title: 'React Fundamentals',
+        description: 'Introduction to React and components',
+        content: `# React Fundamentals
 
-## Essential Libraries
+Get started with React development.
 
-\`\`\`python
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-\`\`\`
-
-## Data Types
-
-\`\`\`python
-x = 42          # integer
-y = 3.14        # float
-my_list = [1, 2, 3]  # list
-\`\`\``,
-        videoUrl: null,
-        duration: 20,
+## Concepts
+- What is React?
+- JSX syntax
+- Components
+- Props`,
+        videoUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8&t=0s',
+        duration: 60,
         order: 1,
         courseId: 'course-3',
         createdAt: new Date(),
@@ -466,27 +392,19 @@ my_list = [1, 2, 3]  # list
       },
       {
         id: 'mod-3-2',
-        title: 'NumPy Fundamentals',
-        description: 'Master numerical computing with NumPy',
-        content: `# NumPy Fundamentals
+        title: 'State & useState Hook',
+        description: 'Manage component state with useState',
+        content: `# State Management
 
-## Creating Arrays
+Learn to manage state in React components.
 
-\`\`\`python
-import numpy as np
-arr = np.array([1, 2, 3, 4, 5])
-zeros = np.zeros(5)
-\`\`\`
-
-## Array Operations
-
-\`\`\`python
-a = np.array([1, 2, 3])
-a + 10  # [11, 12, 13]
-a * 2   # [2, 4, 6]
-\`\`\``,
-        videoUrl: null,
-        duration: 25,
+## useState Hook
+- Declaring state
+- Updating state
+- State vs props
+- Multiple state variables`,
+        videoUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8&t=3600s',
+        duration: 50,
         order: 2,
         courseId: 'course-3',
         createdAt: new Date(),
@@ -494,25 +412,19 @@ a * 2   # [2, 4, 6]
       },
       {
         id: 'mod-3-3',
-        title: 'Pandas for Data Analysis',
-        description: 'Data manipulation and analysis with Pandas',
-        content: `# Pandas for Data Analysis
+        title: 'Effects & useEffect Hook',
+        description: 'Handle side effects in React',
+        content: `# useEffect Hook
 
-## DataFrame Basics
+Learn to handle side effects in your components.
 
-\`\`\`python
-import pandas as pd
-
-df = pd.DataFrame({
-    'name': ['Alice', 'Bob'],
-    'age': [25, 30]
-})
-
-df.head()  # First 5 rows
-df['name']  # Select column
-\`\`\``,
-        videoUrl: null,
-        duration: 30,
+## useEffect
+- Component lifecycle
+- Dependency array
+- Cleanup functions
+- Fetching data`,
+        videoUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8&t=7200s',
+        duration: 55,
         order: 3,
         courseId: 'course-3',
         createdAt: new Date(),
@@ -520,29 +432,40 @@ df['name']  # Select column
       },
       {
         id: 'mod-3-4',
-        title: 'Data Visualization',
-        description: 'Create beautiful visualizations',
-        content: `# Data Visualization
+        title: 'Forms & Events in React',
+        description: 'Handle user input and events',
+        content: `# Forms & Events
 
-## Matplotlib Basics
+Build interactive forms in React.
 
-\`\`\`python
-import matplotlib.pyplot as plt
-
-plt.plot([1, 2, 3], [1, 4, 2])
-plt.title('Line Plot')
-plt.show()
-\`\`\`
-
-## Seaborn
-
-\`\`\`python
-import seaborn as sns
-sns.histplot(data=df, x='age')
-\`\`\``,
-        videoUrl: null,
-        duration: 25,
+## Form Handling
+- Controlled components
+- Form submission
+- Validation
+- Event handlers`,
+        videoUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8&t=10800s',
+        duration: 45,
         order: 4,
+        courseId: 'course-3',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-3-5',
+        title: 'Build a Complete React Project',
+        description: 'Create a full React application',
+        content: `# Complete React Project
+
+Build a real-world React application.
+
+## Project Features
+- Multiple pages
+- State management
+- API integration
+- Responsive design`,
+        videoUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8&t=14400s',
+        duration: 90,
+        order: 5,
         courseId: 'course-3',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -551,12 +474,12 @@ sns.histplot(data=df, x='age')
   },
   {
     id: 'course-4',
-    title: 'English Writing Skills',
-    description: 'Improve your writing with lessons on grammar, essay structure, and creative writing.',
-    thumbnail: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800',
-    category: 'Language',
+    title: 'Python Full Course for Beginners',
+    description: 'Learn Python programming from scratch. Master the basics and build practical projects.',
+    thumbnail: 'https://i.ytimg.com/vi/rfscVS0vtbw/maxresdefault.jpg',
+    category: 'Programming',
     level: 'beginner',
-    duration: 100,
+    duration: 540,
     isPublished: true,
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -564,26 +487,19 @@ sns.histplot(data=df, x='age')
     modules: [
       {
         id: 'mod-4-1',
-        title: 'Grammar Essentials',
-        description: 'Master the fundamentals of English grammar',
-        content: `# Grammar Essentials
+        title: 'Python Basics & Setup',
+        description: 'Get started with Python programming',
+        content: `# Python Basics
 
-## Parts of Speech
+Introduction to Python programming language.
 
-| Part | Example |
-|------|---------|
-| Noun | book, city |
-| Verb | run, think |
-| Adjective | beautiful |
-| Adverb | quickly |
-
-## Common Mistakes
-
-- **Their** = possession
-- **There** = place
-- **They're** = they are`,
-        videoUrl: null,
-        duration: 20,
+## Setup
+- Installing Python
+- IDE setup
+- Running Python
+- Print statements`,
+        videoUrl: 'https://www.youtube.com/watch?v=rfscVS0vtbw&t=0s',
+        duration: 30,
         order: 1,
         courseId: 'course-4',
         createdAt: new Date(),
@@ -591,26 +507,19 @@ sns.histplot(data=df, x='age')
       },
       {
         id: 'mod-4-2',
-        title: 'Essay Structure',
-        description: 'Learn to write well-structured essays',
-        content: `# Essay Structure
+        title: 'Variables & Data Types',
+        description: 'Understand Python data types and variables',
+        content: `# Variables & Data Types
 
-## Five-Paragraph Essay
+Learn about Python's data types.
 
-1. **Introduction** - Hook + thesis
-2. **Body 1** - First point
-3. **Body 2** - Second point
-4. **Body 3** - Third point
-5. **Conclusion** - Summary
-
-## Thesis Statement
-
-A good thesis is:
-- Specific
-- Arguable
-- Concise`,
-        videoUrl: null,
-        duration: 25,
+## Data Types
+- Strings
+- Integers, Floats
+- Booleans
+- Type conversion`,
+        videoUrl: 'https://www.youtube.com/watch?v=rfscVS0vtbw&t=1800s',
+        duration: 45,
         order: 2,
         courseId: 'course-4',
         createdAt: new Date(),
@@ -618,24 +527,60 @@ A good thesis is:
       },
       {
         id: 'mod-4-3',
-        title: 'Creative Writing Basics',
-        description: 'Explore creative writing techniques',
-        content: `# Creative Writing Basics
+        title: 'Lists, Tuples & Dictionaries',
+        description: 'Work with Python data structures',
+        content: `# Data Structures
 
-## Show, Don't Tell
+Master Python's built-in data structures.
 
-**Telling**: She was angry.
-**Showing**: She slammed the door.
-
-## Strong Verbs
-
-| Weak | Strong |
-|------|--------|
-| ran quickly | sprinted |
-| said softly | whispered |`,
-        videoUrl: null,
-        duration: 20,
+## Collections
+- Lists
+- Tuples
+- Dictionaries
+- Sets`,
+        videoUrl: 'https://www.youtube.com/watch?v=rfscVS0vtbw&t=4500s',
+        duration: 60,
         order: 3,
+        courseId: 'course-4',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-4-4',
+        title: 'Functions & Modules',
+        description: 'Create reusable code with functions',
+        content: `# Functions & Modules
+
+Write modular Python code.
+
+## Concepts
+- Defining functions
+- Parameters & return
+- Lambda functions
+- Importing modules`,
+        videoUrl: 'https://www.youtube.com/watch?v=rfscVS0vtbw&t=8100s',
+        duration: 55,
+        order: 4,
+        courseId: 'course-4',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-4-5',
+        title: 'File Handling & Exceptions',
+        description: 'Work with files and handle errors',
+        content: `# File Handling
+
+Read and write files in Python.
+
+## Topics
+- Reading files
+- Writing files
+- Exception handling
+- Try/except blocks`,
+        videoUrl: 'https://www.youtube.com/watch?v=rfscVS0vtbw&t=11700s',
+        duration: 50,
+        order: 5,
         courseId: 'course-4',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -644,12 +589,12 @@ A good thesis is:
   },
   {
     id: 'course-5',
-    title: 'Physics: Mechanics',
-    description: 'Understand motion, forces, and energy. Build a strong foundation in classical mechanics.',
-    thumbnail: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=800',
-    category: 'Science',
+    title: 'Node.js Full Course for Beginners',
+    description: 'Learn backend development with Node.js. Build APIs, work with databases, and deploy applications.',
+    thumbnail: 'https://i.ytimg.com/vi/Oe421EPjeBE/maxresdefault.jpg',
+    category: 'Backend Development',
     level: 'intermediate',
-    duration: 150,
+    duration: 600,
     isPublished: true,
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -657,26 +602,19 @@ A good thesis is:
     modules: [
       {
         id: 'mod-5-1',
-        title: 'Motion and Kinematics',
-        description: 'Learn about motion, speed, velocity',
-        content: `# Motion and Kinematics
+        title: 'Introduction to Node.js',
+        description: 'Get started with Node.js runtime',
+        content: `# Introduction to Node.js
 
-## Key Concepts
+Learn server-side JavaScript with Node.js.
 
-- **Distance**: Total path length
-- **Displacement**: Change in position
-- **Speed**: Distance/time
-- **Velocity**: Displacement/time
-
-## Equations of Motion
-
-\`\`\`
-v = u + at
-s = ut + ½at²
-v² = u² + 2as
-\`\`\``,
-        videoUrl: null,
-        duration: 25,
+## Fundamentals
+- What is Node.js?
+- npm package manager
+- Node modules
+- Creating a server`,
+        videoUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE&t=0s',
+        duration: 40,
         order: 1,
         courseId: 'course-5',
         createdAt: new Date(),
@@ -684,23 +622,19 @@ v² = u² + 2as
       },
       {
         id: 'mod-5-2',
-        title: "Newton's Laws of Motion",
-        description: "Understand forces and Newton's three laws",
-        content: `# Newton's Laws of Motion
+        title: 'Express.js Framework',
+        description: 'Build web applications with Express',
+        content: `# Express.js Framework
 
-## First Law: Inertia
+Learn the most popular Node.js framework.
 
-Objects at rest stay at rest unless acted upon.
-
-## Second Law
-
-\`F = ma\`
-
-## Third Law
-
-For every action, there is an equal and opposite reaction.`,
-        videoUrl: null,
-        duration: 30,
+## Express Basics
+- Creating an Express app
+- Routing
+- Middleware
+- Request/Response`,
+        videoUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE&t=2700s',
+        duration: 50,
         order: 2,
         courseId: 'course-5',
         createdAt: new Date(),
@@ -708,25 +642,60 @@ For every action, there is an equal and opposite reaction.`,
       },
       {
         id: 'mod-5-3',
-        title: 'Work, Energy, and Power',
-        description: 'Learn about work, energy, and power',
-        content: `# Work, Energy, and Power
+        title: 'REST API Development',
+        description: 'Build RESTful APIs with Node.js',
+        content: `# REST API Development
 
-## Work
+Create RESTful APIs following best practices.
 
-\`W = F × d × cos(θ)\`
-
-## Energy
-
-- **Kinetic Energy**: \`KE = ½mv²\`
-- **Potential Energy**: \`PE = mgh\`
-
-## Power
-
-\`P = W/t\` (Watts)`,
-        videoUrl: null,
-        duration: 30,
+## API Concepts
+- REST principles
+- HTTP methods
+- Status codes
+- API structure`,
+        videoUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE&t=5400s',
+        duration: 55,
         order: 3,
+        courseId: 'course-5',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-5-4',
+        title: 'MongoDB & Mongoose',
+        description: 'Work with MongoDB database',
+        content: `# MongoDB & Mongoose
+
+Learn NoSQL database integration.
+
+## Database Topics
+- MongoDB basics
+- Mongoose ODM
+- CRUD operations
+- Data modeling`,
+        videoUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE&t=9000s',
+        duration: 60,
+        order: 4,
+        courseId: 'course-5',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-5-5',
+        title: 'Authentication & Deployment',
+        description: 'Add user auth and deploy your app',
+        content: `# Authentication & Deployment
+
+Secure your app and deploy it.
+
+## Advanced Topics
+- JWT authentication
+- Password hashing
+- Environment variables
+- Deployment`,
+        videoUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE&t=12600s',
+        duration: 65,
+        order: 5,
         courseId: 'course-5',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -735,12 +704,12 @@ For every action, there is an equal and opposite reaction.`,
   },
   {
     id: 'course-6',
-    title: 'Business Communication',
-    description: 'Master professional communication skills for the workplace.',
-    thumbnail: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800',
-    category: 'Business',
+    title: 'Git & GitHub Full Course',
+    description: 'Master version control with Git and GitHub. Learn collaboration, branching, and best practices.',
+    thumbnail: 'https://i.ytimg.com/vi/RGOj5yH7evk/maxresdefault.jpg',
+    category: 'Developer Tools',
     level: 'beginner',
-    duration: 80,
+    duration: 420,
     isPublished: true,
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -748,24 +717,19 @@ For every action, there is an equal and opposite reaction.`,
     modules: [
       {
         id: 'mod-6-1',
-        title: 'Professional Email Writing',
-        description: 'Write clear, effective business emails',
-        content: `# Professional Email Writing
+        title: 'Git Basics',
+        description: 'Learn fundamental Git commands',
+        content: `# Git Basics
 
-## Email Structure
+Get started with version control.
 
-1. **Subject Line** - Be specific
-2. **Greeting** - Dear/Hi [Name]
-3. **Body** - Clear and concise
-4. **Closing** - Best regards
-
-## Best Practices
-
-- Be concise
-- Be clear
-- Proofread`,
-        videoUrl: null,
-        duration: 20,
+## Core Concepts
+- What is Git?
+- git init, add, commit
+- git status, log
+- .gitignore`,
+        videoUrl: 'https://www.youtube.com/watch?v=RGOj5yH7evk&t=0s',
+        duration: 35,
         order: 1,
         courseId: 'course-6',
         createdAt: new Date(),
@@ -773,19 +737,19 @@ For every action, there is an equal and opposite reaction.`,
       },
       {
         id: 'mod-6-2',
-        title: 'Business Reports',
-        description: 'Create effective business reports',
-        content: `# Business Reports
+        title: 'Branching & Merging',
+        description: 'Work with branches in Git',
+        content: `# Branching & Merging
 
-## Structure
+Master Git branching workflows.
 
-1. Executive Summary
-2. Introduction
-3. Findings
-4. Conclusions
-5. Recommendations`,
-        videoUrl: null,
-        duration: 25,
+## Branch Operations
+- Creating branches
+- Switching branches
+- Merging
+- Merge conflicts`,
+        videoUrl: 'https://www.youtube.com/watch?v=RGOj5yH7evk&t=2100s',
+        duration: 45,
         order: 2,
         courseId: 'course-6',
         createdAt: new Date(),
@@ -793,25 +757,231 @@ For every action, there is an equal and opposite reaction.`,
       },
       {
         id: 'mod-6-3',
-        title: 'Presentation Skills',
-        description: 'Deliver effective presentations',
-        content: `# Presentation Skills
+        title: 'GitHub & Remote Repositories',
+        description: 'Work with GitHub for collaboration',
+        content: `# GitHub & Remote Repositories
 
-## The 10/20/30 Rule
+Collaborate using GitHub.
 
-- 10 slides
-- 20 minutes
-- 30-point font
-
-## Delivery Tips
-
-- Vary your pace
-- Make eye contact
-- Handle questions confidently`,
-        videoUrl: null,
-        duration: 20,
+## GitHub Features
+- Remote repositories
+- Push & pull
+- Fork & clone
+- Pull requests`,
+        videoUrl: 'https://www.youtube.com/watch?v=RGOj5yH7evk&t=4500s',
+        duration: 50,
         order: 3,
         courseId: 'course-6',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-6-4',
+        title: 'Advanced Git Concepts',
+        description: 'Learn advanced Git techniques',
+        content: `# Advanced Git Concepts
+
+Take your Git skills to the next level.
+
+## Advanced Topics
+- Rebasing
+- Stashing
+- Cherry-picking
+- Git workflow strategies`,
+        videoUrl: 'https://www.youtube.com/watch?v=RGOj5yH7evk&t=7200s',
+        duration: 55,
+        order: 4,
+        courseId: 'course-6',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ]
+  },
+  {
+    id: 'course-7',
+    title: 'TypeScript for Beginners',
+    description: 'Learn TypeScript and understand why it is a powerful addition to JavaScript.',
+    thumbnail: 'https://i.ytimg.com/vi/BwuLxPH8IDs/maxresdefault.jpg',
+    category: 'Programming',
+    level: 'intermediate',
+    duration: 480,
+    isPublished: true,
+    createdBy: 'admin-1',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    modules: [
+      {
+        id: 'mod-7-1',
+        title: 'TypeScript Fundamentals',
+        description: 'Introduction to TypeScript',
+        content: `# TypeScript Fundamentals
+
+Get started with TypeScript.
+
+## Basics
+- What is TypeScript?
+- Installation & setup
+- Type annotations
+- Basic types`,
+        videoUrl: 'https://www.youtube.com/watch?v=BwuLxPH8IDs&t=0s',
+        duration: 40,
+        order: 1,
+        courseId: 'course-7',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-7-2',
+        title: 'Interfaces & Types',
+        description: 'Define custom types in TypeScript',
+        content: `# Interfaces & Types
+
+Create complex type definitions.
+
+## Type System
+- Interfaces
+- Type aliases
+- Union types
+- Intersection types`,
+        videoUrl: 'https://www.youtube.com/watch?v=BwuLxPH8IDs&t=2400s',
+        duration: 50,
+        order: 2,
+        courseId: 'course-7',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-7-3',
+        title: 'Functions & Generics',
+        description: 'Write type-safe functions',
+        content: `# Functions & Generics
+
+Master TypeScript functions.
+
+## Advanced Types
+- Function types
+- Generic functions
+- Generic constraints
+- Type inference`,
+        videoUrl: 'https://www.youtube.com/watch?v=BwuLxPH8IDs&t=5400s',
+        duration: 55,
+        order: 3,
+        courseId: 'course-7',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-7-4',
+        title: 'TypeScript with React',
+        description: 'Use TypeScript in React projects',
+        content: `# TypeScript with React
+
+Build type-safe React applications.
+
+## React + TS
+- Component props
+- useState typing
+- Event handling
+- Custom hooks`,
+        videoUrl: 'https://www.youtube.com/watch?v=BwuLxPH8IDs&t=8400s',
+        duration: 60,
+        order: 4,
+        courseId: 'course-7',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ]
+  },
+  {
+    id: 'course-8',
+    title: 'SQL & Database Design Full Course',
+    description: 'Learn SQL from scratch. Master database design, queries, and relational database concepts.',
+    thumbnail: 'https://i.ytimg.com/vi/HXV3zeQKqGY/maxresdefault.jpg',
+    category: 'Database',
+    level: 'beginner',
+    duration: 540,
+    isPublished: true,
+    createdBy: 'admin-1',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    modules: [
+      {
+        id: 'mod-8-1',
+        title: 'Introduction to Databases',
+        description: 'Learn database fundamentals',
+        content: `# Introduction to Databases
+
+Understand database concepts.
+
+## Fundamentals
+- What is a database?
+- Relational databases
+- SQL basics
+- Database design`,
+        videoUrl: 'https://www.youtube.com/watch?v=HXV3zeQKqGY&t=0s',
+        duration: 35,
+        order: 1,
+        courseId: 'course-8',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-8-2',
+        title: 'SQL Queries & Clauses',
+        description: 'Master SQL query syntax',
+        content: `# SQL Queries
+
+Write powerful SQL queries.
+
+## Query Elements
+- SELECT statements
+- WHERE clause
+- ORDER BY
+- GROUP BY`,
+        videoUrl: 'https://www.youtube.com/watch?v=HXV3zeQKqGY&t=2100s',
+        duration: 45,
+        order: 2,
+        courseId: 'course-8',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-8-3',
+        title: 'Joins & Relationships',
+        description: 'Connect tables with SQL joins',
+        content: `# Joins & Relationships
+
+Master table relationships.
+
+## Join Types
+- INNER JOIN
+- LEFT JOIN
+- RIGHT JOIN
+- Multiple joins`,
+        videoUrl: 'https://www.youtube.com/watch?v=HXV3zeQKqGY&t=4800s',
+        duration: 50,
+        order: 3,
+        courseId: 'course-8',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'mod-8-4',
+        title: 'Database Design Best Practices',
+        description: 'Design efficient databases',
+        content: `# Database Design
+
+Learn proper database design.
+
+## Design Concepts
+- Normalization
+- Primary keys
+- Foreign keys
+- Indexing`,
+        videoUrl: 'https://www.youtube.com/watch?v=HXV3zeQKqGY&t=8100s',
+        duration: 55,
+        order: 4,
+        courseId: 'course-8',
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -819,17 +989,17 @@ For every action, there is an equal and opposite reaction.`,
   }
 ];
 
-// Sample quizzes
+// Sample quizzes - Updated for new YouTube courses
 export const staticQuizzes: StaticQuiz[] = [
   {
     id: 'quiz-1',
-    title: 'Web Development Basics Quiz',
-    description: 'Test your knowledge of HTML, CSS, and JavaScript fundamentals',
+    title: 'HTML & CSS Fundamentals Quiz',
+    description: 'Test your knowledge of HTML and CSS basics from the full course',
     courseId: 'course-1',
     duration: 15,
     passingScore: 60,
     isPublished: true,
-    category: 'Programming',
+    category: 'Web Development',
     difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -866,13 +1036,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-1-3',
         quizId: 'quiz-1',
-        question: 'How do you declare a variable in modern JavaScript?',
-        optionA: 'variable x = 5',
-        optionB: 'let x = 5',
-        optionC: 'v x = 5',
-        optionD: 'declare x = 5',
-        correctAnswer: 'B',
-        explanation: '"let" and "const" are modern variable declarations.',
+        question: 'What is the correct CSS flexbox property to center items horizontally?',
+        optionA: 'justify-content: center',
+        optionB: 'align-items: center',
+        optionC: 'text-align: center',
+        optionD: 'margin: center',
+        correctAnswer: 'A',
+        explanation: 'justify-content centers flex items along the main axis (horizontal by default).',
         points: 1,
         order: 3,
         createdAt: new Date(),
@@ -894,13 +1064,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-1-5',
         quizId: 'quiz-1',
-        question: 'Which method selects an element by its ID in JavaScript?',
-        optionA: 'document.getElement()',
-        optionB: 'document.getElementById()',
-        optionC: 'document.querySelector()',
-        optionD: 'document.selectById()',
+        question: 'Which CSS property creates a grid container?',
+        optionA: 'display: flex',
+        optionB: 'display: grid',
+        optionC: 'display: block',
+        optionD: 'display: table',
         correctAnswer: 'B',
-        explanation: 'document.getElementById() selects by ID.',
+        explanation: 'display: grid creates a grid container for two-dimensional layouts.',
         points: 1,
         order: 5,
         createdAt: new Date(),
@@ -909,13 +1079,13 @@ export const staticQuizzes: StaticQuiz[] = [
   },
   {
     id: 'quiz-2',
-    title: 'Algebra Fundamentals Quiz',
-    description: 'Test your algebra skills',
+    title: 'JavaScript Fundamentals Quiz',
+    description: 'Test your JavaScript knowledge from basics to async',
     courseId: 'course-2',
     duration: 20,
-    passingScore: 70,
+    passingScore: 60,
     isPublished: true,
-    category: 'Mathematics',
+    category: 'Programming',
     difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -924,13 +1094,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-2-1',
         quizId: 'quiz-2',
-        question: 'Solve: 2x + 5 = 13',
-        optionA: 'x = 4',
-        optionB: 'x = 5',
-        optionC: 'x = 3',
-        optionD: 'x = 6',
-        correctAnswer: 'A',
-        explanation: '2x + 5 = 13 → 2x = 8 → x = 4',
+        question: 'Which keyword declares a block-scoped variable in JavaScript?',
+        optionA: 'var',
+        optionB: 'let',
+        optionC: 'variable',
+        optionD: 'define',
+        correctAnswer: 'B',
+        explanation: 'let and const are block-scoped, while var is function-scoped.',
         points: 1,
         order: 1,
         createdAt: new Date(),
@@ -938,13 +1108,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-2-2',
         quizId: 'quiz-2',
-        question: 'What is the value of 3x² when x = 4?',
-        optionA: '24',
-        optionB: '48',
-        optionC: '12',
-        optionD: '36',
+        question: 'What does the map() method do?',
+        optionA: 'Filters elements from an array',
+        optionB: 'Transforms each element and returns a new array',
+        optionC: 'Finds an element in an array',
+        optionD: 'Sorts the array',
         correctAnswer: 'B',
-        explanation: '3x² = 3(16) = 48',
+        explanation: 'map() creates a new array by transforming each element.',
         points: 1,
         order: 2,
         createdAt: new Date(),
@@ -952,13 +1122,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-2-3',
         quizId: 'quiz-2',
-        question: 'Solve: -3x < 15',
-        optionA: 'x < -5',
-        optionB: 'x > -5',
-        optionC: 'x < 5',
-        optionD: 'x > 5',
-        correctAnswer: 'B',
-        explanation: 'Dividing by negative flips the sign: x > -5',
+        question: 'How do you select an element by ID in JavaScript?',
+        optionA: 'document.getElement()',
+        optionB: 'document.getElementById()',
+        optionC: 'document.querySelector("#id")',
+        optionD: 'Both B and C work',
+        correctAnswer: 'D',
+        explanation: 'Both getElementById() and querySelector("#id") can select by ID.',
         points: 1,
         order: 3,
         createdAt: new Date(),
@@ -966,13 +1136,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-2-4',
         quizId: 'quiz-2',
-        question: 'If f(x) = 2x - 3, what is f(5)?',
-        optionA: '7',
-        optionB: '10',
-        optionC: '13',
-        optionD: '5',
-        correctAnswer: 'A',
-        explanation: 'f(5) = 2(5) - 3 = 7',
+        question: 'What is an async function?',
+        optionA: 'A function that runs synchronously',
+        optionB: 'A function that always returns a Promise',
+        optionC: 'A function without parameters',
+        optionD: 'A deprecated function type',
+        correctAnswer: 'B',
+        explanation: 'async functions always return a Promise.',
         points: 1,
         order: 4,
         createdAt: new Date(),
@@ -980,13 +1150,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-2-5',
         quizId: 'quiz-2',
-        question: 'Simplify: 4x + 3x - 2x',
-        optionA: '9x',
-        optionB: '5x',
-        optionC: '6x',
-        optionD: '4x',
+        question: 'What is the purpose of arrow functions?',
+        optionA: 'To create longer function syntax',
+        optionB: 'To provide shorter syntax and lexical this',
+        optionC: 'To make functions slower',
+        optionD: 'To prevent function hoisting',
         correctAnswer: 'B',
-        explanation: '4x + 3x - 2x = 5x',
+        explanation: 'Arrow functions provide concise syntax and inherit this from surrounding scope.',
         points: 1,
         order: 5,
         createdAt: new Date(),
@@ -995,13 +1165,13 @@ export const staticQuizzes: StaticQuiz[] = [
   },
   {
     id: 'quiz-3',
-    title: 'Physics Mechanics Quiz',
-    description: 'Test your understanding of motion, forces, and energy',
-    courseId: 'course-5',
-    duration: 20,
+    title: 'React Fundamentals Quiz',
+    description: 'Test your understanding of React components and hooks',
+    courseId: 'course-3',
+    duration: 15,
     passingScore: 60,
     isPublished: true,
-    category: 'Science',
+    category: 'Web Development',
     difficulty: 'intermediate',
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -1010,13 +1180,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-3-1',
         quizId: 'quiz-3',
-        question: 'What is the SI unit of force?',
-        optionA: 'Joule',
-        optionB: 'Newton',
-        optionC: 'Watt',
-        optionD: 'Pascal',
+        question: 'What is JSX?',
+        optionA: 'A new programming language',
+        optionB: 'JavaScript XML - syntax extension for JavaScript',
+        optionC: 'A CSS framework',
+        optionD: 'A database query language',
         correctAnswer: 'B',
-        explanation: 'Newton (N) is the SI unit of force.',
+        explanation: 'JSX is a syntax extension that allows writing HTML-like code in JavaScript.',
         points: 1,
         order: 1,
         createdAt: new Date(),
@@ -1024,13 +1194,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-3-2',
         quizId: 'quiz-3',
-        question: 'A car accelerates from rest at 4 m/s² for 3 seconds. What is its final velocity?',
-        optionA: '7 m/s',
-        optionB: '12 m/s',
-        optionC: '10 m/s',
-        optionD: '8 m/s',
-        correctAnswer: 'B',
-        explanation: 'v = u + at = 0 + 4(3) = 12 m/s',
+        question: 'What does useState return?',
+        optionA: 'Just the state value',
+        optionB: 'Just the setter function',
+        optionC: 'An array with state value and setter function',
+        optionD: 'A Promise',
+        correctAnswer: 'C',
+        explanation: 'useState returns [stateValue, setStateFunction].',
         points: 1,
         order: 2,
         createdAt: new Date(),
@@ -1038,13 +1208,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-3-3',
         quizId: 'quiz-3',
-        question: "What does Newton's First Law describe?",
-        optionA: 'F = ma',
-        optionB: 'Action-reaction pairs',
-        optionC: 'Inertia',
-        optionD: 'Gravity',
-        correctAnswer: 'C',
-        explanation: "Newton's First Law describes inertia.",
+        question: 'When does useEffect run by default?',
+        optionA: 'Only on first render',
+        optionB: 'On every render',
+        optionC: 'Only when state changes',
+        optionD: 'Never automatically',
+        correctAnswer: 'B',
+        explanation: 'useEffect runs after every render unless a dependency array is provided.',
         points: 1,
         order: 3,
         createdAt: new Date(),
@@ -1052,13 +1222,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-3-4',
         quizId: 'quiz-3',
-        question: 'Calculate kinetic energy of a 2 kg object moving at 3 m/s.',
-        optionA: '6 J',
-        optionB: '9 J',
-        optionC: '3 J',
-        optionD: '18 J',
+        question: 'What are props in React?',
+        optionA: 'State management tools',
+        optionB: 'Arguments passed to components',
+        optionC: 'CSS properties',
+        optionD: 'Event handlers',
         correctAnswer: 'B',
-        explanation: 'KE = ½mv² = ½(2)(9) = 9 J',
+        explanation: 'Props (properties) are arguments passed from parent to child components.',
         points: 1,
         order: 4,
         createdAt: new Date(),
@@ -1066,13 +1236,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-3-5',
         quizId: 'quiz-3',
-        question: 'What is the acceleration due to gravity on Earth (approximate)?',
-        optionA: '5 m/s²',
-        optionB: '9.8 m/s²',
-        optionC: '15 m/s²',
-        optionD: '1 m/s²',
+        question: 'What is a controlled component in React?',
+        optionA: 'A component with controlled CSS',
+        optionB: 'A form element whose value is controlled by React state',
+        optionC: 'A component that controls other components',
+        optionD: 'A component with restricted props',
         correctAnswer: 'B',
-        explanation: 'Earth\'s gravity is approximately 9.8 m/s².',
+        explanation: 'Controlled components have their value controlled by React state.',
         points: 1,
         order: 5,
         createdAt: new Date(),
@@ -1081,14 +1251,14 @@ export const staticQuizzes: StaticQuiz[] = [
   },
   {
     id: 'quiz-4',
-    title: 'Python Data Science Quiz',
-    description: 'Test your Python and data science knowledge',
-    courseId: 'course-3',
+    title: 'Python Basics Quiz',
+    description: 'Test your Python programming fundamentals',
+    courseId: 'course-4',
     duration: 15,
     passingScore: 60,
     isPublished: true,
-    category: 'Data Science',
-    difficulty: 'intermediate',
+    category: 'Programming',
+    difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1096,13 +1266,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-4-1',
         quizId: 'quiz-4',
-        question: 'Which library is used for data manipulation in Python?',
-        optionA: 'NumPy',
-        optionB: 'Pandas',
-        optionC: 'Matplotlib',
-        optionD: 'Scikit-learn',
+        question: 'How do you create a list in Python?',
+        optionA: 'list = (1, 2, 3)',
+        optionB: 'list = [1, 2, 3]',
+        optionC: 'list = {1, 2, 3}',
+        optionD: 'list = <1, 2, 3>',
         correctAnswer: 'B',
-        explanation: 'Pandas is used for data manipulation.',
+        explanation: 'Lists in Python are created with square brackets [].',
         points: 1,
         order: 1,
         createdAt: new Date(),
@@ -1110,13 +1280,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-4-2',
         quizId: 'quiz-4',
-        question: 'What does np.zeros(5) create?',
-        optionA: 'A list of 5 zeros',
-        optionB: 'An array of 5 zeros',
-        optionC: 'A matrix of 5x5 zeros',
-        optionD: 'A variable set to zero',
+        question: 'What is the difference between a tuple and a list?',
+        optionA: 'Tuples are mutable, lists are immutable',
+        optionB: 'Tuples are immutable, lists are mutable',
+        optionC: 'There is no difference',
+        optionD: 'Tuples can only store strings',
         correctAnswer: 'B',
-        explanation: 'np.zeros(5) creates a NumPy array of 5 zeros.',
+        explanation: 'Tuples are immutable (cannot be changed), lists are mutable.',
         points: 1,
         order: 2,
         createdAt: new Date(),
@@ -1124,13 +1294,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-4-3',
         quizId: 'quiz-4',
-        question: 'How do you read a CSV file in Pandas?',
-        optionA: 'pd.read_csv()',
-        optionB: 'pd.load_csv()',
-        optionC: 'pd.import_csv()',
-        optionD: 'pd.open_csv()',
-        correctAnswer: 'A',
-        explanation: 'pd.read_csv() reads CSV files.',
+        question: 'How do you define a function in Python?',
+        optionA: 'function myFunc():',
+        optionB: 'def myFunc():',
+        optionC: 'func myFunc():',
+        optionD: 'create myFunc():',
+        correctAnswer: 'B',
+        explanation: 'Python uses the def keyword to define functions.',
         points: 1,
         order: 3,
         createdAt: new Date(),
@@ -1138,13 +1308,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-4-4',
         quizId: 'quiz-4',
-        question: 'Which method shows the first 5 rows of a DataFrame?',
-        optionA: 'df.first()',
-        optionB: 'df.top()',
-        optionC: 'df.head()',
-        optionD: 'df.show()',
-        correctAnswer: 'C',
-        explanation: 'df.head() shows the first 5 rows.',
+        question: 'What is a dictionary in Python?',
+        optionA: 'A list of words',
+        optionB: 'A collection of key-value pairs',
+        optionC: 'A type of loop',
+        optionD: 'A file format',
+        correctAnswer: 'B',
+        explanation: 'Dictionaries store data as key-value pairs in curly braces {}.',
         points: 1,
         order: 4,
         createdAt: new Date(),
@@ -1152,13 +1322,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-4-5',
         quizId: 'quiz-4',
-        question: 'Which library is used for data visualization?',
-        optionA: 'Pandas',
-        optionB: 'NumPy',
-        optionC: 'Matplotlib',
-        optionD: 'Requests',
-        correctAnswer: 'C',
-        explanation: 'Matplotlib is used for data visualization.',
+        question: 'How do you handle exceptions in Python?',
+        optionA: 'try/catch',
+        optionB: 'try/except',
+        optionC: 'catch/error',
+        optionD: 'handle/exception',
+        correctAnswer: 'B',
+        explanation: 'Python uses try/except for exception handling.',
         points: 1,
         order: 5,
         createdAt: new Date(),
@@ -1167,14 +1337,14 @@ export const staticQuizzes: StaticQuiz[] = [
   },
   {
     id: 'quiz-5',
-    title: 'English Grammar Essentials',
-    description: 'Test your understanding of grammar rules and proper usage',
-    courseId: 'course-4',
-    duration: 10,
-    passingScore: 70,
+    title: 'Node.js Backend Quiz',
+    description: 'Test your Node.js and Express knowledge',
+    courseId: 'course-5',
+    duration: 15,
+    passingScore: 60,
     isPublished: true,
-    category: 'Language',
-    difficulty: 'beginner',
+    category: 'Backend Development',
+    difficulty: 'intermediate',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1182,13 +1352,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-5-1',
         quizId: 'quiz-5',
-        question: 'Which sentence uses the correct form of "their/there/they\'re"?',
-        optionA: 'They\'re going to the store.',
-        optionB: 'There going to the store.',
-        optionC: 'Their going to the store.',
-        optionD: 'Theyre going to the store.',
+        question: 'What is npm?',
+        optionA: 'Node Package Manager',
+        optionB: 'New Programming Method',
+        optionC: 'Network Protocol Module',
+        optionD: 'Node Process Manager',
         correctAnswer: 'A',
-        explanation: '"They\'re" is the contraction of "they are".',
+        explanation: 'npm is the Node Package Manager for managing JavaScript packages.',
         points: 1,
         order: 1,
         createdAt: new Date(),
@@ -1196,13 +1366,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-5-2',
         quizId: 'quiz-5',
-        question: 'What is the correct subject-verb agreement?',
-        optionA: 'The team are winning.',
-        optionB: 'The team is winning.',
-        optionC: 'The team were winning.',
-        optionD: 'The team be winning.',
+        question: 'What is Express.js?',
+        optionA: 'A database',
+        optionB: 'A Node.js web application framework',
+        optionC: 'A frontend library',
+        optionD: 'A testing tool',
         correctAnswer: 'B',
-        explanation: '"Team" is a collective noun treated as singular in American English.',
+        explanation: 'Express.js is a minimal and flexible Node.js web application framework.',
         points: 1,
         order: 2,
         createdAt: new Date(),
@@ -1210,13 +1380,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-5-3',
         quizId: 'quiz-5',
-        question: 'Which is the correct possessive form?',
-        optionA: 'Its a beautiful day.',
-        optionB: 'It\'s a beautiful day.',
-        optionC: 'Its\' a beautiful day.',
-        optionD: 'Its a beautifull day.',
+        question: 'What is middleware in Express?',
+        optionA: 'Software installed on the server',
+        optionB: 'Functions that have access to request, response, and next function',
+        optionC: 'A type of database',
+        optionD: 'A frontend component',
         correctAnswer: 'B',
-        explanation: '"It\'s" is the contraction of "it is". "Its" is possessive.',
+        explanation: 'Middleware functions have access to req, res, and the next middleware function.',
         points: 1,
         order: 3,
         createdAt: new Date(),
@@ -1224,13 +1394,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-5-4',
         quizId: 'quiz-5',
-        question: 'Identify the correct sentence:',
-        optionA: 'Me and him went to the store.',
-        optionB: 'Him and me went to the store.',
-        optionC: 'He and I went to the store.',
-        optionD: 'Me and he went to the store.',
-        correctAnswer: 'C',
-        explanation: 'Subject pronouns (he, I) should be used for the subject of a sentence.',
+        question: 'What is MongoDB?',
+        optionA: 'A relational database',
+        optionB: 'A NoSQL document database',
+        optionC: 'A JavaScript library',
+        optionD: 'A web server',
+        correctAnswer: 'B',
+        explanation: 'MongoDB is a NoSQL database that stores data in flexible, JSON-like documents.',
         points: 1,
         order: 4,
         createdAt: new Date(),
@@ -1238,13 +1408,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-5-5',
         quizId: 'quiz-5',
-        question: 'Which word is an adverb?',
-        optionA: 'Beautiful',
-        optionB: 'Quickly',
-        optionC: 'Happiness',
-        optionD: 'Running',
+        question: 'What does REST stand for?',
+        optionA: 'Remote Execution State Transfer',
+        optionB: 'Representational State Transfer',
+        optionC: 'Request State Transaction',
+        optionD: 'Remote API State Transfer',
         correctAnswer: 'B',
-        explanation: 'Adverbs often end in "-ly" and modify verbs, adjectives, or other adverbs.',
+        explanation: 'REST stands for Representational State Transfer.',
         points: 1,
         order: 5,
         createdAt: new Date(),
@@ -1253,13 +1423,13 @@ export const staticQuizzes: StaticQuiz[] = [
   },
   {
     id: 'quiz-6',
-    title: 'Business Communication Skills',
-    description: 'Test your professional communication knowledge',
+    title: 'Git & GitHub Quiz',
+    description: 'Test your version control knowledge',
     courseId: 'course-6',
     duration: 12,
     passingScore: 60,
     isPublished: true,
-    category: 'Business',
+    category: 'Developer Tools',
     difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
@@ -1268,13 +1438,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-6-1',
         quizId: 'quiz-6',
-        question: 'What is the best subject line for a meeting request?',
-        optionA: 'Meeting',
-        optionB: 'Can we meet?',
-        optionC: 'Project Review Meeting - Tuesday 2PM',
-        optionD: 'IMPORTANT!!!',
-        correctAnswer: 'C',
-        explanation: 'A good subject line is specific, actionable, and concise.',
+        question: 'What command initializes a new Git repository?',
+        optionA: 'git start',
+        optionB: 'git init',
+        optionC: 'git create',
+        optionD: 'git new',
+        correctAnswer: 'B',
+        explanation: 'git init creates a new Git repository.',
         points: 1,
         order: 1,
         createdAt: new Date(),
@@ -1282,13 +1452,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-6-2',
         quizId: 'quiz-6',
-        question: 'What is the 10/20/30 rule for presentations?',
-        optionA: '10 slides, 20 minutes, 30-point font',
-        optionB: '10 minutes, 20 slides, 30 words',
-        optionC: '10 topics, 20 points, 30 seconds',
-        optionD: '10 people, 20 chairs, 30 minutes',
-        correctAnswer: 'A',
-        explanation: 'Guy Kawasaki\'s rule: 10 slides, 20 minutes, 30-point font minimum.',
+        question: 'What does git status show?',
+        optionA: 'The current branch name only',
+        optionB: 'The state of the working directory and staging area',
+        optionC: 'Git version information',
+        optionD: 'Remote repository status',
+        correctAnswer: 'B',
+        explanation: 'git status shows the state of the working directory and staging area.',
         points: 1,
         order: 2,
         createdAt: new Date(),
@@ -1296,13 +1466,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-6-3',
         quizId: 'quiz-6',
-        question: 'What should be included in an executive summary?',
-        optionA: 'Detailed technical specifications',
-        optionB: 'Key findings and recommendations',
-        optionC: 'All raw data collected',
-        optionD: 'Personal opinions',
+        question: 'What is a branch in Git?',
+        optionA: 'A copy of the entire repository',
+        optionB: 'A parallel version of the repository for development',
+        optionC: 'A deleted commit',
+        optionD: 'A type of merge conflict',
         correctAnswer: 'B',
-        explanation: 'Executive summaries should highlight key findings and actionable recommendations.',
+        explanation: 'A branch is a parallel version of the repository for isolated development.',
         points: 1,
         order: 3,
         createdAt: new Date(),
@@ -1310,13 +1480,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-6-4',
         quizId: 'quiz-6',
-        question: 'Which email closing is most professional?',
-        optionA: 'Later!',
-        optionB: 'Best regards,',
-        optionC: 'Bye bye',
-        optionD: 'XOXO',
+        question: 'What is a pull request on GitHub?',
+        optionA: 'A request to download code',
+        optionB: 'A proposal to merge changes from one branch to another',
+        optionC: 'A request to delete a repository',
+        optionD: 'A way to request access to a repository',
         correctAnswer: 'B',
-        explanation: '"Best regards" is a standard professional email closing.',
+        explanation: 'A pull request proposes changes for review before merging.',
         points: 1,
         order: 4,
         createdAt: new Date(),
@@ -1324,13 +1494,13 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-6-5',
         quizId: 'quiz-6',
-        question: 'What is the PEEL method for writing paragraphs?',
-        optionA: 'Point, Evidence, Explanation, Link',
-        optionB: 'Plan, Edit, Edit, Launch',
-        optionC: 'Prepare, Explain, Execute, Learn',
-        optionD: 'Proof, Example, Evaluate, List',
-        correctAnswer: 'A',
-        explanation: 'PEEL: Point (topic sentence), Evidence, Explanation, Link to next paragraph.',
+        question: 'What command uploads local changes to a remote repository?',
+        optionA: 'git upload',
+        optionB: 'git push',
+        optionC: 'git send',
+        optionD: 'git sync',
+        correctAnswer: 'B',
+        explanation: 'git push uploads local repository content to a remote repository.',
         points: 1,
         order: 5,
         createdAt: new Date(),
@@ -1339,14 +1509,14 @@ export const staticQuizzes: StaticQuiz[] = [
   },
   {
     id: 'quiz-7',
-    title: 'Advanced JavaScript Concepts',
-    description: 'Test your knowledge of advanced JavaScript features',
-    courseId: 'course-1',
+    title: 'TypeScript Basics Quiz',
+    description: 'Test your TypeScript fundamentals',
+    courseId: 'course-7',
     duration: 15,
-    passingScore: 70,
+    passingScore: 60,
     isPublished: true,
     category: 'Programming',
-    difficulty: 'advanced',
+    difficulty: 'intermediate',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1354,70 +1524,70 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-7-1',
         quizId: 'quiz-7',
-        question: 'What is a closure in JavaScript?',
-        optionA: 'A function that has access to its outer scope',
-        optionB: 'A way to close the browser',
-        optionC: 'A method to end loops',
-        optionD: 'A type of variable declaration',
-        correctAnswer: 'A',
-        explanation: 'A closure is a function that remembers and can access variables from its outer scope.',
-        points: 2,
+        question: 'What is TypeScript?',
+        optionA: 'A new programming language unrelated to JavaScript',
+        optionB: 'JavaScript with syntax for types',
+        optionC: 'A CSS framework',
+        optionD: 'A database tool',
+        correctAnswer: 'B',
+        explanation: 'TypeScript is JavaScript with added static type definitions.',
+        points: 1,
         order: 1,
         createdAt: new Date(),
       },
       {
         id: 'q-7-2',
         quizId: 'quiz-7',
-        question: 'What does "async/await" do in JavaScript?',
-        optionA: 'Makes code run faster',
-        optionB: 'Handles asynchronous code more readably',
-        optionC: 'Creates new threads',
-        optionD: 'Stops code execution',
-        correctAnswer: 'B',
-        explanation: 'async/await is syntactic sugar for Promises, making async code easier to read.',
-        points: 2,
+        question: 'What keyword defines a custom type in TypeScript?',
+        optionA: 'type',
+        optionB: 'interface',
+        optionC: 'Both A and B',
+        optionD: 'define',
+        correctAnswer: 'C',
+        explanation: 'Both type and interface can be used to define custom types.',
+        points: 1,
         order: 2,
         createdAt: new Date(),
       },
       {
         id: 'q-7-3',
         quizId: 'quiz-7',
-        question: 'What is the difference between "==" and "==="?',
-        optionA: 'No difference',
-        optionB: '"==" checks value only, "===" checks value and type',
-        optionC: '"===" is for strings only',
-        optionD: '"==" is deprecated',
-        correctAnswer: 'B',
-        explanation: '"===" is strict equality (value AND type), "==" is loose equality (value only).',
-        points: 2,
+        question: 'What is a union type in TypeScript?',
+        optionA: 'A type that combines multiple types with OR',
+        optionB: 'A type that combines types with AND',
+        optionC: 'A database union',
+        optionD: 'A JavaScript operator',
+        correctAnswer: 'A',
+        explanation: 'Union types allow a value to be one of several types (using |).',
+        points: 1,
         order: 3,
         createdAt: new Date(),
       },
       {
         id: 'q-7-4',
         quizId: 'quiz-7',
-        question: 'What is the spread operator in JavaScript?',
-        optionA: '...',
-        optionB: '***',
-        optionC: '###',
-        optionD: '>>>',
-        correctAnswer: 'A',
-        explanation: 'The spread operator (...) allows iterables to be expanded in place.',
-        points: 2,
+        question: 'What are generics in TypeScript?',
+        optionA: 'Generic brand types',
+        optionB: 'Variables for types that create reusable components',
+        optionC: 'Default types',
+        optionD: 'Deprecated features',
+        correctAnswer: 'B',
+        explanation: 'Generics allow creating reusable components that work with multiple types.',
+        points: 1,
         order: 4,
         createdAt: new Date(),
       },
       {
         id: 'q-7-5',
         quizId: 'quiz-7',
-        question: 'What is destructuring in JavaScript?',
-        optionA: 'Destroying variables',
-        optionB: 'Extracting values from objects/arrays',
-        optionC: 'Deleting objects',
-        optionD: 'Creating new arrays',
+        question: 'What is the any type in TypeScript?',
+        optionA: 'The best type to use always',
+        optionB: 'A type that disables type checking',
+        optionC: 'A type that means null',
+        optionD: 'A type for numbers only',
         correctAnswer: 'B',
-        explanation: 'Destructuring allows extracting multiple values from objects or arrays into variables.',
-        points: 2,
+        explanation: 'any disables type checking and should be avoided when possible.',
+        points: 1,
         order: 5,
         createdAt: new Date(),
       }
@@ -1425,14 +1595,14 @@ export const staticQuizzes: StaticQuiz[] = [
   },
   {
     id: 'quiz-8',
-    title: 'Advanced Algebra & Functions',
-    description: 'Challenge yourself with advanced algebra problems',
-    courseId: 'course-2',
-    duration: 20,
-    passingScore: 65,
+    title: 'SQL & Database Quiz',
+    description: 'Test your database and SQL knowledge',
+    courseId: 'course-8',
+    duration: 15,
+    passingScore: 60,
     isPublished: true,
-    category: 'Mathematics',
-    difficulty: 'advanced',
+    category: 'Database',
+    difficulty: 'beginner',
     createdBy: 'admin-1',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -1440,70 +1610,70 @@ export const staticQuizzes: StaticQuiz[] = [
       {
         id: 'q-8-1',
         quizId: 'quiz-8',
-        question: 'Solve: x² - 5x + 6 = 0',
-        optionA: 'x = 2 or x = 3',
-        optionB: 'x = -2 or x = -3',
-        optionC: 'x = 1 or x = 6',
-        optionD: 'x = -1 or x = -6',
+        question: 'What does SQL stand for?',
+        optionA: 'Structured Query Language',
+        optionB: 'Simple Query Language',
+        optionC: 'Standard Query Logic',
+        optionD: 'System Query Library',
         correctAnswer: 'A',
-        explanation: 'Factor: (x-2)(x-3) = 0, so x = 2 or x = 3.',
-        points: 2,
+        explanation: 'SQL stands for Structured Query Language.',
+        points: 1,
         order: 1,
         createdAt: new Date(),
       },
       {
         id: 'q-8-2',
         quizId: 'quiz-8',
-        question: 'What is the domain of f(x) = √(x-3)?',
-        optionA: 'All real numbers',
-        optionB: 'x ≥ 3',
-        optionC: 'x > 3',
-        optionD: 'x ≤ 3',
+        question: 'Which SQL clause filters results?',
+        optionA: 'ORDER BY',
+        optionB: 'WHERE',
+        optionC: 'GROUP BY',
+        optionD: 'SELECT',
         correctAnswer: 'B',
-        explanation: 'For √(x-3) to be real, x-3 ≥ 0, so x ≥ 3.',
-        points: 2,
+        explanation: 'WHERE clause filters rows based on a condition.',
+        points: 1,
         order: 2,
         createdAt: new Date(),
       },
       {
         id: 'q-8-3',
         quizId: 'quiz-8',
-        question: 'Simplify: (x³)² × x⁴',
-        optionA: 'x⁹',
-        optionB: 'x¹⁰',
-        optionC: 'x¹²',
-        optionD: 'x⁸',
-        correctAnswer: 'B',
-        explanation: '(x³)² = x⁶, then x⁶ × x⁴ = x¹⁰.',
-        points: 2,
+        question: 'What type of JOIN returns all rows from both tables?',
+        optionA: 'INNER JOIN',
+        optionB: 'LEFT JOIN',
+        optionC: 'FULL OUTER JOIN',
+        optionD: 'RIGHT JOIN',
+        correctAnswer: 'C',
+        explanation: 'FULL OUTER JOIN returns all rows when there is a match in either table.',
+        points: 1,
         order: 3,
         createdAt: new Date(),
       },
       {
         id: 'q-8-4',
         quizId: 'quiz-8',
-        question: 'If f(x) = 2x + 1 and g(x) = x², what is f(g(2))?',
-        optionA: '5',
-        optionB: '9',
-        optionC: '17',
-        optionD: '25',
+        question: 'What is a primary key?',
+        optionA: 'The first column in a table',
+        optionB: 'A unique identifier for each row',
+        optionC: 'A foreign reference',
+        optionD: 'A password for the database',
         correctAnswer: 'B',
-        explanation: 'g(2) = 4, then f(4) = 2(4) + 1 = 9.',
-        points: 2,
+        explanation: 'A primary key uniquely identifies each row in a table.',
+        points: 1,
         order: 4,
         createdAt: new Date(),
       },
       {
         id: 'q-8-5',
         quizId: 'quiz-8',
-        question: 'Solve the system: x + y = 10, x - y = 4',
-        optionA: 'x = 5, y = 5',
-        optionB: 'x = 7, y = 3',
-        optionC: 'x = 6, y = 4',
-        optionD: 'x = 8, y = 2',
+        question: 'What does GROUP BY do in SQL?',
+        optionA: 'Sorts the results',
+        optionB: 'Groups rows with the same values for aggregation',
+        optionC: 'Creates a new table',
+        optionD: 'Deletes duplicate rows',
         correctAnswer: 'B',
-        explanation: 'Add equations: 2x = 14, x = 7. Then 7 + y = 10, y = 3.',
-        points: 2,
+        explanation: 'GROUP BY groups rows with the same values for aggregate functions.',
+        points: 1,
         order: 5,
         createdAt: new Date(),
       }
@@ -1511,70 +1681,25 @@ export const staticQuizzes: StaticQuiz[] = [
   }
 ];
 
-// In-memory store for newly registered users (static/demo mode)
-// This allows users to register and login in demo mode
-const registeredUsers: Map<string, StaticUser> = new Map();
+// Helper functions for user management
 
-// Helper function to check if we should use static data
-// This is the key function that determines whether to use the database or in-memory data
+// Check if we should use static data (demo mode)
+// In production on Vercel with DATABASE_URL, we'll use the database
 export function shouldUseStaticData(): boolean {
-  const dbUrl = process.env.DATABASE_URL;
-  
-  // Log for debugging
-  const debugInfo = {
-    hasDbUrl: !!dbUrl,
-    dbUrlPrefix: dbUrl ? dbUrl.substring(0, 30) : 'none',
+  console.log('[StaticData] Checking static mode:', {
+    hasDbUrl: !!process.env.DATABASE_URL,
+    dbUrlPrefix: process.env.DATABASE_URL?.substring(0, 30),
     vercel: process.env.VERCEL,
     nodeEnv: process.env.NODE_ENV,
-  };
-  console.log('[StaticData] Checking static mode:', JSON.stringify(debugInfo));
+  });
   
-  // No database URL configured - use static mode
-  if (!dbUrl || dbUrl.trim() === '') {
-    console.log('[StaticData] No DATABASE_URL, using static mode');
-    return true;
-  }
-  
-  // Check if we're in a serverless/production environment
-  // Vercel sets VERCEL='1', but we also check for other serverless platforms
-  const isServerless = 
-    process.env.VERCEL === '1' || 
-    process.env.VERCEL !== undefined ||
-    process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined ||
-    process.env.NETLIFY === 'true' ||
-    process.env.CF_PAGES !== undefined;
-  
-  // Check if it's a SQLite URL (file:)
-  // SQLite URLs look like: file:./dev.db or file:/path/to/db
-  const isSqlite = dbUrl.startsWith('file:');
-  
-  // Check if it's a production database (PostgreSQL, MySQL, etc.)
-  const isProductionDb = 
-    dbUrl.startsWith('postgresql://') || 
-    dbUrl.startsWith('postgres://') ||
-    dbUrl.startsWith('mysql://');
-  
-  // If we have a production database URL, use database mode
-  if (isProductionDb) {
+  // If we have a real database URL (not the demo placeholder), use database mode
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl && (dbUrl.includes('supabase') || dbUrl.includes('postgresql://'))) {
     console.log('[StaticData] Production database URL detected, using database mode');
     return false;
   }
   
-  // SQLite doesn't work in serverless environments (ephemeral filesystem)
-  // In serverless, we MUST use static mode for SQLite
-  if (isSqlite && isServerless) {
-    console.log('[StaticData] SQLite detected in serverless environment, using static mode');
-    return true;
-  }
-  
-  // SQLite in local development - use database mode
-  if (isSqlite) {
-    console.log('[StaticData] SQLite in local development, using database mode');
-    return false;
-  }
-  
-  // DATABASE_URL is set but not a recognized format
-  // This could be an invalid URL or a placeholder - use static mode to be safe
   console.log('[StaticData] DATABASE_URL not recognized as valid format, using static mode');
   return true;
 }
