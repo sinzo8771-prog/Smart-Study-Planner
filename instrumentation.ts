@@ -7,10 +7,10 @@ export async function register() {
     console.log('[Instrumentation] Server starting, checking database migrations...');
     
     try {
-      // Run migrations in the background
-      // We import dynamically to avoid circular dependencies
-      const { runMigrations } = await import('./src/lib/migrate');
+      // Import and run migrations from db.ts
+      const { runMigrations } = await import('./src/lib/db');
       await runMigrations();
+      console.log('[Instrumentation] Migrations completed successfully');
     } catch (error) {
       console.error('[Instrumentation] Migration error:', error);
       // Don't throw - let the app start anyway

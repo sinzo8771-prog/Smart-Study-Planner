@@ -1,52 +1,31 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { Prisma } from '@prisma/client';
+import { forceRunMigrations, runMigrations } from '@/lib/db';
 
-// POST /api/admin/migrate - Run database migration
+// POST /api/admin/migrate - Force run database migration
 // This endpoint adds missing columns to the database
 export async function POST() {
   try {
-    console.log('[Migration] Starting database migration...');
+    console.log('[Migration API] Force running database migration...');
     
-    // Try to add missing columns if they don't exist
-    const migrations = [
-      {
-        name: 'quiz_category_column',
-        sql: `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'General'`,
-      },
-      {
-        name: 'quiz_difficulty_column', 
-        sql: `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "difficulty" TEXT DEFAULT 'beginner'`,
-      },
-    ];
+    const result = await forceRunMigrations();
     
-    const results = [];
-    
-    for (const migration of migrations) {
-      try {
-        await db.$executeRawUnsafe(migration.sql);
-        results.push({ name: migration.name, status: 'success' });
-        console.log(`[Migration] ${migration.name}: success`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        // Column might already exist, which is fine
-        if (errorMessage.includes('already exists') || errorMessage.includes('duplicate')) {
-          results.push({ name: migration.name, status: 'already_exists' });
-          console.log(`[Migration] ${migration.name}: already exists`);
-        } else {
-          results.push({ name: migration.name, status: 'error', error: errorMessage });
-          console.error(`[Migration] ${migration.name}: error -`, errorMessage);
-        }
-      }
+    if (result.error) {
+      return NextResponse.json({
+        success: false,
+        error: result.error,
+        category: result.category,
+        difficulty: result.difficulty,
+      }, { status: 500 });
     }
     
     return NextResponse.json({
       success: true,
       message: 'Database migration completed',
-      results,
+      category: result.category,
+      difficulty: result.difficulty,
     });
   } catch (error) {
-    console.error('[Migration] Error:', error);
+    console.error('[Migration API] Error:', error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Migration failed',
@@ -54,10 +33,14 @@ export async function POST() {
   }
 }
 
-// GET /api/admin/migrate - Check migration status
+// GET /api/admin/migrate - Run migration check and return status
 export async function GET() {
   try {
+    // Run migrations first
+    await runMigrations();
+    
     // Check if the columns exist by querying the database
+    const { db } = await import('@/lib/db');
     const result = await db.$queryRaw`
       SELECT column_name 
       FROM information_schema.columns 
@@ -76,7 +59,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('[Migration] Check error:', error);
+    console.error('[Migration API] Check error:', error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Check failed',
