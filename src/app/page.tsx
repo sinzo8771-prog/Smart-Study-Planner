@@ -3243,8 +3243,25 @@ const QuizModule = ({ user }: QuizModuleProps) => {
             <CardContent>
               <div className="space-y-4">
                 {selectedQuiz?.questions?.map((q, index) => {
-                  const userAnswer = JSON.parse(attempt.answers)[q.id];
-                  const isCorrect = userAnswer === q.correctAnswer;
+                  // Parse the graded answers - each answer is an object with userAnswer, correctAnswer, isCorrect, etc.
+                  let gradedAnswer: { userAnswer?: string; correctAnswer?: string; isCorrect?: boolean; explanation?: string } | null = null;
+                  let userAnswerLetter = '';
+                  let isCorrect = false;
+                  
+                  try {
+                    const parsedAnswers = JSON.parse(attempt.answers);
+                    gradedAnswer = parsedAnswers[q.id];
+                    if (gradedAnswer && typeof gradedAnswer === 'object') {
+                      userAnswerLetter = gradedAnswer.userAnswer || '';
+                      isCorrect = gradedAnswer.isCorrect ?? (userAnswerLetter === q.correctAnswer);
+                    } else if (typeof parsedAnswers[q.id] === 'string') {
+                      // Fallback for old format where answers were just strings
+                      userAnswerLetter = parsedAnswers[q.id];
+                      isCorrect = userAnswerLetter === q.correctAnswer;
+                    }
+                  } catch {
+                    // If parsing fails, use defaults
+                  }
 
                   return (
                     <div key={q.id || index} className={`p-4 rounded-lg ${isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
@@ -3253,15 +3270,15 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                         <p className="font-medium">{index + 1}. {q.question}</p>
                       </div>
                       <p className="ml-7 text-sm">
-                        Your answer: <strong>{userAnswer}. {q[`option${userAnswer}` as keyof Question] as string}</strong>
+                        Your answer: <strong>{userAnswerLetter}. {q[`option${userAnswerLetter}` as keyof Question] as string}</strong>
                       </p>
                       {!isCorrect && (
                         <p className="ml-7 text-sm text-green-600">
                           Correct answer: <strong>{q.correctAnswer}. {q[`option${q.correctAnswer}` as keyof Question] as string}</strong>
                         </p>
                       )}
-                      {q.explanation && (
-                        <p className="ml-7 text-sm text-gray-500 mt-2">{q.explanation}</p>
+                      {(gradedAnswer?.explanation || q.explanation) && (
+                        <p className="ml-7 text-sm text-gray-500 mt-2">{gradedAnswer?.explanation || q.explanation}</p>
                       )}
                     </div>
                   );
