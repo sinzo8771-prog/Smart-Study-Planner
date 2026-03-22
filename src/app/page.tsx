@@ -4897,7 +4897,6 @@ const AnalyticsModule = ({ user }: AnalyticsModuleProps) => {
             </CardContent>
           </Card>
         </>
-      )}
     </div>
   );
 };
