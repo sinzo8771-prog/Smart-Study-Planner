@@ -1686,21 +1686,41 @@ export const staticQuizzes: StaticQuiz[] = [
 // Check if we should use static data (demo mode)
 // In production on Vercel with DATABASE_URL, we'll use the database
 export function shouldUseStaticData(): boolean {
+  const dbUrl = process.env.DATABASE_URL;
+  const isVercel = !!process.env.VERCEL;
+  
   console.log('[StaticData] Checking static mode:', {
-    hasDbUrl: !!process.env.DATABASE_URL,
-    dbUrlPrefix: process.env.DATABASE_URL?.substring(0, 30),
-    vercel: process.env.VERCEL,
+    hasDbUrl: !!dbUrl,
+    dbUrlPrefix: dbUrl?.substring(0, 30),
+    vercel: isVercel,
     nodeEnv: process.env.NODE_ENV,
   });
   
-  // If we have a real database URL (not the demo placeholder), use database mode
-  const dbUrl = process.env.DATABASE_URL;
-  if (dbUrl && (dbUrl.includes('supabase') || dbUrl.includes('postgresql://'))) {
-    console.log('[StaticData] Production database URL detected, using database mode');
-    return false;
+  // If we have a real database URL (Supabase, PostgreSQL, MySQL, etc.), use database mode
+  if (dbUrl) {
+    const isRealDatabase = 
+      dbUrl.includes('supabase') || 
+      dbUrl.includes('postgresql://') ||
+      dbUrl.includes('postgres://') ||
+      dbUrl.includes('mysql://') ||
+      dbUrl.includes('planetscale') ||
+      dbUrl.includes('neon') ||
+      dbUrl.includes('railway') ||
+      dbUrl.includes('render.com');
+    
+    if (isRealDatabase) {
+      console.log('[StaticData] Production database URL detected, using database mode');
+      return false;
+    }
   }
   
-  console.log('[StaticData] DATABASE_URL not recognized as valid format, using static mode');
+  // On Vercel without a real database, run in demo mode with static data
+  if (isVercel) {
+    console.log('[StaticData] Running on Vercel without database - using demo mode with static data');
+  } else {
+    console.log('[StaticData] DATABASE_URL not recognized as valid format, using static mode');
+  }
+  
   return true;
 }
 
