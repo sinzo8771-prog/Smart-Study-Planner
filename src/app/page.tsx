@@ -3278,7 +3278,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                         </p>
                       )}
                       {(gradedAnswer?.explanation || q.explanation) && (
-                        <p className="ml-7 text-sm text-gray-500 mt-2">{gradedAnswer?.explanation || q.explanation}</p>
+                        <p className="ml-7 text-sm text-gray-500 mt-2">{typeof gradedAnswer?.explanation === 'string' ? gradedAnswer.explanation : (typeof q.explanation === 'string' ? q.explanation : '')}</p>
                       )}
                     </div>
                   );

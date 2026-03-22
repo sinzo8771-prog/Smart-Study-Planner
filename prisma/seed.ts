@@ -1,3 +1,9 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env file with override
+config({ path: resolve(process.cwd(), '.env'), override: true });
+
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 

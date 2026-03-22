@@ -339,3 +339,44 @@ Stage Summary:
 - Users can register, login, create subjects/tasks, take quizzes
 - In-memory storage for demo/preview environments
 - Full feature parity with database mode for demo purposes
+
+---
+Task ID: 14
+Agent: Main
+Task: Fix database configuration and React error #31 in quiz results
+
+Work Log:
+- Identified DATABASE_URL was set to SQLite file path (`file:/home/z/my-project/db/custom.db`) but Prisma schema expects PostgreSQL
+- Updated .env file to remove invalid DATABASE_URL, enabling static/demo mode
+- The `shouldUseStaticData()` function now correctly detects no valid database URL and uses static data
+- Analyzed React error #31 - object being rendered as React child
+- The error keys `{userAnswer, correctAnswer, isCorrect, points, earnedPoints, explanation}` match the graded answer structure
+- Fixed quiz results rendering at line 3281 to explicitly check that explanation is a string before rendering
+- Added `typeof` checks to prevent accidentally rendering object as React child
+
+Stage Summary:
+- Database configuration fixed - app now runs in static mode correctly
+- Added defensive type checking in quiz results explanation rendering
+- Application should work correctly now with static data
+- All lint checks pass
+
+---
+Task ID: 15
+Agent: Main
+Task: Configure Supabase PostgreSQL database
+
+Work Log:
+- Updated .env with Supabase PostgreSQL connection URLs:
+  - DATABASE_URL: Pooler connection (port 6543) for application connections
+  - DIRECT_DATABASE_URL: Direct connection (port 5432) for migrations
+- Fixed prisma/seed.ts to properly load environment variables with dotenv
+- Ran db:push to sync schema with Supabase database
+- Ran db:seed to populate initial data (users, courses, quizzes)
+- All tables created and seeded successfully
+
+Stage Summary:
+- Database now connected to Supabase PostgreSQL
+- Connection uses pooler for better performance in serverless
+- Direct connection for migrations
+- Existing data preserved (users, courses, quizzes already existed)
+- Application ready to use real database instead of static data
