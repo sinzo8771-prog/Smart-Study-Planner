@@ -720,7 +720,7 @@
    LANDING PAGE ENHANCED STYLES
    ============================================ */
 
-/* Landing page custom properties - Sophisticated slate/teal palette */
+/* Landing page custom properties - Sophisticated slate/emerald palette */
 :root {
   --landing-gradient-start: oklch(0.45 0.12 180);
   --landing-gradient-mid: oklch(0.5 0.1 190);
@@ -771,7 +771,7 @@
   }
 
   .feature-card:hover {
-    @apply shadow-md border-teal-500/30 dark:border-teal-400/30;
+    @apply shadow-md border-emerald-500/30 dark:border-emerald-400/30;
     transform: translateY(-2px);
   }
 
@@ -786,7 +786,7 @@
   }
 
   .feature-card:hover .feature-icon {
-    @apply bg-teal-100 dark:bg-teal-900/30;
+    @apply bg-emerald-100 dark:bg-emerald-900/30;
   }
 }
 
@@ -822,10 +822,10 @@
 
   .cta-button-primary {
     @apply px-6 py-3 rounded-lg;
-    @apply bg-teal-500 text-white;
+    @apply bg-emerald-500 text-white;
     @apply font-medium;
     @apply transition-all duration-200;
-    @apply hover:bg-teal-600;
+    @apply hover:bg-emerald-600;
   }
 
   .cta-button-secondary {
@@ -853,7 +853,7 @@
   }
 
   .pricing-card-featured {
-    @apply border-2 border-teal-500 dark:border-teal-400;
+    @apply border-2 border-emerald-500 dark:border-emerald-400;
   }
 
   .pricing-card-featured::before {
@@ -884,7 +884,7 @@
   }
 
   .stat-card:hover .stat-icon {
-    @apply bg-teal-100 dark:bg-teal-900/30;
+    @apply bg-emerald-100 dark:bg-emerald-900/30;
   }
 
   .stat-value {
@@ -911,12 +911,12 @@
   }
 
   .step-card:hover .step-icon {
-    @apply bg-teal-100 dark:bg-teal-900/30;
+    @apply bg-emerald-100 dark:bg-emerald-900/30;
   }
 
   .step-number {
     @apply absolute -top-1 -right-1 w-6 h-6;
-    @apply rounded-full bg-teal-500 text-white;
+    @apply rounded-full bg-emerald-500 text-white;
     @apply flex items-center justify-center;
     @apply text-xs font-bold;
   }

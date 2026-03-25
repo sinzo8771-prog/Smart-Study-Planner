@@ -3006,7 +3006,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                         ) : null}
                         <div className={`absolute inset-0 bg-gradient-to-br ${
                           course.category === 'Mathematics' ? 'from-blue-500 to-indigo-600' :
-                          course.category === 'Science' ? 'from-green-500 to-teal-600' :
+                          course.category === 'Science' ? 'from-green-500 to-emerald-600' :
                           course.category === 'Programming' ? 'from-purple-500 to-pink-600' :
                           course.category === 'Web Development' ? 'from-orange-500 to-red-600' :
                           course.category === 'Language' ? 'from-pink-500 to-rose-600' :
@@ -3743,7 +3743,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                   <div className={`h-2 ${
                     quiz.category === 'Programming' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
                     quiz.category === 'Mathematics' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                    quiz.category === 'Data Science' ? 'bg-gradient-to-r from-green-500 to-teal-500' :
+                    quiz.category === 'Data Science' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
                     quiz.category === 'Language' ? 'bg-gradient-to-r from-orange-500 to-yellow-500' :
                     quiz.category === 'Science' ? 'bg-gradient-to-r from-red-500 to-orange-500' :
                     quiz.category === 'Business' ? 'bg-gradient-to-r from-indigo-500 to-purple-500' :
@@ -5499,9 +5499,9 @@ const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index, 
         )}
         <div className={`p-6 sm:p-8 relative z-10 ${image ? '-mt-16' : ''}`}>
           <div className="feature-icon">
-            <Icon className="w-6 h-6 text-teal-500" />
+            <Icon className="w-6 h-6 text-emerald-500" />
           </div>
-          <h3 className="text-lg font-bold mb-3 text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+          <h3 className="text-lg font-bold mb-3 text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
             {title}
           </h3>
           <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
@@ -5584,7 +5584,7 @@ const TestimonialCarousel = () => {
             onClick={() => setActiveIndex(index)}
             className={`h-2 rounded-full transition-all duration-200 ${
               index === activeIndex
-                ? 'bg-teal-500 w-8'
+                ? 'bg-emerald-500 w-8'
                 : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500 w-2'
             }`}
           />
@@ -5743,13 +5743,13 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
       title: 'Course Management',
       description: 'Organize your subjects and track progress',
       icon: '📚',
-      gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
+      gradient: 'from-emerald-500 via-emerald-500 to-cyan-500',
       content: (
         <div className="space-y-3">
           {[
             { name: 'Mathematics', progress: 85, color: 'from-blue-500 to-indigo-600', icon: '📐', modules: '12/14' },
             { name: 'Physics', progress: 72, color: 'from-purple-500 to-violet-600', icon: '⚛️', modules: '8/11' },
-            { name: 'Chemistry', progress: 58, color: 'from-emerald-500 to-teal-600', icon: '🧪', modules: '7/12' },
+            { name: 'Chemistry', progress: 58, color: 'from-emerald-500 to-emerald-600', icon: '🧪', modules: '7/12' },
             { name: 'Biology', progress: 45, color: 'from-pink-500 to-rose-600', icon: '🧬', modules: '5/11' },
           ].map((subject, i) => (
             <motion.div
@@ -6042,7 +6042,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
       title: 'Get Started Today!',
       description: 'Join thousands of successful students',
       icon: '🚀',
-      gradient: 'from-green-500 via-emerald-500 to-teal-500',
+      gradient: 'from-green-500 via-emerald-500 to-emerald-500',
       content: (
         <div className="text-center py-6">
           <motion.div
@@ -7205,8 +7205,8 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                     onClick={() => scrollToSection(item.id)}
                     className={`relative px-4 py-2 text-sm font-medium transition-colors rounded-lg min-h-[44px] ${
                       activeSection === item.id
-                        ? 'text-teal-600 dark:text-teal-400'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400'
                     }`}
                   >
                     {item.label}
@@ -7246,7 +7246,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               <Button 
                 variant="ghost" 
                 onClick={onLogin} 
-                className="hidden md:flex text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-400 h-10 lg:h-11 px-3 lg:px-4"
+                className="hidden md:flex text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 h-10 lg:h-11 px-3 lg:px-4"
               >
                 Login
               </Button>
@@ -7254,7 +7254,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               {/* Get Started Button */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button 
-                  className="bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-medium h-10 lg:h-11 px-4 lg:px-5 text-sm" 
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium h-10 lg:h-11 px-4 lg:px-5 text-sm" 
                   onClick={onRegister}
                 >
                   <span className="hidden sm:inline">Get Started</span>
@@ -7305,7 +7305,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                     onClick={() => scrollToSection(item.id)}
                     className={`flex items-center gap-3 w-full text-left px-4 py-3.5 rounded-xl transition-colors min-h-[48px] ${
                       activeSection === item.id
-                        ? 'bg-slate-100 dark:bg-slate-800 text-teal-600 dark:text-teal-400'
+                        ? 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -7344,7 +7344,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                   {/* Get Started - Mobile */}
                   <Button 
                     onClick={onRegister} 
-                    className="w-full mt-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl h-12 text-base font-medium"
+                    className="w-full mt-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 text-base font-medium"
                   >
                     Get Started Free
                   </Button>
@@ -7377,7 +7377,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.15 + i * 0.05 }}
                     className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 border-white dark:border-slate-800 ${
-                      i === 1 ? 'bg-teal-500' :
+                      i === 1 ? 'bg-emerald-500' :
                       i === 2 ? 'bg-slate-600' :
                       i === 3 ? 'bg-amber-500' :
                       'bg-rose-500'
@@ -7386,7 +7386,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 ))}
               </div>
               <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-                <span className="text-teal-600 font-bold">2,500+</span> students already learning
+                <span className="text-emerald-600 font-bold">2,500+</span> students already learning
               </span>
               <div className="hidden sm:flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -7405,7 +7405,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
           >
             <span className="text-slate-900 dark:text-white">Study planning,</span>
             <br />
-            <span className="text-teal-600 dark:text-teal-400">simplified.</span>
+            <span className="text-emerald-600 dark:text-emerald-400">simplified.</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -7428,7 +7428,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto bg-teal-500 hover:bg-teal-600 text-white rounded-lg px-6 sm:px-8 py-4 sm:py-5 text-base sm:text-lg font-medium transition-all duration-200 min-h-[48px] sm:min-h-[56px]"
+                    className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-6 sm:px-8 py-4 sm:py-5 text-base sm:text-lg font-medium transition-all duration-200 min-h-[48px] sm:min-h-[56px]"
                     onClick={onRegister}
                   >
                     Get Started <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
@@ -7461,7 +7461,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                     transition={{ delay: 0.3 + i * 0.05 }}
                     className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-slate-800 rounded-full text-xs sm:text-sm text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
                   >
-                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-500" />
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" />
                     {text}
                   </motion.div>
                 ))}
@@ -7489,7 +7489,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               >
                 <div className="flex justify-center mb-3">
                   <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-teal-500" />
+                    <stat.icon className="w-6 h-6 text-emerald-500" />
                   </div>
                 </div>
                 <div className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
@@ -7521,7 +7521,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { icon: Calendar, title: 'Study Planner', description: 'Organize subjects, set exam dates, and manage tasks with a clear overview of your schedule.', color: 'bg-teal-500', image: '/images/landing/feature-planner.png' },
+              { icon: Calendar, title: 'Study Planner', description: 'Organize subjects, set exam dates, and manage tasks with a clear overview of your schedule.', color: 'bg-emerald-500', image: '/images/landing/feature-planner.png' },
               { icon: ClipboardList, title: 'Task Management', description: 'Create, edit, and track tasks with priority levels and due dates.', color: 'bg-slate-600', image: '/images/landing/feature-tasks.png' },
               { icon: BookOpen, title: 'Course Library', description: 'Access comprehensive courses with structured modules and learning materials.', color: 'bg-amber-500', image: '/images/landing/feature-courses.png' },
               { icon: Brain, title: 'Quiz Generator', description: 'Create quizzes to test your knowledge and track your progress.', color: 'bg-rose-500', image: '/images/landing/feature-quiz.png' },
@@ -7568,9 +7568,9 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               >
                 <div className="relative z-10">
                   <div className="w-14 h-14 mx-auto mb-4 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
-                    <item.icon className="w-7 h-7 text-teal-500" />
+                    <item.icon className="w-7 h-7 text-emerald-500" />
                   </div>
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-teal-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                     {index + 1}
                   </div>
                 </div>
@@ -7656,10 +7656,10 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 transition={{ delay: index * 0.1 }}
                 className={plan.popular ? 'md:-mt-4 md:mb-4' : ''}
               >
-                <Card className={`h-full relative ${plan.popular ? 'border-2 border-teal-500' : 'border border-slate-200 dark:border-slate-700'} bg-white dark:bg-slate-800 overflow-hidden group`}>
+                <Card className={`h-full relative ${plan.popular ? 'border-2 border-emerald-500' : 'border border-slate-200 dark:border-slate-700'} bg-white dark:bg-slate-800 overflow-hidden group`}>
                   {plan.popular && (
                     <div className="absolute -top-0 right-4">
-                      <Badge className="bg-teal-500 text-white rounded-b-lg rounded-t-none px-3 sm:px-4 py-1 text-xs sm:text-sm">
+                      <Badge className="bg-emerald-500 text-white rounded-b-lg rounded-t-none px-3 sm:px-4 py-1 text-xs sm:text-sm">
                         Most Popular
                       </Badge>
                     </div>
@@ -7681,7 +7681,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                           transition={{ delay: i * 0.05 }}
                           className="flex items-center gap-2 sm:gap-3"
                         >
-                          <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${plan.popular ? 'bg-teal-500' : 'bg-slate-400'} flex items-center justify-center flex-shrink-0`}>
+                          <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${plan.popular ? 'bg-emerald-500' : 'bg-slate-400'} flex items-center justify-center flex-shrink-0`}>
                             <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                           </div>
                           <span className="text-slate-600 dark:text-slate-300 text-sm sm:text-base">{f}</span>
@@ -7692,7 +7692,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                       <Button 
                         className={`w-full py-4 sm:py-5 rounded-lg font-medium text-base sm:text-lg transition-all duration-200 ${
                           plan.popular 
-                            ? 'bg-teal-500 hover:bg-teal-600 text-white' 
+                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
                             : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-900 dark:text-white'
                         }`}
                         onClick={() => {
@@ -7796,9 +7796,9 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 <Input 
                   type="email" 
                   placeholder="Enter your email" 
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-teal-500 w-full sm:w-64 md:w-72 h-12 sm:h-11 min-h-[48px]"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-emerald-500 w-full sm:w-64 md:w-72 h-12 sm:h-11 min-h-[48px]"
                 />
-                <Button className="bg-teal-500 hover:bg-teal-600 text-white whitespace-nowrap h-12 sm:h-11 min-h-[48px]">
+                <Button className="bg-emerald-500 hover:bg-emerald-600 text-white whitespace-nowrap h-12 sm:h-11 min-h-[48px]">
                   <Mail className="w-4 h-4 mr-2" />
                   Subscribe
                 </Button>
@@ -7834,7 +7834,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                       rel="noopener noreferrer"
                       whileHover={{ scale: 1.1, y: -2 }}
                       whileTap={{ scale: 0.95 }}
-                      className="w-10 h-10 bg-slate-800 hover:bg-teal-500 rounded-lg flex items-center justify-center transition-colors group"
+                      className="w-10 h-10 bg-slate-800 hover:bg-emerald-500 rounded-lg flex items-center justify-center transition-colors group"
                       aria-label={social.label}
                     >
                       <social.icon className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
@@ -7957,7 +7957,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToTop}
-            className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 w-12 h-12 bg-teal-500 text-white rounded-lg shadow-lg flex items-center justify-center hover:bg-teal-600 transition-colors"
+            className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 w-12 h-12 bg-emerald-500 text-white rounded-lg shadow-lg flex items-center justify-center hover:bg-emerald-600 transition-colors"
             aria-label="Back to top"
           >
             <ArrowUp className="w-5 h-5" />
