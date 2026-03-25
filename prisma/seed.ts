@@ -157,34 +157,7 @@ Explore the laws that govern our universe.
         }
       ]
     },
-    {
-      title: 'Chemistry Full Course',
-      description: 'Learn chemistry from atomic structure to organic chemistry. Understand reactions, bonding, and more.',
-      thumbnail: 'https://i.ytimg.com/vi/Aoi4j8es4gQ/maxresdefault.jpg',
-      category: 'Science',
-      level: 'beginner',
-      duration: 540,
-      isPublished: true,
-      modules: [
-        {
-          title: 'Quantum Numbers and Atomic Orbitals - Chemistry',
-          description: 'Full chemistry course for beginners',
-          videoUrl: 'https://www.youtube-nocookie.com/embed/Aoi4j8es4gQ',
-          content: `# Chemistry Full Course
 
-Discover the science of matter.
-
-## What You'll Learn
-- Atomic Structure
-- Periodic Table
-- Chemical Bonding
-- Chemical Reactions
-- Acids and Bases`,
-          duration: 300,
-          order: 1
-        }
-      ]
-    },
     {
       title: 'Biology Full Course',
       description: 'Explore the science of life. Learn about cells, genetics, evolution, and human biology.',
@@ -213,119 +186,9 @@ Study the science of life.
         }
       ]
     },
-    {
-      title: 'English Grammar Full Course',
-      description: 'Master English grammar from basics to advanced. Perfect for improving your writing skills.',
-      thumbnail: 'https://i.ytimg.com/vi/TsYMJQEtpJU/maxresdefault.jpg',
-      category: 'Language',
-      level: 'beginner',
-      duration: 420,
-      isPublished: true,
-      modules: [
-        {
-          title: 'Complete English Grammar - Full Beginner Course',
-          description: 'Full English grammar tutorial',
-          videoUrl: 'https://www.youtube-nocookie.com/embed/TsYMJQEtpJU',
-          content: `# English Grammar Full Course
 
-Master English grammar rules.
 
-## What You'll Learn
-- Parts of Speech
-- Sentence Structure
-- Tenses
-- Punctuation
-- Common Errors`,
-          duration: 240,
-          order: 1
-        }
-      ]
-    },
-    {
-      title: 'World History Full Course',
-      description: 'Journey through human history from ancient civilizations to modern times.',
-      thumbnail: 'https://i.ytimg.com/vi/xuCn8ux2gbs/maxresdefault.jpg',
-      category: 'History',
-      level: 'beginner',
-      duration: 720,
-      isPublished: true,
-      modules: [
-        {
-          title: 'World History - Complete Course',
-          description: 'Full world history overview',
-          videoUrl: 'https://www.youtube-nocookie.com/embed/xuCn8ux2gbs',
-          content: `# World History Full Course
 
-Explore the story of humanity.
-
-## Topics
-- Ancient Civilizations
-- Classical Period
-- Medieval Era
-- Renaissance
-- Industrial Revolution
-- Modern Era`,
-          duration: 480,
-          order: 1
-        }
-      ]
-    },
-    {
-      title: 'Economics Full Course',
-      description: 'Understand how economies work. Learn microeconomics, macroeconomics, and key principles.',
-      thumbnail: 'https://i.ytimg.com/vi/3ez10ADR_gM/maxresdefault.jpg',
-      category: 'Economics',
-      level: 'beginner',
-      duration: 480,
-      isPublished: true,
-      modules: [
-        {
-          title: 'Intro to Economics - Crash Course',
-          description: 'Full economics course',
-          videoUrl: 'https://www.youtube-nocookie.com/embed/3ez10ADR_gM',
-          content: `# Economics Full Course
-
-Learn how economies function.
-
-## What You'll Learn
-- Supply and Demand
-- Market Structures
-- GDP and Economic Growth
-- Fiscal and Monetary Policy
-- International Trade`,
-          duration: 300,
-          order: 1
-        }
-      ]
-    },
-    {
-      title: 'Personal Finance Full Course',
-      description: 'Learn to manage your money. Budgeting, investing, saving, and building wealth.',
-      thumbnail: 'https://i.ytimg.com/vi/NEzqHbtGa9U/maxresdefault.jpg',
-      category: 'Finance',
-      level: 'beginner',
-      duration: 360,
-      isPublished: true,
-      modules: [
-        {
-          title: 'How To Manage Your Money - Personal Finance',
-          description: 'Full personal finance course',
-          videoUrl: 'https://www.youtube-nocookie.com/embed/NEzqHbtGa9U',
-          content: `# Personal Finance Full Course
-
-Take control of your financial future.
-
-## Topics
-- Budgeting Basics
-- Emergency Funds
-- Debt Management
-- Investing Basics
-- Retirement Planning`,
-          duration: 240,
-          order: 1
-        }
-      ]
-    },
     {
       title: 'Psychology Full Course',
       description: 'Understand human behavior and the mind. Learn about cognitive processes and mental health.',
@@ -540,38 +403,8 @@ Master version control.
         { question: 'Formula for speed?', optionA: 'force × time', optionB: 'distance / time', optionC: 'mass × acceleration', optionD: 'energy / mass', correctAnswer: 'B', explanation: 'Speed = distance/time', points: 1, order: 5 }
       ]
     },
-    {
-      title: 'Chemistry Basics Quiz',
-      description: 'Test your chemistry knowledge',
-      category: 'Science',
-      difficulty: 'beginner',
-      duration: 15,
-      passingScore: 60,
-      isPublished: true,
-      questions: [
-        { question: 'Atomic number of Carbon?', optionA: '4', optionB: '6', optionC: '12', optionD: '8', correctAnswer: 'B', explanation: 'Carbon has 6 protons', points: 1, order: 1 },
-        { question: 'Bond with shared electrons?', optionA: 'Ionic', optionB: 'Covalent', optionC: 'Metallic', optionD: 'Hydrogen', correctAnswer: 'B', explanation: 'Covalent bonds share electrons', points: 1, order: 2 },
-        { question: 'Chemical formula for water?', optionA: 'H2O', optionB: 'CO2', optionC: 'NaCl', optionD: 'O2', correctAnswer: 'A', explanation: 'Water is H2O', points: 1, order: 3 },
-        { question: 'pH of neutral solution?', optionA: '0', optionB: '7', optionC: '14', optionD: '1', correctAnswer: 'B', explanation: 'pH 7 is neutral', points: 1, order: 4 },
-        { question: 'Negative charge particle?', optionA: 'Proton', optionB: 'Neutron', optionC: 'Electron', optionD: 'Nucleus', correctAnswer: 'C', explanation: 'Electrons are negative', points: 1, order: 5 }
-      ]
-    },
-    {
-      title: 'English Grammar Quiz',
-      description: 'Test your grammar skills',
-      category: 'Language',
-      difficulty: 'beginner',
-      duration: 15,
-      passingScore: 60,
-      isPublished: true,
-      questions: [
-        { question: 'Which is correct?', optionA: 'Their going', optionB: 'Theyre going', optionC: "They're going", optionD: 'There going', correctAnswer: 'C', explanation: "They're = they are", points: 1, order: 1 },
-        { question: 'Past tense of "write"?', optionA: 'writed', optionB: 'wrote', optionC: 'written', optionD: 'writing', correctAnswer: 'B', explanation: 'wrote is past tense', points: 1, order: 2 },
-        { question: 'Which is a proper noun?', optionA: 'city', optionB: 'Paris', optionC: 'river', optionD: 'mountain', correctAnswer: 'B', explanation: 'Paris is a specific place', points: 1, order: 3 },
-        { question: 'Correct spelling?', optionA: 'accomodate', optionB: 'acommodate', optionC: 'accommodate', optionD: 'acomodate', correctAnswer: 'C', explanation: 'accommodate is correct', points: 1, order: 4 },
-        { question: '"Quickly" is what type?', optionA: 'Adjective', optionB: 'Adverb', optionC: 'Verb', optionD: 'Noun', correctAnswer: 'B', explanation: 'Quickly is an adverb', points: 1, order: 5 }
-      ]
-    },
+
+
     {
       title: 'HTML & CSS Quiz',
       description: 'Test web development knowledge',
@@ -621,54 +454,8 @@ Master version control.
         { question: 'Basic unit of life?', optionA: 'Atom', optionB: 'Molecule', optionC: 'Cell', optionD: 'Organ', correctAnswer: 'C', explanation: 'The cell is the basic unit of life', points: 1, order: 5 }
       ]
     },
-    {
-      title: 'World History Quiz',
-      description: 'Test your history knowledge',
-      category: 'History',
-      difficulty: 'beginner',
-      duration: 15,
-      passingScore: 60,
-      isPublished: true,
-      questions: [
-        { question: 'Who built the pyramids?', optionA: 'Romans', optionB: 'Greeks', optionC: 'Egyptians', optionD: 'Mesopotamians', correctAnswer: 'C', explanation: 'Ancient Egyptians built pyramids', points: 1, order: 1 },
-        { question: 'When did WWII end?', optionA: '1943', optionB: '1944', optionC: '1945', optionD: '1946', correctAnswer: 'C', explanation: 'WWII ended in 1945', points: 1, order: 2 },
-        { question: 'First US President?', optionA: 'Jefferson', optionB: 'Washington', optionC: 'Adams', optionD: 'Franklin', correctAnswer: 'B', explanation: 'George Washington was first', points: 1, order: 3 },
-        { question: 'Renaissance began where?', optionA: 'France', optionB: 'England', optionC: 'Italy', optionD: 'Germany', correctAnswer: 'C', explanation: 'Renaissance began in Italy', points: 1, order: 4 },
-        { question: 'Trade route East to West?', optionA: 'Silk Road', optionB: 'Spice Route', optionC: 'Gold Trail', optionD: 'Trade Way', correctAnswer: 'A', explanation: 'Silk Road connected East and West', points: 1, order: 5 }
-      ]
-    },
-    {
-      title: 'Economics Fundamentals Quiz',
-      description: 'Test your economics knowledge',
-      category: 'Economics',
-      difficulty: 'beginner',
-      duration: 15,
-      passingScore: 60,
-      isPublished: true,
-      questions: [
-        { question: 'Law of supply states?', optionA: 'Price up, supply down', optionB: 'Price up, supply up', optionC: 'Price down, supply up', optionD: 'No effect', correctAnswer: 'B', explanation: 'Higher price, more supply', points: 1, order: 1 },
-        { question: 'GDP stands for?', optionA: 'General Domestic Product', optionB: 'Gross Domestic Product', optionC: 'Gross Domestic Profit', optionD: 'General Domestic Profit', correctAnswer: 'B', explanation: 'GDP = Gross Domestic Product', points: 1, order: 2 },
-        { question: 'What is inflation?', optionA: 'Price decrease', optionB: 'Price increase over time', optionC: 'Stable prices', optionD: 'Money supply decrease', correctAnswer: 'B', explanation: 'Inflation is rising prices', points: 1, order: 3 },
-        { question: 'Opportunity cost is?', optionA: 'Money spent', optionB: 'Next best alternative', optionC: 'Production cost', optionD: 'Total expenses', correctAnswer: 'B', explanation: 'Value of next best alternative', points: 1, order: 4 },
-        { question: 'US monetary policy by?', optionA: 'Congress', optionB: 'President', optionC: 'Federal Reserve', optionD: 'Treasury', correctAnswer: 'C', explanation: 'Fed controls monetary policy', points: 1, order: 5 }
-      ]
-    },
-    {
-      title: 'Personal Finance Quiz',
-      description: 'Test your finance knowledge',
-      category: 'Finance',
-      difficulty: 'beginner',
-      duration: 15,
-      passingScore: 60,
-      isPublished: true,
-      questions: [
-        { question: 'Emergency fund is for?', optionA: 'Vacations', optionB: 'Unexpected expenses', optionC: 'Investments', optionD: 'Credit limit', correctAnswer: 'B', explanation: 'Emergency fund = unexpected expenses', points: 1, order: 1 },
-        { question: 'Compound interest is?', optionA: 'Interest on principal only', optionB: 'Interest on principal + interest', optionC: 'Fixed rate', optionD: 'Bank interest', correctAnswer: 'B', explanation: 'Interest on accumulated interest', points: 1, order: 2 },
-        { question: '401(k) is a?', optionA: 'Loan', optionB: 'Retirement plan', optionC: 'Bank account', optionD: 'Insurance', correctAnswer: 'B', explanation: '401(k) is retirement savings', points: 1, order: 3 },
-        { question: 'Emergency fund size?', optionA: '1 month', optionB: '3-6 months', optionC: '1 year', optionD: '2 weeks', correctAnswer: 'B', explanation: '3-6 months expenses recommended', points: 1, order: 4 },
-        { question: 'Diversification means?', optionA: 'One stock', optionB: 'Spread investments', optionC: 'All cash', optionD: 'Only bonds', correctAnswer: 'B', explanation: 'Spread investments to reduce risk', points: 1, order: 5 }
-      ]
-    },
+
+
     {
       title: 'Psychology Fundamentals Quiz',
       description: 'Test your psychology knowledge',
@@ -765,8 +552,8 @@ Master version control.
   }
 
   console.log('\n🎉 Seed completed!');
-  console.log(`📊 ${coursesData.length} courses (10 non-tech + 5 tech)`);
-  console.log(`📊 ${quizzesData.length} quizzes (one for each course)`);
+  console.log(`📊 ${coursesData.length} courses (5 non-tech + 5 tech)`);
+  console.log(`📊 ${quizzesData.length} quizzes`);
 }
 
 main()
