@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Security headers configuration
-const securityHeaders = {
+// Security headers configuration - optimized for OAuth compatibility
+const securityHeaders: Record<string, string> = {
   // Prevent clickjacking - but allow same-origin for OAuth
   'X-Frame-Options': 'SAMEORIGIN',
   // Prevent MIME type sniffing
@@ -13,20 +13,6 @@ const securityHeaders = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   // Permissions policy
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
-  // Content Security Policy
-  'Content-Security-Policy': [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.googletagmanager.com https://www.gstatic.com https://cdn.jsdelivr.net",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https: http:",
-    "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseappcheck.googleapis.com https://www.google.com",
-    "frame-src 'self' https://gen-lang-client-0486911785.firebaseapp.com https://*.firebaseapp.com https://*.google.com https://accounts.google.com https://apis.google.com https://www.youtube.com https://youtube.com https://*.youtube.com https://www.youtube-nocookie.com https://youtube-nocookie.com",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "object-src 'none'",
-  ].join('; '),
   // Strict Transport Security (HSTS)
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
 };
@@ -82,8 +68,6 @@ const getAllowedOrigins = () => {
     origins.push(`https://${process.env.VERCEL_URL}`);
   }
 
-  // Allow all vercel.app subdomains for preview deployments
-  // This is handled dynamically in the CORS check below
   return origins;
 };
 
@@ -139,7 +123,7 @@ export function proxy(request: NextRequest) {
   // Continue to the route handler
   const response = NextResponse.next();
 
-  // Apply security headers
+  // Apply security headers (excluding CSP to avoid OAuth issues)
   Object.entries(securityHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
@@ -148,12 +132,10 @@ export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin');
     
-    // Check if origin is allowed (static list or vercel.app subdomain)
+    // Check if origin is allowed
     const isAllowed = origin && (
       allowedOrigins.includes(origin) ||
-      // Allow any vercel.app subdomain for preview deployments
       origin.endsWith('.vercel.app') ||
-      // Allow localhost on any port
       origin.startsWith('http://localhost:') ||
       origin.startsWith('http://127.0.0.1:')
     );
@@ -167,24 +149,13 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // Log API requests in development
-  if (process.env.NODE_ENV === 'development' && request.nextUrl.pathname.startsWith('/api/')) {
-    console.log(`[${new Date().toISOString()}] ${request.method} ${request.nextUrl.pathname} - IP: ${ip}`);
-  }
-
   return response;
 }
 
 // Configure which routes use this middleware
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+    // Match all request paths except static files
+    '/((?!_next/static|_next/image|favicon.ico|public/|images/).*)',
   ],
 };
