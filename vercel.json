@@ -6,7 +6,7 @@
   "regions": ["iad1"],
   "functions": {
     "src/app/api/**/*": {
-      "maxDuration": 20,
+      "maxDuration": 30,
       "memory": 1024
     }
   },

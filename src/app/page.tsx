@@ -353,12 +353,12 @@ const getLevelColor = (level: string) => {
 // API HELPERS
 // ============================================
 
-const API_TIMEOUT = 10000; // 10 seconds timeout
+const API_TIMEOUT = 20000; // 20 seconds timeout for slow connections
 
 const api = {
-  async get<T>(url: string): Promise<T> {
+  async get<T>(url: string, timeout = API_TIMEOUT): Promise<T> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
       const res = await fetch(url, { 
@@ -381,9 +381,9 @@ const api = {
     }
   },
   
-  async post<T>(url: string, data?: unknown): Promise<T> {
+  async post<T>(url: string, data?: unknown, timeout = API_TIMEOUT): Promise<T> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
       const res = await fetch(url, {
@@ -409,9 +409,9 @@ const api = {
     }
   },
   
-  async put<T>(url: string, data?: unknown): Promise<T> {
+  async put<T>(url: string, data?: unknown, timeout = API_TIMEOUT): Promise<T> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
       const res = await fetch(url, {
@@ -437,9 +437,9 @@ const api = {
     }
   },
   
-  async delete<T>(url: string): Promise<T> {
+  async delete<T>(url: string, timeout = API_TIMEOUT): Promise<T> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
       const res = await fetch(url, { 
@@ -809,6 +809,16 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month'>('week');
   const mounted = useMounted();
 
+  // Default fallback stats
+  const defaultStats: Stats = {
+    subjects: { total: 0 },
+    tasks: { total: 0, completed: 0, pending: 0, inProgress: 0, completionRate: 0, weeklyCompleted: 0, overdueTasks: 0 },
+    quizzes: { totalAttempts: 0, passed: 0, averageScore: 0, bestScore: 0, passRate: 0, improvement: 0, averageTimePerQuiz: 0, recentAttempts: [] },
+    courses: { enrolled: 0, completed: 0, averageProgress: 0, completionRate: 0 },
+    streak: { current: 0, best: 0 },
+    productivity: { score: 0, weeklyTrend: [], monthlyProgress: [], bestSubject: null, studyHoursThisWeek: 0, averageDailyStudyTime: 0 },
+  };
+
   useEffect(() => {
     // Set greeting based on time of day
     const hour = new Date().getHours();
@@ -818,21 +828,40 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
     
     const fetchData = async () => {
       try {
-        const [statsData, subjectsData, tasksData] = await Promise.all([
-          api.get<Stats>('/api/stats'),
+        // Use Promise.allSettled to handle partial failures gracefully
+        const [statsResult, subjectsResult, tasksResult] = await Promise.allSettled([
+          api.get<Stats>('/api/stats', 30000), // 30s timeout for stats
           api.get<{ subjects: Subject[] }>('/api/subjects'),
           api.get<{ tasks: Task[] }>('/api/tasks?status=pending'),
         ]);
-        setStats(statsData);
-        setSubjects(subjectsData.subjects || []);
-        setRecentTasks((tasksData.tasks || []).slice(0, 5));
-        
-        // Set streak from stats
-        if (statsData.streak) {
-          setStreak(statsData.streak);
+
+        // Handle stats result
+        if (statsResult.status === 'fulfilled') {
+          setStats(statsResult.value);
+          if (statsResult.value.streak) {
+            setStreak(statsResult.value.streak);
+          }
+        } else {
+          console.error('Failed to fetch stats:', statsResult.reason);
+          setStats(defaultStats);
+        }
+
+        // Handle subjects result
+        if (subjectsResult.status === 'fulfilled') {
+          setSubjects(subjectsResult.value.subjects || []);
+        } else {
+          console.error('Failed to fetch subjects:', subjectsResult.reason);
+        }
+
+        // Handle tasks result
+        if (tasksResult.status === 'fulfilled') {
+          setRecentTasks((tasksResult.value.tasks || []).slice(0, 5));
+        } else {
+          console.error('Failed to fetch tasks:', tasksResult.reason);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        setStats(defaultStats);
       } finally {
         setIsLoading(false);
       }
