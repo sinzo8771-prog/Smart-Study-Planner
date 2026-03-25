@@ -3,74 +3,33 @@ import { getQuizzes, shouldUseStaticData } from '@/lib/data-service';
 import { getCurrentUser, isAdmin } from '@/lib/auth';
 import { db, runMigrations } from '@/lib/db';
 import { sanitizeString, isValidCourseLevel } from '@/lib/validation';
+import { staticQuizzes } from '@/lib/static-data';
 
 // Enable dynamic rendering
 export const dynamic = 'force-dynamic';
-
-// Static quizzes for demo mode (Vercel without database)
-const staticQuizzesList = [
-  {
-    id: 'quiz-1',
-    title: 'Web Development Basics Quiz',
-    description: 'Test your knowledge of HTML, CSS, and JavaScript fundamentals',
-    courseId: 'course-1',
-    duration: 15,
-    passingScore: 60,
-    isPublished: true,
-    category: 'Programming',
-    difficulty: 'beginner',
-    createdAt: new Date(),
-    _count: { questions: 5, quizAttempts: 10 },
-  },
-  {
-    id: 'quiz-2',
-    title: 'Algebra Fundamentals Quiz',
-    description: 'Test your algebra skills',
-    courseId: 'course-2',
-    duration: 20,
-    passingScore: 70,
-    isPublished: true,
-    category: 'Mathematics',
-    difficulty: 'beginner',
-    createdAt: new Date(),
-    _count: { questions: 5, quizAttempts: 8 },
-  },
-  {
-    id: 'quiz-3',
-    title: 'Physics Mechanics Quiz',
-    description: 'Test your understanding of motion, forces, and energy',
-    courseId: 'course-5',
-    duration: 20,
-    passingScore: 60,
-    isPublished: true,
-    category: 'Science',
-    difficulty: 'intermediate',
-    createdAt: new Date(),
-    _count: { questions: 5, quizAttempts: 6 },
-  },
-  {
-    id: 'quiz-4',
-    title: 'Python Data Science Quiz',
-    description: 'Test your Python and data science knowledge',
-    courseId: 'course-3',
-    duration: 15,
-    passingScore: 60,
-    isPublished: true,
-    category: 'Data Science',
-    difficulty: 'intermediate',
-    createdAt: new Date(),
-    _count: { questions: 5, quizAttempts: 12 },
-  },
-];
 
 // GET: List all published quizzes
 export async function GET() {
   try {
     // Use static data for Vercel deployment without database
     if (shouldUseStaticData()) {
+      const quizzes = staticQuizzes.filter(q => q.isPublished).map(q => ({
+        id: q.id,
+        title: q.title,
+        description: q.description,
+        courseId: q.courseId,
+        duration: q.duration,
+        passingScore: q.passingScore,
+        isPublished: q.isPublished,
+        category: q.category || 'General',
+        difficulty: q.difficulty || 'beginner',
+        createdAt: q.createdAt,
+        _count: { questions: q.questions.length, quizAttempts: 0 },
+      }));
+      
       return NextResponse.json({
         success: true,
-        quizzes: staticQuizzesList,
+        quizzes,
       });
     }
 
@@ -83,9 +42,23 @@ export async function GET() {
   } catch (error) {
     console.error('Get quizzes error:', error);
     // Fallback to static data on error
+    const quizzes = staticQuizzes.filter(q => q.isPublished).map(q => ({
+      id: q.id,
+      title: q.title,
+      description: q.description,
+      courseId: q.courseId,
+      duration: q.duration,
+      passingScore: q.passingScore,
+      isPublished: q.isPublished,
+      category: q.category || 'General',
+      difficulty: q.difficulty || 'beginner',
+      createdAt: q.createdAt,
+      _count: { questions: q.questions.length, quizAttempts: 0 },
+    }));
+    
     return NextResponse.json({
       success: true,
-      quizzes: staticQuizzesList,
+      quizzes,
     });
   }
 }
