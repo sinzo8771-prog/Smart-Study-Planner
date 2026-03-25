@@ -3,6 +3,7 @@
 
 import { db, runMigrations } from './db';
 import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, findUserByIdFromAll } from './static-data';
+import { runCleanupIfNeeded } from './cleanup';
 
 // Re-export shouldUseStaticData for use in other modules
 export { shouldUseStaticData };
@@ -46,6 +47,9 @@ export async function getCourses(filters?: { category?: string; level?: string }
   }
 
   try {
+    // Run cleanup before fetching courses (removes unwanted courses)
+    await runCleanupIfNeeded();
+    
     const where: Record<string, unknown> = { isPublished: true };
     if (filters?.category) where.category = filters.category;
     if (filters?.level) where.level = filters.level;
