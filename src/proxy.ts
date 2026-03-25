@@ -89,8 +89,8 @@ const getAllowedOrigins = () => {
 
 const allowedOrigins = getAllowedOrigins();
 
-// CRITICAL: Must export 'middleware' function for Next.js to recognize it
-export function middleware(request: NextRequest) {
+// CRITICAL: Must export 'proxy' function for Next.js 16+ to recognize it
+export function proxy(request: NextRequest) {
   // Get client IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
              request.headers.get('x-real-ip') ||
