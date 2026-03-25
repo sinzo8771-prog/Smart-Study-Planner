@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, Suspense, useSyncExternalStore } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense, useSyncExternalStore, memo, useMemo } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -762,12 +762,15 @@ interface StudentDashboardProps {
   onViewChange: (view: string) => void;
 }
 
-// Mini Sparkline Chart Component
-const MiniSparkline = ({ data, color = '#6366f1', height = 30 }: { data: number[]; color?: string; height?: number }) => {
+// Mini Sparkline Chart Component - Memoized for performance
+const MiniSparkline = memo(({ data, color = '#6366f1', height = 30 }: { data: number[]; color?: string; height?: number }) => {
   const max = Math.max(...data, 1);
-  const points = data.map((v, i) => `${(i / (data.length - 1)) * 100},${height - (v / max) * height}`).join(' ');
+  const points = useMemo(() => 
+    data.map((v, i) => `${(i / (data.length - 1)) * 100},${height - (v / max) * height}`).join(' '),
+    [data, height, max]
+  );
   return (
-    <svg width="100%" height={height} className="overflow-visible">
+    <svg width="100%" height={height} className="overflow-visible" aria-hidden="true">
       <polyline
         fill="none"
         stroke={color}
@@ -778,17 +781,21 @@ const MiniSparkline = ({ data, color = '#6366f1', height = 30 }: { data: number[
       />
     </svg>
   );
-};
+});
+MiniSparkline.displayName = 'MiniSparkline';
 
-// Progress Ring Component
-const ProgressRing = ({ progress, size = 80, strokeWidth = 6, color = '#6366f1' }: { progress: number; size?: number; strokeWidth?: number; color?: string }) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (progress / 100) * circumference;
+// Progress Ring Component - Memoized for performance
+const ProgressRing = memo(({ progress, size = 80, strokeWidth = 6, color = '#6366f1' }: { progress: number; size?: number; strokeWidth?: number; color?: string }) => {
+  const { radius, circumference, offset } = useMemo(() => {
+    const r = (size - strokeWidth) / 2;
+    const c = r * 2 * Math.PI;
+    const o = c - (progress / 100) * c;
+    return { radius: r, circumference: c, offset: o };
+  }, [size, strokeWidth, progress]);
   
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div className="relative" style={{ width: size, height: size }} role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
+      <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
         <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-gray-200 dark:text-gray-700" />
         <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} className="transition-all duration-500" />
       </svg>
@@ -797,7 +804,8 @@ const ProgressRing = ({ progress, size = 80, strokeWidth = 6, color = '#6366f1' 
       </div>
     </div>
   );
-};
+});
+ProgressRing.displayName = 'ProgressRing';
 
 const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -1129,7 +1137,7 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
                     >
                       <item.icon className="w-4 h-4 sm:w-5 sm:h-5 mb-1 sm:mb-2" style={{ color: item.color }} />
                       <p className="text-lg sm:text-2xl font-bold">{item.value}</p>
-                      <p className="text-[10px] sm:text-xs text-gray-500">{item.label}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{item.label}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -1506,78 +1514,67 @@ interface StatsCardProps {
   sparklineData?: number[];
 }
 
-const StatsCard = ({ title, value, subtitle, icon: Icon, color, onClick, trend, sparklineData }: StatsCardProps) => {
+const StatsCard = memo(({ title, value, subtitle, icon: Icon, color, onClick, trend, sparklineData }: StatsCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
   // Extract gradient colors from the color prop
-  const colors = color.replace('from-', '').replace('to-', '').split(' ');
+  const colors = useMemo(() => color.replace('from-', '').replace('to-', '').split(' '), [color]);
   const primaryColor = colors[0] || 'blue-500';
   
   // Map Tailwind color names to hex values for sparkline
-  const colorMap: Record<string, string> = {
+  const colorMap: Record<string, string> = useMemo(() => ({
     'blue-500': '#3b82f6', 'blue-600': '#2563eb',
     'green-500': '#22c55e', 'green-600': '#16a34a',
     'purple-500': '#8b5cf6', 'purple-600': '#7c3aed',
     'orange-500': '#f97316', 'orange-600': '#ea580c',
     'pink-500': '#ec4899', 'pink-600': '#db2777',
     'indigo-500': '#6366f1', 'indigo-600': '#4f46e5',
-  };
+  }), []);
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02, y: -4 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      transition={{ duration: 0.3 }}
       className="h-full"
     >
       <Card 
-        className={`${onClick ? 'cursor-pointer' : ''} overflow-hidden group h-full`}
+        className={`${onClick ? 'cursor-pointer' : ''} overflow-hidden group h-full card-hover touch-target`}
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <motion.div 
-          className={`h-1 bg-gradient-to-r ${color}`}
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: isHovered ? 1 : 0.3 }}
-          transition={{ duration: 0.3 }}
+        <div 
+          className={`h-1 bg-gradient-to-r ${color} transition-transform duration-300`}
+          style={{ transform: isHovered ? 'scaleX(1)' : 'scaleX(0.3)' }}
         />
         <CardContent className="p-3 sm:p-4 relative overflow-hidden">
           {/* Background decoration */}
-          <motion.div 
-            className={`absolute -right-4 -top-4 w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br ${color} opacity-5 rounded-full blur-xl`}
-            animate={{ scale: isHovered ? 1.5 : 1 }}
-            transition={{ duration: 0.3 }}
+          <div 
+            className={`absolute -right-4 -top-4 w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br ${color} opacity-5 rounded-full blur-xl transition-transform duration-300`}
+            style={{ transform: isHovered ? 'scale(1.5)' : 'scale(1)' }}
           />
           
           <div className="flex items-center justify-between relative mb-1 sm:mb-2">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-0.5 truncate">{title}</p>
-              <motion.p 
-                className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate"
-                initial={{ scale: 1 }}
-                animate={{ scale: isHovered ? 1.05 : 1 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-0.5 truncate">{title}</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
                 {value}
-              </motion.p>
+              </p>
               {subtitle && (
-                <p className="text-[10px] sm:text-xs text-gray-400 truncate">{subtitle}</p>
+                <p className="text-xs text-gray-400 truncate">{subtitle}</p>
               )}
             </div>
-            <motion.div 
-              className={`p-2 sm:p-2.5 rounded-xl bg-gradient-to-br ${color} shadow-lg flex-shrink-0`}
-              whileHover={{ rotate: 10 }}
-              transition={{ type: 'spring', stiffness: 300 }}
+            <div 
+              className={`p-2.5 sm:p-3 rounded-xl bg-gradient-to-br ${color} shadow-lg flex-shrink-0 transition-transform duration-200`}
             >
-              <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </motion.div>
+              <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden="true" />
+            </div>
           </div>
           
           {/* Sparkline */}
           {sparklineData && sparklineData.length > 0 && (
-            <div className="mt-2 h-8 relative">
+            <div className="mt-2 h-8 relative" aria-label={`Trend: ${title}`}>
               <MiniSparkline 
                 data={sparklineData} 
                 color={colorMap[primaryColor] || '#6366f1'} 
@@ -1588,16 +1585,17 @@ const StatsCard = ({ title, value, subtitle, icon: Icon, color, onClick, trend, 
           
           {/* Trend indicator */}
           {trend && !sparklineData && (
-            <div className={`flex items-center gap-1 mt-1 text-xs ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
-              <TrendingUp className={`w-3 h-3 ${!trend.isPositive ? 'rotate-180' : ''}`} />
-              {trend.value}%
+            <div className={`flex items-center gap-1 mt-1 text-xs sm:text-sm ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+              <TrendingUp className={`w-3 h-3 sm:w-4 sm:h-4 ${!trend.isPositive ? 'rotate-180' : ''}`} aria-hidden="true" />
+              <span>{trend.value}%</span>
             </div>
           )}
         </CardContent>
       </Card>
     </motion.div>
   );
-};
+});
+StatsCard.displayName = 'StatsCard';
 
 // ============================================
 // STUDY PLANNER MODULE
@@ -2216,7 +2214,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                           {dayTasks.slice(0, 2).map((task, i) => (
                             <div 
                               key={i}
-                              className="text-[10px] truncate px-1 py-0.5 rounded text-white"
+                              className="text-xs truncate px-1 py-0.5 rounded text-white"
                               style={{ backgroundColor: task.subject?.color || '#6366f1' }}
                               title={task.title}
                             >
@@ -2226,14 +2224,14 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                           {dayExams.slice(0, dayTasks.length > 1 ? 0 : 1).map((exam, i) => (
                             <div 
                               key={i}
-                              className="text-[10px] truncate px-1 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                              className="text-xs truncate px-1 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
                               title={`${exam.name} Exam`}
                             >
                               📝 {exam.name}
                             </div>
                           ))}
                           {(dayTasks.length > 2 || (dayTasks.length > 0 && dayExams.length > 0)) && (
-                            <div className="text-[9px] text-gray-400 px-1">
+                            <div className="text-xs text-gray-400 px-1">
                               +{dayTasks.length + dayExams.length - 2} more
                             </div>
                           )}

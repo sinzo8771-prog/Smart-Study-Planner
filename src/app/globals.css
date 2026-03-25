@@ -992,3 +992,313 @@
     animation: pulse-glow 4s ease-in-out infinite;
   }
 }
+
+/* ============================================
+   PERFORMANCE-OPTIMIZED CSS ANIMATIONS
+   Replace heavy Framer Motion animations
+   ============================================ */
+
+/* Fade in up animation */
+@layer utilities {
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.4s ease-out forwards;
+  }
+
+  .animate-fade-in-up-delay-1 {
+    animation: fade-in-up 0.4s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-2 {
+    animation: fade-in-up 0.4s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-3 {
+    animation: fade-in-up 0.4s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+}
+
+/* Fade in animation */
+@layer utilities {
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+
+  .animate-fade-in-slow {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+}
+
+/* Scale in animation */
+@layer utilities {
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out forwards;
+  }
+}
+
+/* Slide in from left */
+@layer utilities {
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s ease-out forwards;
+  }
+}
+
+/* Slide in from right */
+@layer utilities {
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out forwards;
+  }
+}
+
+/* Stagger animation for lists */
+@layer utilities {
+  .stagger-item {
+    opacity: 0;
+    animation: fade-in-up 0.4s ease-out forwards;
+  }
+
+  .stagger-item:nth-child(1) { animation-delay: 0ms; }
+  .stagger-item:nth-child(2) { animation-delay: 50ms; }
+  .stagger-item:nth-child(3) { animation-delay: 100ms; }
+  .stagger-item:nth-child(4) { animation-delay: 150ms; }
+  .stagger-item:nth-child(5) { animation-delay: 200ms; }
+  .stagger-item:nth-child(6) { animation-delay: 250ms; }
+  .stagger-item:nth-child(7) { animation-delay: 300ms; }
+  .stagger-item:nth-child(8) { animation-delay: 350ms; }
+  .stagger-item:nth-child(9) { animation-delay: 400ms; }
+  .stagger-item:nth-child(10) { animation-delay: 450ms; }
+}
+
+/* Hover lift effect (CSS alternative to whileHover) */
+@layer utilities {
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  @media (hover: hover) {
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+/* Tap scale effect (CSS alternative to whileTap) */
+@layer utilities {
+  .tap-scale {
+    transition: transform 0.1s ease-out;
+  }
+
+  .tap-scale:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Card hover effect */
+@layer utilities {
+  .card-hover {
+    transition: all 0.2s ease-out;
+  }
+
+  @media (hover: hover) {
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.12);
+    }
+  }
+}
+
+/* Button press effect */
+@layer utilities {
+  .btn-press {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  }
+
+  .btn-press:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+}
+
+/* Skeleton loading animation */
+@layer utilities {
+  @keyframes skeleton-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .skeleton-pulse {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+
+  .skeleton {
+    @apply bg-slate-200 dark:bg-slate-700 rounded;
+  }
+
+  .skeleton-text {
+    @apply skeleton skeleton-pulse h-4 w-full mb-2;
+  }
+
+  .skeleton-title {
+    @apply skeleton skeleton-pulse h-6 w-3/4 mb-4;
+  }
+
+  .skeleton-avatar {
+    @apply skeleton skeleton-pulse h-10 w-10 rounded-full;
+  }
+
+  .skeleton-card {
+    @apply skeleton skeleton-pulse h-40 w-full rounded-xl;
+  }
+}
+
+/* Optimized will-change for animations */
+@layer utilities {
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  .will-change-opacity {
+    will-change: opacity;
+  }
+
+  .will-change-contents {
+    will-change: contents;
+  }
+
+  /* Remove will-change after animation */
+  .animate-once {
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+  }
+}
+
+/* Contain performance for complex components */
+@layer utilities {
+  .contain-layout {
+    contain: layout;
+  }
+
+  .contain-paint {
+    contain: paint;
+  }
+
+  .contain-strict {
+    contain: strict;
+  }
+}
+
+/* Content visibility for off-screen optimization */
+@layer utilities {
+  .content-auto {
+    content-visibility: auto;
+  }
+
+  .content-hidden {
+    content-visibility: hidden;
+  }
+
+  .content-visible {
+    content-visibility: visible;
+  }
+}
+
+/* Optimized transitions */
+@layer utilities {
+  .transition-fast {
+    transition: all 0.15s ease-out;
+  }
+
+  .transition-medium {
+    transition: all 0.2s ease-out;
+  }
+
+  .transition-slow {
+    transition: all 0.3s ease-out;
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Reduce animation complexity on mobile */
+  .animate-fade-in-up,
+  .animate-slide-in-left,
+  .animate-slide-in-right {
+    animation-duration: 0.2s;
+  }
+
+  /* Simpler hover effects */
+  .hover-lift:hover {
+    transform: none;
+  }
+
+  /* Faster transitions */
+  .transition-fast,
+  .transition-medium,
+  .transition-slow {
+    transition-duration: 0.15s;
+  }
+}
+
+/* Desktop-specific optimizations */
+@media (min-width: 1024px) {
+  /* Enable hover effects only on desktop */
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+}
