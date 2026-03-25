@@ -1617,6 +1617,17 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'subject' | 'task'; id: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // New state for improvements
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'overdue'>('all');
+  const [studyTimer, setStudyTimer] = useState<{ isRunning: boolean; seconds: number; subjectId: string | null }>({
+    isRunning: false,
+    seconds: 0,
+    subjectId: null
+  });
+  const [showTimerDialog, setShowTimerDialog] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Form states
   const [subjectForm, setSubjectForm] = useState({
@@ -1781,6 +1792,117 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     setEditingTask(null);
   };
 
+  // Timer functions
+  useEffect(() => {
+    if (studyTimer.isRunning) {
+      timerRef.current = setInterval(() => {
+        setStudyTimer(prev => ({ ...prev, seconds: prev.seconds + 1 }));
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [studyTimer.isRunning]);
+
+  const formatTimeFromSeconds = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const startTimer = (subjectId: string) => {
+    setStudyTimer({ isRunning: true, seconds: 0, subjectId });
+  };
+
+  const pauseTimer = () => {
+    setStudyTimer(prev => ({ ...prev, isRunning: false }));
+  };
+
+  const resetTimer = () => {
+    setStudyTimer({ isRunning: false, seconds: 0, subjectId: null });
+    setShowTimerDialog(false);
+  };
+
+  // Overdue detection
+  const isOverdue = (task: Task) => {
+    if (task.status === 'completed' || !task.dueDate) return false;
+    return new Date(task.dueDate) < new Date();
+  };
+
+  const getOverdueTasks = () => tasks.filter(isOverdue);
+  
+  const getUpcomingTasks = () => {
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return tasks.filter(t => {
+      if (t.status === 'completed' || !t.dueDate) return false;
+      const dueDate = new Date(t.dueDate);
+      return dueDate >= today && dueDate <= nextWeek;
+    });
+  };
+
+  // Smart suggestions
+  const getSmartSuggestions = () => {
+    const suggestions: { task: Task; reason: string; urgency: 'high' | 'medium' | 'low' }[] = [];
+    
+    // Overdue tasks - highest priority
+    getOverdueTasks().forEach(task => {
+      suggestions.push({
+        task,
+        reason: 'Overdue - needs immediate attention',
+        urgency: 'high'
+      });
+    });
+    
+    // High priority pending tasks
+    tasks.filter(t => t.status !== 'completed' && t.priority === 'high' && !isOverdue(t))
+      .forEach(task => {
+        suggestions.push({
+          task,
+          reason: 'High priority task',
+          urgency: 'high'
+        });
+      });
+    
+    // Tasks due in next 3 days
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    tasks.filter(t => {
+      if (t.status === 'completed' || isOverdue(t)) return false;
+      if (!t.dueDate) return false;
+      return new Date(t.dueDate) <= threeDaysFromNow;
+    }).forEach(task => {
+      if (!suggestions.find(s => s.task.id === task.id)) {
+        suggestions.push({
+          task,
+          reason: 'Due soon',
+          urgency: 'medium'
+        });
+      }
+    });
+    
+    return suggestions.slice(0, 5);
+  };
+
+  // Filtered tasks based on filter selection
+  const getFilteredTasks = () => {
+    switch (taskFilter) {
+      case 'pending':
+        return tasks.filter(t => t.status === 'pending' && !isOverdue(t));
+      case 'in_progress':
+        return tasks.filter(t => t.status === 'in_progress');
+      case 'completed':
+        return tasks.filter(t => t.status === 'completed');
+      case 'overdue':
+        return tasks.filter(isOverdue);
+      default:
+        return tasks;
+    }
+  };
+
   // Calculate completion percentage
   const getCompletionPercentage = (subjectId: string) => {
     const subjectTasks = tasks.filter(t => t.subjectId === subjectId);
@@ -1795,13 +1917,30 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Timer */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Study Planner</h2>
-          <p className="text-gray-500">Organize your subjects and tasks</p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Study Planner</h2>
+            <p className="text-gray-500">Organize your subjects and tasks</p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          {/* Study Timer Quick Access */}
+          {studyTimer.isRunning && studyTimer.subjectId && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg text-white">
+              <Timer className="w-4 h-4 animate-pulse" />
+              <span className="font-mono font-bold">{formatTimeFromSeconds(studyTimer.seconds)}</span>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-7 w-7 p-0 text-white hover:bg-white/20"
+                onClick={() => setShowTimerDialog(true)}
+              >
+                <Pause className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
           <Button
             onClick={() => {
               resetTaskForm();
@@ -1825,8 +1964,71 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </div>
       </div>
 
+      {/* Overdue Alert Banner */}
+      {getOverdueTasks().length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-red-700 dark:text-red-400">
+                    {getOverdueTasks().length} Overdue Task{getOverdueTasks().length > 1 ? 's' : ''}
+                  </p>
+                  <p className="text-sm text-red-600 dark:text-red-300">
+                    {getOverdueTasks().map(t => t.title).slice(0, 3).join(', ')}
+                    {getOverdueTasks().length > 3 && ` and ${getOverdueTasks().length - 3} more`}
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  onClick={() => setTaskFilter('overdue')}
+                >
+                  View All
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Smart Suggestions */}
+      {getSmartSuggestions().length > 0 && (
+        <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              Smart Suggestions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {getSmartSuggestions().map((suggestion, idx) => (
+                <div
+                  key={idx}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+                    suggestion.urgency === 'high' 
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
+                      : suggestion.urgency === 'medium'
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                  }`}
+                >
+                  <span className="font-medium truncate max-w-[150px]">{suggestion.task.title}</span>
+                  <span className="text-xs opacity-70">• {suggestion.reason}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <StatsCard
           title="Total Subjects"
           value={subjects.length}
@@ -1846,10 +2048,10 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
           color="from-green-500 to-green-600"
         />
         <StatsCard
-          title="Pending"
-          value={tasks.filter(t => t.status === 'pending').length}
-          icon={Clock}
-          color="from-orange-500 to-orange-600"
+          title="Overdue"
+          value={getOverdueTasks().length}
+          icon={AlertCircle}
+          color="from-red-500 to-red-600"
         />
       </div>
 
@@ -1985,6 +2187,19 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                         <Plus className="w-4 h-4 mr-2" />
                         Add Task
                       </Button>
+                      
+                      {/* Study Timer Button */}
+                      <Button
+                        variant="ghost"
+                        className="w-full mt-2 text-sm"
+                        onClick={() => {
+                          startTimer(subject.id);
+                          setShowTimerDialog(true);
+                        }}
+                      >
+                        <Timer className="w-4 h-4 mr-2" />
+                        Start Study Session
+                      </Button>
                     </CardContent>
                   </Card>
                 );
@@ -1998,7 +2213,24 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>All Tasks</CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {/* Task Filter */}
+                  <Select
+                    value={taskFilter}
+                    onValueChange={(value) => setTaskFilter(value as typeof taskFilter)}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Tasks</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {/* Subject Filter */}
                   <Select
                     value={selectedSubject?.id || 'all'}
                     onValueChange={(value) => setSelectedSubject(value === 'all' ? null : subjects.find(s => s.id === value) || null)}
@@ -2022,14 +2254,23 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>No tasks yet. Add your first task to get started.</p>
                 </div>
+              ) : getFilteredTasks().filter(t => !selectedSubject || t.subjectId === selectedSubject.id).length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Filter className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No tasks match the current filters.</p>
+                </div>
               ) : (
                 <div className="space-y-3">
-                  {tasks
+                  {getFilteredTasks()
                     .filter(t => !selectedSubject || t.subjectId === selectedSubject.id)
                     .map((task) => (
                       <div
                         key={task.id}
-                        className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+                        className={`flex items-center gap-4 p-4 rounded-lg ${
+                          isOverdue(task) 
+                            ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' 
+                            : 'bg-gray-50 dark:bg-gray-800'
+                        }`}
                       >
                         <button
                           onClick={() => handleToggleTaskStatus(task)}
@@ -2117,24 +2358,34 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      const prevMonth = new Date();
+                      const prevMonth = new Date(currentMonth);
                       prevMonth.setMonth(prevMonth.getMonth() - 1);
+                      setCurrentMonth(prevMonth);
                     }}
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
                   <span className="text-sm font-medium min-w-[120px] text-center">
-                    {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </span>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      const nextMonth = new Date();
+                      const nextMonth = new Date(currentMonth);
                       nextMonth.setMonth(nextMonth.getMonth() + 1);
+                      setCurrentMonth(nextMonth);
                     }}
                   >
                     <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentMonth(new Date())}
+                    className="text-xs"
+                  >
+                    Today
                   </Button>
                 </div>
               </div>
@@ -2154,8 +2405,8 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                 {/* Calendar Days */}
                 {(() => {
                   const today = new Date();
-                  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-                  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+                  const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
                   const startPadding = firstDay.getDay();
                   const totalDays = lastDay.getDate();
                   
@@ -2189,7 +2440,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   
                   // Days of month
                   for (let day = 1; day <= totalDays; day++) {
-                    const date = new Date(today.getFullYear(), today.getMonth(), day);
+                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
                     const dateKey = date.toDateString();
                     const isToday = date.toDateString() === today.toDateString();
                     const dayTasks = tasksByDate[dateKey] || [];
@@ -2477,6 +2728,100 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Study Timer Dialog */}
+      <Dialog open={showTimerDialog} onOpenChange={setShowTimerDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Timer className="w-5 h-5 text-indigo-500" />
+              Study Timer
+            </DialogTitle>
+            <DialogDescription>
+              {subjects.find(s => s.id === studyTimer.subjectId)?.name || 'Select a subject to start studying'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center py-8">
+            {/* Timer Display */}
+            <div className="text-6xl font-mono font-bold text-gray-900 dark:text-white mb-8">
+              {formatTimeFromSeconds(studyTimer.seconds)}
+            </div>
+            
+            {/* Timer Controls */}
+            <div className="flex gap-4">
+              {!studyTimer.isRunning ? (
+                <Button 
+                  size="lg"
+                  className="bg-gradient-to-r from-indigo-500 to-purple-600"
+                  onClick={() => {
+                    if (!studyTimer.subjectId && subjects.length > 0) {
+                      setStudyTimer(prev => ({ ...prev, subjectId: subjects[0].id }));
+                    }
+                    setStudyTimer(prev => ({ ...prev, isRunning: true }));
+                  }}
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  {studyTimer.seconds > 0 ? 'Resume' : 'Start'}
+                </Button>
+              ) : (
+                <Button 
+                  size="lg"
+                  variant="outline"
+                  onClick={pauseTimer}
+                >
+                  <Pause className="w-5 h-5 mr-2" />
+                  Pause
+                </Button>
+              )}
+              
+              {studyTimer.seconds > 0 && (
+                <Button 
+                  size="lg"
+                  variant="destructive"
+                  onClick={resetTimer}
+                >
+                  Reset
+                </Button>
+              )}
+            </div>
+            
+            {/* Subject Selection when not running */}
+            {!studyTimer.isRunning && studyTimer.seconds === 0 && subjects.length > 0 && (
+              <div className="mt-6 w-full">
+                <Label className="mb-2 block">Select Subject</Label>
+                <Select
+                  value={studyTimer.subjectId || ''}
+                  onValueChange={(value) => setStudyTimer(prev => ({ ...prev, subjectId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: s.color }}
+                          />
+                          {s.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTimerDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
