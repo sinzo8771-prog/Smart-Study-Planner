@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { isCleanupCompleted, markCleanupCompleted } from './cache';
 
 // Courses to remove
 const COURSES_TO_REMOVE = [
@@ -135,94 +136,127 @@ const QUIZZES_TO_SEED = [
   }
 ];
 
-let cleanupDone = false;
+// Track if cleanup is in progress
+let cleanupInProgress = false;
 
+/**
+ * Run cleanup in the background - non-blocking
+ * This function returns immediately and runs cleanup async
+ */
+export function runCleanupInBackground(): void {
+  // Skip if already done or in progress
+  if (isCleanupCompleted() || cleanupInProgress) {
+    return;
+  }
+
+  // Mark as in progress
+  cleanupInProgress = true;
+
+  // Run cleanup asynchronously without blocking
+  runCleanupIfNeeded()
+    .catch((error) => {
+      console.error('Background cleanup error:', error);
+    })
+    .finally(() => {
+      cleanupInProgress = false;
+    });
+}
+
+/**
+ * Main cleanup function - only runs once per deployment
+ */
 export async function runCleanupIfNeeded(): Promise<void> {
-  // Only run once per server instance
-  if (cleanupDone) return;
+  // Only run once per deployment
+  if (isCleanupCompleted()) return;
   
   try {
-    // Run course cleanup
+    // Run course cleanup (fast check first)
     await runCourseCleanup();
     
     // Ensure quizzes exist
     await ensureQuizzesExist();
     
-    cleanupDone = true;
+    // Mark as completed
+    markCleanupCompleted();
   } catch (error) {
     console.error('Cleanup error (non-fatal):', error);
-    cleanupDone = true; // Don't retry on error
+    // Mark as completed anyway to prevent retries
+    markCleanupCompleted();
   }
 }
 
 async function runCourseCleanup(): Promise<void> {
-  // Quick check if cleanup is needed
-  const coursesCount = await db.course.count({
-    where: {
-      title: { in: COURSES_TO_REMOVE }
-    }
-  });
-  
-  if (coursesCount === 0) {
-    return;
-  }
-  
-  console.log('🧹 Running course cleanup...');
-  
-  for (const courseTitle of COURSES_TO_REMOVE) {
-    const course = await db.course.findFirst({
-      where: { title: courseTitle },
-      include: { modules: true }
+  try {
+    // Quick check if cleanup is needed
+    const coursesCount = await db.course.count({
+      where: {
+        title: { in: COURSES_TO_REMOVE }
+      }
     });
     
-    if (course) {
-      console.log(`Removing: ${courseTitle}`);
-      
-      // Delete module progress
-      for (const courseModule of course.modules) {
-        await db.moduleProgress.deleteMany({
-          where: { moduleId: courseModule.id }
-        }).catch(() => {});
-      }
-      
-      // Delete course progress
-      await db.courseProgress.deleteMany({
-        where: { courseId: course.id }
-      }).catch(() => {});
-      
-      // Delete modules
-      await db.module.deleteMany({
-        where: { courseId: course.id }
-      }).catch(() => {});
-      
-      // Delete related quizzes
-      const quizzes = await db.quiz.findMany({
-        where: { courseId: course.id }
+    if (coursesCount === 0) {
+      return;
+    }
+    
+    console.log('🧹 Running course cleanup...');
+    
+    for (const courseTitle of COURSES_TO_REMOVE) {
+      const course = await db.course.findFirst({
+        where: { title: courseTitle },
+        include: { modules: true }
       });
       
-      for (const quiz of quizzes) {
-        await db.question.deleteMany({
-          where: { quizId: quiz.id }
+      if (course) {
+        console.log(`Removing: ${courseTitle}`);
+        
+        // Delete module progress
+        for (const courseModule of course.modules) {
+          await db.moduleProgress.deleteMany({
+            where: { moduleId: courseModule.id }
+          }).catch(() => {});
+        }
+        
+        // Delete course progress
+        await db.courseProgress.deleteMany({
+          where: { courseId: course.id }
         }).catch(() => {});
-        await db.quizAttempt.deleteMany({
-          where: { quizId: quiz.id }
+        
+        // Delete modules
+        await db.module.deleteMany({
+          where: { courseId: course.id }
         }).catch(() => {});
+        
+        // Delete related quizzes
+        const quizzes = await db.quiz.findMany({
+          where: { courseId: course.id }
+        });
+        
+        for (const quiz of quizzes) {
+          await db.question.deleteMany({
+            where: { quizId: quiz.id }
+          }).catch(() => {});
+          await db.quizAttempt.deleteMany({
+            where: { quizId: quiz.id }
+          }).catch(() => {});
+        }
+        
+        await db.quiz.deleteMany({
+          where: { courseId: course.id }
+        }).catch(() => {});
+        
+        // Delete the course
+        await db.course.delete({
+          where: { id: course.id }
+        }).catch(() => {});
+        
+        console.log(`✅ Removed: ${courseTitle}`);
       }
-      
-      await db.quiz.deleteMany({
-        where: { courseId: course.id }
-      }).catch(() => {});
-      
-      // Delete the course
-      await db.course.delete({
-        where: { id: course.id }
-      }).catch(() => {});
-      
-      console.log(`✅ Removed: ${courseTitle}`);
     }
+    
+    console.log('✅ Course cleanup complete');
+  } catch (error) {
+    console.error('Course cleanup error:', error);
   }
-  
-  console.log('✅ Course cleanup complete');
 }
 
 async function ensureQuizzesExist(): Promise<void> {

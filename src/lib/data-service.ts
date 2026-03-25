@@ -3,7 +3,8 @@
 
 import { db, runMigrations } from './db';
 import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, findUserByIdFromAll } from './static-data';
-import { runCleanupIfNeeded } from './cleanup';
+import { cachedFetch, getCached, setCache, CACHE_KEYS, CACHE_TTL, invalidateCachePattern } from './cache';
+import { runCleanupInBackground } from './cleanup';
 
 // Re-export shouldUseStaticData for use in other modules
 export { shouldUseStaticData };
@@ -46,65 +47,46 @@ export async function getCourses(filters?: { category?: string; level?: string }
     }));
   }
 
-  try {
-    // Run cleanup before fetching courses (removes unwanted courses)
-    await runCleanupIfNeeded();
-    
-    const where: Record<string, unknown> = { isPublished: true };
-    if (filters?.category) where.category = filters.category;
-    if (filters?.level) where.level = filters.level;
+  // Use cache for courses
+  const cacheKey = filters 
+    ? `${CACHE_KEYS.COURSES}_${filters.category || 'all'}_${filters.level || 'all'}`
+    : CACHE_KEYS.COURSES;
 
-    const courses = await db.course.findMany({
-      where,
-      include: {
-        modules: {
-          orderBy: { order: 'asc' },
-          select: { 
-            id: true, 
-            title: true, 
-            description: true,
-            content: true,
-            videoUrl: true,
-            duration: true, 
-            order: true,
-            courseId: true,
+  return cachedFetch(
+    cacheKey,
+    async () => {
+      // Run cleanup in background (non-blocking)
+      runCleanupInBackground();
+      
+      const where: Record<string, unknown> = { isPublished: true };
+      if (filters?.category) where.category = filters.category;
+      if (filters?.level) where.level = filters.level;
+
+      const courses = await db.course.findMany({
+        where,
+        include: {
+          modules: {
+            orderBy: { order: 'asc' },
+            select: { 
+              id: true, 
+              title: true, 
+              description: true,
+              content: true,
+              videoUrl: true,
+              duration: true, 
+              order: true,
+              courseId: true,
+            },
           },
+          _count: { select: { modules: true } },
         },
-        _count: { select: { modules: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+      });
 
-    return courses;
-  } catch (error) {
-    console.error('[DataService] getCourses error, falling back to static:', error);
-    return staticCourses.filter(c => c.isPublished).map(c => ({
-      id: c.id,
-      title: c.title,
-      description: c.description,
-      thumbnail: c.thumbnail,
-      category: c.category,
-      level: c.level,
-      duration: c.duration,
-      isPublished: c.isPublished,
-      createdBy: c.createdBy,
-      createdAt: c.createdAt,
-      updatedAt: c.updatedAt,
-      modules: c.modules.map(m => ({
-        id: m.id,
-        title: m.title,
-        description: m.description,
-        content: m.content,
-        videoUrl: m.videoUrl,
-        duration: m.duration,
-        order: m.order,
-        courseId: m.courseId,
-        createdAt: m.createdAt,
-        updatedAt: m.updatedAt,
-      })),
-      _count: { modules: c.modules.length },
-    }));
-  }
+      return courses;
+    },
+    CACHE_TTL.LONG // Cache for 5 minutes
+  );
 }
 
 export async function getCourseById(id: string) {
@@ -128,36 +110,22 @@ export async function getCourseById(id: string) {
     };
   }
 
-  try {
-    const course = await db.course.findFirst({
-      where: { id, isPublished: true },
-      include: {
-        modules: { orderBy: { order: 'asc' } },
-        _count: { select: { modules: true } },
-      },
-    });
-    if (!course) return null;
-    return course;
-  } catch (error) {
-    console.error('[DataService] getCourseById error, falling back to static:', error);
-    const course = staticCourses.find(c => c.id === id && c.isPublished);
-    if (!course) return null;
-    return {
-      id: course.id,
-      title: course.title,
-      description: course.description,
-      thumbnail: course.thumbnail,
-      category: course.category,
-      level: course.level,
-      duration: course.duration,
-      isPublished: course.isPublished,
-      createdBy: course.createdBy,
-      createdAt: course.createdAt,
-      updatedAt: course.updatedAt,
-      modules: course.modules,
-      _count: { modules: course.modules.length },
-    };
-  }
+  const cacheKey = `${CACHE_KEYS.COURSES}_${id}`;
+  
+  return cachedFetch(
+    cacheKey,
+    async () => {
+      const course = await db.course.findFirst({
+        where: { id, isPublished: true },
+        include: {
+          modules: { orderBy: { order: 'asc' } },
+          _count: { select: { modules: true } },
+        },
+      });
+      return course;
+    },
+    CACHE_TTL.LONG
+  );
 }
 
 export async function getModuleById(id: string) {
@@ -169,16 +137,15 @@ export async function getModuleById(id: string) {
     return null;
   }
 
-  try {
-    return await db.module.findUnique({ where: { id } });
-  } catch (error) {
-    console.error('[DataService] getModuleById error, falling back to static:', error);
-    for (const course of staticCourses) {
-      const moduleData = course.modules.find(m => m.id === id);
-      if (moduleData) return moduleData;
-    }
-    return null;
-  }
+  const cacheKey = `module_${id}`;
+  
+  return cachedFetch(
+    cacheKey,
+    async () => {
+      return await db.module.findUnique({ where: { id } });
+    },
+    CACHE_TTL.LONG
+  );
 }
 
 // Quiz operations
@@ -198,33 +165,21 @@ export async function getQuizzes() {
     }));
   }
 
-  try {
-    // Run migrations before querying Quiz table
-    await runMigrations();
-    
-    // Run cleanup to ensure quizzes exist
-    await runCleanupIfNeeded();
+  return cachedFetch(
+    CACHE_KEYS.QUIZZES,
+    async () => {
+      // Run migrations and cleanup in background (non-blocking)
+      runMigrations().catch(() => {});
+      runCleanupInBackground();
 
-    return await db.quiz.findMany({
-      where: { isPublished: true },
-      include: { _count: { select: { questions: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
-  } catch (error) {
-    console.error('[DataService] getQuizzes error, falling back to static:', error);
-    return staticQuizzes.filter(q => q.isPublished).map(q => ({
-      id: q.id,
-      title: q.title,
-      description: q.description,
-      courseId: q.courseId,
-      duration: q.duration,
-      passingScore: q.passingScore,
-      category: q.category || 'General',
-      difficulty: q.difficulty || 'beginner',
-      questionCount: q.questions.length,
-      _count: { questions: q.questions.length },
-    }));
-  }
+      return await db.quiz.findMany({
+        where: { isPublished: true },
+        include: { _count: { select: { questions: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+    CACHE_TTL.LONG
+  );
 }
 
 export async function getQuizById(id: string) {
@@ -235,25 +190,26 @@ export async function getQuizById(id: string) {
     return { ...quiz, questionCount: quiz.questions.length };
   }
 
-  try {
-    // Run migrations before querying Quiz table
-    await runMigrations();
+  const cacheKey = `quiz_${id}`;
+  
+  return cachedFetch(
+    cacheKey,
+    async () => {
+      // Run migrations before querying Quiz table
+      await runMigrations();
 
-    const quiz = await db.quiz.findFirst({
-      where: { id, isPublished: true },
-      include: {
-        questions: { orderBy: { order: 'asc' } },
-        _count: { select: { questions: true } },
-      },
-    });
-    if (!quiz) return null;
-    return { ...quiz, questionCount: quiz._count.questions };
-  } catch (error) {
-    console.error('[DataService] getQuizById error, falling back to static:', error);
-    const quiz = staticQuizzes.find(q => q.id === id && q.isPublished);
-    if (!quiz) return null;
-    return { ...quiz, questionCount: quiz.questions.length };
-  }
+      const quiz = await db.quiz.findFirst({
+        where: { id, isPublished: true },
+        include: {
+          questions: { orderBy: { order: 'asc' } },
+          _count: { select: { questions: true } },
+        },
+      });
+      if (!quiz) return null;
+      return { ...quiz, questionCount: quiz._count.questions };
+    },
+    CACHE_TTL.MEDIUM
+  );
 }
 
 // User operations
@@ -263,12 +219,15 @@ export async function getUserByEmail(email: string) {
     return findUserByEmailFromAll(email);
   }
 
-  try {
-    return await db.user.findUnique({ where: { email } });
-  } catch (error) {
-    console.error('[DataService] getUserByEmail error, falling back to static:', error);
-    return findUserByEmailFromAll(email);
-  }
+  const cacheKey = `${CACHE_KEYS.USER_PREFIX}email_${email}`;
+  
+  return cachedFetch(
+    cacheKey,
+    async () => {
+      return await db.user.findUnique({ where: { email } });
+    },
+    CACHE_TTL.SHORT
+  );
 }
 
 export async function getUserById(id: string) {
@@ -277,12 +236,15 @@ export async function getUserById(id: string) {
     return findUserByIdFromAll(id);
   }
 
-  try {
-    return await db.user.findUnique({ where: { id } });
-  } catch (error) {
-    console.error('[DataService] getUserById error, falling back to static:', error);
-    return findUserByIdFromAll(id);
-  }
+  const cacheKey = `${CACHE_KEYS.USER_PREFIX}id_${id}`;
+  
+  return cachedFetch(
+    cacheKey,
+    async () => {
+      return await db.user.findUnique({ where: { id } });
+    },
+    CACHE_TTL.SHORT
+  );
 }
 
 export async function createUser(data: { name: string; email: string; password?: string; role: string; image?: string | null; emailVerified?: Date | null }) {
@@ -317,7 +279,7 @@ export async function createUser(data: { name: string; email: string; password?:
   }
 
   try {
-    return await db.user.create({ 
+    const user = await db.user.create({ 
       data: {
         name: data.name,
         email: data.email,
@@ -327,6 +289,11 @@ export async function createUser(data: { name: string; email: string; password?:
         emailVerified: data.emailVerified || new Date(), // Auto-verify OAuth users
       }
     });
+    
+    // Invalidate user cache
+    invalidateCachePattern(CACHE_KEYS.USER_PREFIX);
+    
+    return user;
   } catch (error) {
     console.error('[DataService] createUser error:', error);
     // Return mock user on error
@@ -350,7 +317,12 @@ export async function updateUser(id: string, data: Record<string, unknown>) {
   }
 
   try {
-    return await db.user.update({ where: { id }, data });
+    const user = await db.user.update({ where: { id }, data });
+    
+    // Invalidate user cache
+    invalidateCachePattern(CACHE_KEYS.USER_PREFIX);
+    
+    return user;
   } catch (error) {
     console.error('[DataService] updateUser error:', error);
     return { id, ...data, updatedAt: new Date() };
@@ -368,20 +340,17 @@ export async function getDashboardStats() {
     };
   }
 
-  try {
-    const [totalCourses, totalQuizzes, totalModules] = await Promise.all([
-      db.course.count({ where: { isPublished: true } }),
-      db.quiz.count({ where: { isPublished: true } }),
-      db.module.count(),
-    ]);
+  return cachedFetch(
+    CACHE_KEYS.DASHBOARD_STATS,
+    async () => {
+      const [totalCourses, totalQuizzes, totalModules] = await Promise.all([
+        db.course.count({ where: { isPublished: true } }),
+        db.quiz.count({ where: { isPublished: true } }),
+        db.module.count(),
+      ]);
 
-    return { totalCourses, totalQuizzes, totalModules };
-  } catch (error) {
-    console.error('[DataService] getDashboardStats error:', error);
-    return {
-      totalCourses: staticCourses.length,
-      totalQuizzes: staticQuizzes.length,
-      totalModules: staticCourses.reduce((acc, c) => acc + c.modules.length, 0),
-    };
-  }
+      return { totalCourses, totalQuizzes, totalModules };
+    },
+    CACHE_TTL.MEDIUM
+  );
 }
