@@ -1191,19 +1191,23 @@
   }
 
   .skeleton-text {
-    @apply skeleton skeleton-pulse h-4 w-full mb-2;
+    @apply bg-slate-200 dark:bg-slate-700 rounded h-4 w-full mb-2;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
   }
 
   .skeleton-title {
-    @apply skeleton skeleton-pulse h-6 w-3/4 mb-4;
+    @apply bg-slate-200 dark:bg-slate-700 rounded h-6 w-3/4 mb-4;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
   }
 
   .skeleton-avatar {
-    @apply skeleton skeleton-pulse h-10 w-10 rounded-full;
+    @apply bg-slate-200 dark:bg-slate-700 h-10 w-10 rounded-full;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
   }
 
   .skeleton-card {
-    @apply skeleton skeleton-pulse h-40 w-full rounded-xl;
+    @apply bg-slate-200 dark:bg-slate-700 h-40 w-full rounded-xl;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
   }
 }
 
