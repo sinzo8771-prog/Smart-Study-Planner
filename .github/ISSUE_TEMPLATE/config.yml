@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/sinzo8771-prog/Smart-Study-Planner#readme
+    about: Check the documentation for setup and usage instructions
+  - name: 💬 Discussions
+    url: https://github.com/sinzo8771-prog/Smart-Study-Planner/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔐 Security Issues
+    url: https://github.com/sinzo8771-prog/Smart-Study-Planner/blob/master/SECURITY.md
+    about: Please report security vulnerabilities privately
