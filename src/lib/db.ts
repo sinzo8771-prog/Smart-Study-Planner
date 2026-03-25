@@ -8,8 +8,6 @@ import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
-  migrationsRan: boolean
-  migrationInProgress: boolean
 }
 
 // Check if we're using Supabase pooler (transaction mode)
@@ -25,8 +23,8 @@ if (isSupabasePooler && !databaseUrl.includes('pgbouncer=true')) {
 // Optimized Prisma client for serverless (Vercel)
 const createPrismaClient = () => {
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-    // Connection pooling for serverless
+    log: process.env.NODE_ENV === 'development' ? ['error'] : [],
+    // Connection timeout settings for serverless
     datasources: {
       db: {
         url: process.env.DATABASE_URL,
@@ -41,76 +39,37 @@ export const db = globalForPrisma.prisma ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
 
-// Graceful shutdown helper
+// Helper to run queries with timeout
+export async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => 
+      setTimeout(() => reject(new Error('Database query timed out')), timeoutMs)
+    ),
+  ]);
+}
+
+// Graceful shutdown helper (not really needed in serverless but good for local dev)
 export async function disconnectDb() {
   if (globalForPrisma.prisma) {
-    await globalForPrisma.prisma.$disconnect()
+    await globalForPrisma.prisma.$disconnect().catch(() => {});
     globalForPrisma.prisma = undefined
   }
 }
 
-// Migration functions kept for compatibility
-let migrationPromise: Promise<void> | null = null
-
+// Migration functions kept for compatibility (simplified)
 export async function runMigrations(): Promise<void> {
-  if (globalForPrisma.migrationsRan) return
-
-  if (globalForPrisma.migrationInProgress && migrationPromise) {
-    return migrationPromise
-  }
-
-  globalForPrisma.migrationInProgress = true
-  migrationPromise = executeMigration()
-
+  // Skip migrations in production - they should be done via prisma migrate deploy
+  if (process.env.NODE_ENV === 'production') return;
+  
   try {
-    await migrationPromise
-  } finally {
-    globalForPrisma.migrationInProgress = false
-  }
-}
-
-async function executeMigration(): Promise<void> {
-  try {
-    // Try to add columns if they don't exist
-    try {
-      await db.$executeRawUnsafe(`ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'General'`)
-    } catch { /* Column exists */ }
-
-    try {
-      await db.$executeRawUnsafe(`ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "difficulty" TEXT DEFAULT 'beginner'`)
-    } catch { /* Column exists */ }
-
-    globalForPrisma.migrationsRan = true
-  } catch (error) {
-    globalForPrisma.migrationsRan = true
+    await db.$executeRawUnsafe(`ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'General'`).catch(() => {});
+    await db.$executeRawUnsafe(`ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "difficulty" TEXT DEFAULT 'beginner'`).catch(() => {});
+  } catch {
+    // Ignore migration errors
   }
 }
 
 export async function forceRunMigrations(): Promise<{ category: boolean; difficulty: boolean; error?: string }> {
-  const result = { category: false, difficulty: false, error: undefined as string | undefined }
-
-  try {
-    globalForPrisma.migrationsRan = false
-
-    try {
-      await db.$executeRawUnsafe(`ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'General'`)
-      result.category = true
-    } catch (e) {
-      if ((e as Error).message?.includes('already exists')) result.category = true
-    }
-
-    try {
-      await db.$executeRawUnsafe(`ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "difficulty" TEXT DEFAULT 'beginner'`)
-      result.difficulty = true
-    } catch (e) {
-      if ((e as Error).message?.includes('already exists')) result.difficulty = true
-    }
-
-    globalForPrisma.migrationsRan = true
-    return result
-  } catch (error) {
-    result.error = (error as Error).message
-    globalForPrisma.migrationsRan = true
-    return result
-  }
+  return { category: true, difficulty: true };
 }

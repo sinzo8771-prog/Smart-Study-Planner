@@ -5,6 +5,9 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "functions": {
+    "src/app/api/stats/route.ts": {
+      "maxDuration": 60
+    },
     "src/app/api/**/*": {
       "maxDuration": 30
     }
