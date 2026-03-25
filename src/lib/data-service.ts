@@ -201,6 +201,9 @@ export async function getQuizzes() {
   try {
     // Run migrations before querying Quiz table
     await runMigrations();
+    
+    // Run cleanup to ensure quizzes exist
+    await runCleanupIfNeeded();
 
     return await db.quiz.findMany({
       where: { isPublished: true },
