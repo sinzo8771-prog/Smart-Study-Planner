@@ -7,6 +7,8 @@ const COURSES_TO_REMOVE = [
   'Economics Full Course',
   'English Grammar Full Course',
   'Chemistry Full Course',
+  'Physics Full Course',
+  'Algebra Full Course',
 ];
 
 let cleanupDone = false;

@@ -73,35 +73,6 @@ async function main() {
   const coursesData = [
     // NON-TECH COURSES
     {
-      title: 'Algebra Full Course',
-      description: 'Master algebra from basics to advanced concepts. Learn equations, functions, polynomials, and problem-solving techniques.',
-      thumbnail: 'https://i.ytimg.com/vi/NybHckSEQBI/maxresdefault.jpg',
-      category: 'Mathematics',
-      level: 'beginner',
-      duration: 480,
-      isPublished: true,
-      modules: [
-        {
-          title: 'Algebra Basics - What Is Algebra?',
-          description: 'Complete algebra tutorial covering all fundamentals',
-          videoUrl: 'https://www.youtube-nocookie.com/embed/NybHckSEQBI',
-          content: `# Algebra Full Course
-
-Master algebra from the ground up.
-
-## Topics Covered
-- Variables and Expressions
-- Linear Equations
-- Systems of Equations
-- Polynomials
-- Factoring
-- Quadratic Equations`,
-          duration: 240,
-          order: 1
-        }
-      ]
-    },
-    {
       title: 'Calculus 1 Full Course',
       description: 'Learn calculus from scratch. Understand limits, derivatives, and integrals with clear explanations.',
       thumbnail: 'https://i.ytimg.com/vi/HfACrKJ_Y2w/maxresdefault.jpg',
@@ -125,34 +96,6 @@ Learn calculus step by step.
 - Applications of Derivatives
 - Integrals`,
           duration: 360,
-          order: 1
-        }
-      ]
-    },
-    {
-      title: 'Physics Full Course',
-      description: 'Understand the fundamental laws of physics. Learn mechanics, thermodynamics, waves, and more.',
-      thumbnail: 'https://i.ytimg.com/vi/ZM8ECpBuQYE/maxresdefault.jpg',
-      category: 'Science',
-      level: 'beginner',
-      duration: 540,
-      isPublished: true,
-      modules: [
-        {
-          title: 'Motion in a Straight Line - Crash Course Physics',
-          description: 'Full physics course covering all major topics',
-          videoUrl: 'https://www.youtube-nocookie.com/embed/ZM8ECpBuQYE',
-          content: `# Physics Full Course
-
-Explore the laws that govern our universe.
-
-## Topics
-- Motion and Kinematics
-- Forces and Newton's Laws
-- Energy and Work
-- Waves and Sound
-- Electricity and Magnetism`,
-          duration: 300,
           order: 1
         }
       ]
@@ -372,40 +315,6 @@ Master version control.
   console.log('\n📝 Creating quizzes...');
   const quizzesData = [
     {
-      title: 'Algebra Fundamentals Quiz',
-      description: 'Test your algebra knowledge',
-      category: 'Mathematics',
-      difficulty: 'beginner',
-      duration: 15,
-      passingScore: 60,
-      isPublished: true,
-      questions: [
-        { question: 'Solve: 2x + 5 = 13', optionA: 'x = 4', optionB: 'x = 5', optionC: 'x = 3', optionD: 'x = 6', correctAnswer: 'A', explanation: '2x = 8, x = 4', points: 1, order: 1 },
-        { question: 'What is x² when x = 3?', optionA: '6', optionB: '9', optionC: '3', optionD: '12', correctAnswer: 'B', explanation: '3² = 9', points: 1, order: 2 },
-        { question: 'Simplify: 3x + 2x - x', optionA: '5x', optionB: '4x', optionC: '6x', optionD: '3x', correctAnswer: 'B', explanation: '3x + 2x - x = 4x', points: 1, order: 3 },
-        { question: 'Slope of y = 2x + 3?', optionA: '3', optionB: '2', optionC: '5', optionD: '1', correctAnswer: 'B', explanation: 'Slope is 2', points: 1, order: 4 },
-        { question: 'Factor: x² - 9', optionA: '(x+3)(x-3)', optionB: '(x+9)(x-1)', optionC: '(x-3)²', optionD: '(x+3)²', correctAnswer: 'A', explanation: 'Difference of squares', points: 1, order: 5 }
-      ]
-    },
-    {
-      title: 'Physics Fundamentals Quiz',
-      description: 'Test your physics knowledge',
-      category: 'Science',
-      difficulty: 'beginner',
-      duration: 15,
-      passingScore: 60,
-      isPublished: true,
-      questions: [
-        { question: 'SI unit of force?', optionA: 'Joule', optionB: 'Newton', optionC: 'Watt', optionD: 'Pascal', correctAnswer: 'B', explanation: 'Newton is the SI unit of force', points: 1, order: 1 },
-        { question: 'Gravity on Earth?', optionA: '5 m/s²', optionB: '9.8 m/s²', optionC: '15 m/s²', optionD: '1 m/s²', correctAnswer: 'B', explanation: 'g ≈ 9.8 m/s²', points: 1, order: 2 },
-        { question: "Newton's First Law describes?", optionA: 'F = ma', optionB: 'Action-reaction', optionC: 'Inertia', optionD: 'Gravity', correctAnswer: 'C', explanation: 'First Law is about inertia', points: 1, order: 3 },
-        { question: 'Kinetic energy is?', optionA: 'Energy of position', optionB: 'Energy of motion', optionC: 'Thermal energy', optionD: 'Chemical energy', correctAnswer: 'B', explanation: 'Kinetic = motion energy', points: 1, order: 4 },
-        { question: 'Formula for speed?', optionA: 'force × time', optionB: 'distance / time', optionC: 'mass × acceleration', optionD: 'energy / mass', correctAnswer: 'B', explanation: 'Speed = distance/time', points: 1, order: 5 }
-      ]
-    },
-
-
-    {
       title: 'HTML & CSS Quiz',
       description: 'Test web development knowledge',
       category: 'Web Development',
@@ -552,7 +461,7 @@ Master version control.
   }
 
   console.log('\n🎉 Seed completed!');
-  console.log(`📊 ${coursesData.length} courses (5 non-tech + 5 tech)`);
+  console.log(`📊 ${coursesData.length} courses (3 non-tech + 5 tech)`);
   console.log(`📊 ${quizzesData.length} quizzes`);
 }
 
