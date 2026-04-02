@@ -121,11 +121,9 @@
   }
 }
 
-/* ============================================
-   RESPONSIVE OPTIMIZATIONS
-   ============================================ */
 
-/* Mobile-first responsive typography */
+
+
 @layer base {
   html {
     font-size: 16px;
@@ -146,7 +144,7 @@
   }
 }
 
-/* Safe area insets for mobile devices */
+
 @supports (padding: max(0px)) {
   .safe-area-top {
     padding-top: max(env(safe-area-inset-top), 0px);
@@ -162,7 +160,7 @@
   }
 }
 
-/* Improved touch targets for mobile */
+
 @layer components {
   .touch-target {
     min-height: 44px;
@@ -175,7 +173,7 @@
   }
 }
 
-/* Responsive container */
+
 @layer components {
   .container-responsive {
     width: 100%;
@@ -220,7 +218,7 @@
   }
 }
 
-/* Responsive text utilities */
+
 @layer utilities {
   .text-responsive-hero {
     font-size: clamp(2rem, 5vw, 4.5rem);
@@ -243,7 +241,7 @@
   }
 }
 
-/* Hide scrollbar but allow scrolling */
+
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -255,7 +253,7 @@
   }
 }
 
-/* Custom scrollbar for desktop */
+
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
@@ -281,7 +279,7 @@
   }
 }
 
-/* Prevent horizontal scroll */
+
 @layer utilities {
   .overflow-x-hidden-mobile {
     @media (max-width: 768px) {
@@ -290,7 +288,7 @@
   }
 }
 
-/* Responsive grid layouts */
+
 @layer utilities {
   .grid-auto-fit {
     display: grid;
@@ -305,7 +303,7 @@
   }
 }
 
-/* Card responsive optimizations */
+
 @layer components {
   .card-responsive {
     @apply p-4 sm:p-5 md:p-6;
@@ -316,7 +314,7 @@
   }
 }
 
-/* Button responsive optimizations */
+
 @layer components {
   .btn-responsive {
     @apply px-3 py-2 text-sm sm:px-4 sm:py-2.5 md:text-base;
@@ -327,7 +325,7 @@
   }
 }
 
-/* Mobile menu optimizations */
+
 @layer components {
   .mobile-menu {
     @apply fixed inset-0 z-50 bg-white dark:bg-gray-900;
@@ -342,7 +340,7 @@
   }
 }
 
-/* Responsive modal/dialog */
+
 @layer components {
   .modal-responsive {
     @apply w-[95vw] max-w-lg;
@@ -357,7 +355,7 @@
   }
 }
 
-/* Responsive table */
+
 @layer components {
   .table-responsive {
     @apply block overflow-x-auto;
@@ -369,7 +367,7 @@
   }
 }
 
-/* Responsive chart container */
+
 @layer components {
   .chart-responsive {
     @apply w-full aspect-[16/9] sm:aspect-[2/1] lg:aspect-[3/1];
@@ -382,7 +380,7 @@
   }
 }
 
-/* Responsive sidebar */
+
 @layer components {
   .sidebar-desktop {
     @apply hidden lg:block lg:fixed lg:inset-y-0 lg:left-0;
@@ -397,7 +395,7 @@
   }
 }
 
-/* Responsive navigation */
+
 @layer components {
   .nav-desktop {
     @apply hidden md:flex md:items-center md:gap-1;
@@ -408,7 +406,7 @@
   }
 }
 
-/* Responsive footer */
+
 @layer components {
   .footer-responsive {
     @apply py-8 sm:py-12 md:py-16;
@@ -419,7 +417,7 @@
   }
 }
 
-/* Responsive hero section */
+
 @layer components {
   .hero-responsive {
     @apply py-12 sm:py-16 md:py-20 lg:py-24;
@@ -430,7 +428,7 @@
   }
 }
 
-/* Responsive section padding */
+
 @layer components {
   .section-responsive {
     @apply py-8 sm:py-12 md:py-16 lg:py-20;
@@ -441,7 +439,7 @@
   }
 }
 
-/* Responsive gap utilities */
+
 @layer utilities {
   .gap-responsive {
     @apply gap-4 sm:gap-5 md:gap-6;
@@ -452,7 +450,7 @@
   }
 }
 
-/* Responsive stack spacing */
+
 @layer utilities {
   .space-y-responsive {
     > * + * {
@@ -467,7 +465,7 @@
   }
 }
 
-/* Image responsive utilities */
+
 @layer utilities {
   .img-cover-responsive {
     @apply w-full h-48 sm:h-56 md:h-64 lg:h-80 object-cover;
@@ -478,7 +476,7 @@
   }
 }
 
-/* Aspect ratio responsive */
+
 @layer utilities {
   .aspect-responsive {
     aspect-ratio: auto 16/9;
@@ -491,14 +489,14 @@
   }
 }
 
-/* Focus visible improvements for accessibility */
+
 @layer utilities {
   .focus-ring {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
   }
 }
 
-/* Animation performance optimizations */
+
 @layer utilities {
   .gpu-accelerated {
     transform: translateZ(0);
@@ -514,7 +512,7 @@
   }
 }
 
-/* Print styles */
+
 @media print {
   .no-print {
     display: none !important;
@@ -530,7 +528,7 @@
   }
 }
 
-/* Reduced motion preference */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -542,21 +540,21 @@
   }
 }
 
-/* High contrast mode support */
+
 @media (prefers-contrast: high) {
   .card, .btn {
     border: 2px solid currentColor;
   }
 }
 
-/* Dark mode optimizations */
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
 }
 
-/* Mobile hover states - only apply hover on devices that support it */
+
 @media (hover: hover) and (pointer: fine) {
   .hover-lift:hover {
     transform: translateY(-2px);
@@ -567,7 +565,7 @@
   }
 }
 
-/* Active states for touch devices */
+
 @media (hover: none) {
   .active-scale:active {
     transform: scale(0.98);
@@ -578,7 +576,7 @@
   }
 }
 
-/* Prevent text selection on interactive elements */
+
 @layer utilities {
   .select-none-interactive {
     -webkit-user-select: none;
@@ -587,7 +585,7 @@
   }
 }
 
-/* Responsive padding utilities */
+
 @layer utilities {
   .p-responsive {
     @apply p-3 sm:p-4 md:p-5 lg:p-6;
@@ -602,7 +600,7 @@
   }
 }
 
-/* Fixed footer support */
+
 @layer utilities {
   .has-sticky-footer {
     display: flex;
@@ -619,7 +617,7 @@
   }
 }
 
-/* Dashboard specific optimizations */
+
 @layer components {
   .dashboard-grid {
     @apply grid gap-4 sm:gap-5 md:gap-6;
@@ -650,7 +648,7 @@
   }
 }
 
-/* Quiz card responsive */
+
 @layer components {
   .quiz-card-grid {
     @apply grid gap-4 sm:gap-6;
@@ -670,7 +668,7 @@
   }
 }
 
-/* Course card responsive */
+
 @layer components {
   .course-card-grid {
     @apply grid gap-4 sm:gap-6;
@@ -696,7 +694,7 @@
   }
 }
 
-/* Stats card grid */
+
 @layer components {
   .stats-grid {
     @apply grid gap-3 sm:gap-4;
@@ -716,11 +714,9 @@
   }
 }
 
-/* ============================================
-   LANDING PAGE ENHANCED STYLES
-   ============================================ */
 
-/* Landing page custom properties - Sophisticated slate/indigo palette */
+
+
 :root {
   --landing-gradient-start: oklch(0.45 0.12 180);
   --landing-gradient-mid: oklch(0.5 0.1 190);
@@ -737,7 +733,7 @@
   --landing-accent: oklch(0.5 0.12 180);
 }
 
-/* Hero section enhancements - Clean, minimal style */
+
 @layer components {
   .hero-gradient-text {
     color: oklch(0.3 0.08 180);
@@ -760,7 +756,7 @@
   }
 }
 
-/* Feature card enhancements - Professional, clean */
+
 @layer components {
   .feature-card {
     @apply relative overflow-hidden rounded-xl;
@@ -790,7 +786,7 @@
   }
 }
 
-/* Testimonial enhancements - Authentic, minimal */
+
 @layer components {
   .testimonial-card {
     @apply relative p-6 rounded-xl;
@@ -809,7 +805,7 @@
   }
 }
 
-/* CTA section enhancements - Clean, professional */
+
 @layer components {
   .cta-section {
     @apply relative overflow-hidden rounded-xl;
@@ -838,7 +834,7 @@
   }
 }
 
-/* Stat card enhancements - Clean, minimal */
+
 @layer components {
   .stat-card {
     @apply relative p-6 rounded-xl;
@@ -869,7 +865,7 @@
   }
 }
 
-/* How it works step enhancements - Clean, minimal */
+
 @layer components {
   .step-card {
     @apply relative text-center p-6;
@@ -899,7 +895,7 @@
   }
 }
 
-/* Shimmer animation for loading states */
+
 @layer utilities {
   @keyframes shimmer {
     0% {
@@ -932,7 +928,7 @@
   }
 }
 
-/* Floating animation */
+
 @layer utilities {
   @keyframes float {
     0%, 100% {
@@ -952,7 +948,7 @@
   }
 }
 
-/* Pulse glow animation */
+
 @layer utilities {
   @keyframes pulse-glow {
     0%, 100% {
@@ -970,12 +966,9 @@
   }
 }
 
-/* ============================================
-   PERFORMANCE-OPTIMIZED CSS ANIMATIONS
-   Replace heavy Framer Motion animations
-   ============================================ */
 
-/* Fade in up animation */
+
+
 @layer utilities {
   @keyframes fade-in-up {
     from {
@@ -1008,7 +1001,7 @@
   }
 }
 
-/* Fade in animation */
+
 @layer utilities {
   @keyframes fade-in {
     from { opacity: 0; }
@@ -1024,7 +1017,7 @@
   }
 }
 
-/* Scale in animation */
+
 @layer utilities {
   @keyframes scale-in {
     from {
@@ -1042,7 +1035,7 @@
   }
 }
 
-/* Slide in from left */
+
 @layer utilities {
   @keyframes slide-in-left {
     from {
@@ -1060,7 +1053,7 @@
   }
 }
 
-/* Slide in from right */
+
 @layer utilities {
   @keyframes slide-in-right {
     from {
@@ -1078,7 +1071,7 @@
   }
 }
 
-/* Stagger animation for lists */
+
 @layer utilities {
   .stagger-item {
     opacity: 0;
@@ -1097,7 +1090,7 @@
   .stagger-item:nth-child(10) { animation-delay: 450ms; }
 }
 
-/* Hover lift effect (CSS alternative to whileHover) */
+
 @layer utilities {
   .hover-lift {
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
@@ -1111,7 +1104,7 @@
   }
 }
 
-/* Tap scale effect (CSS alternative to whileTap) */
+
 @layer utilities {
   .tap-scale {
     transition: transform 0.1s ease-out;
@@ -1122,7 +1115,7 @@
   }
 }
 
-/* Card hover effect */
+
 @layer utilities {
   .card-hover {
     transition: all 0.2s ease-out;
@@ -1136,7 +1129,7 @@
   }
 }
 
-/* Button press effect */
+
 @layer utilities {
   .btn-press {
     transition: transform 0.1s ease-out, opacity 0.1s ease-out;
@@ -1148,7 +1141,7 @@
   }
 }
 
-/* Skeleton loading animation */
+
 @layer utilities {
   @keyframes skeleton-pulse {
     0%, 100% {
@@ -1188,7 +1181,7 @@
   }
 }
 
-/* Optimized will-change for animations */
+
 @layer utilities {
   .will-change-transform {
     will-change: transform;
@@ -1202,14 +1195,14 @@
     will-change: contents;
   }
 
-  /* Remove will-change after animation */
+  
   .animate-once {
     animation-fill-mode: forwards;
     animation-iteration-count: 1;
   }
 }
 
-/* Contain performance for complex components */
+
 @layer utilities {
   .contain-layout {
     contain: layout;
@@ -1224,7 +1217,7 @@
   }
 }
 
-/* Content visibility for off-screen optimization */
+
 @layer utilities {
   .content-auto {
     content-visibility: auto;
@@ -1239,7 +1232,7 @@
   }
 }
 
-/* Optimized transitions */
+
 @layer utilities {
   .transition-fast {
     transition: all 0.15s ease-out;
@@ -1254,21 +1247,21 @@
   }
 }
 
-/* Mobile-specific optimizations */
+
 @media (max-width: 640px) {
-  /* Reduce animation complexity on mobile */
+  
   .animate-fade-in-up,
   .animate-slide-in-left,
   .animate-slide-in-right {
     animation-duration: 0.2s;
   }
 
-  /* Simpler hover effects */
+  
   .hover-lift:hover {
     transform: none;
   }
 
-  /* Faster transitions */
+  
   .transition-fast,
   .transition-medium,
   .transition-slow {
@@ -1276,9 +1269,9 @@
   }
 }
 
-/* Desktop-specific optimizations */
+
 @media (min-width: 1024px) {
-  /* Enable hover effects only on desktop */
+  
   .hover-lift {
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   }

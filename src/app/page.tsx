@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebase';
 
-// Custom hook for mounted state - uses useSyncExternalStore for instant mounting
+
 function useMounted() {
   return useSyncExternalStore(
     () => () => {},
@@ -57,9 +57,9 @@ import { PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, C
 import { Logo, LogoIcon } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 
-// ============================================
-// TYPES
-// ============================================
+
+
+
 
 interface User {
   id: string;
@@ -184,7 +184,7 @@ interface SubjectProgress {
 }
 
 interface Stats {
-  // Student stats (nested structure from API)
+  
   subjects?: {
     total: number;
   };
@@ -225,7 +225,7 @@ interface Stats {
     priority: string;
     subject: { name: string; color: string } | null;
   }>;
-  // Enhanced student stats
+  
   streak?: {
     current: number;
     best: number;
@@ -246,7 +246,7 @@ interface Stats {
     averageQuizTime: number;
     subjectProgress: SubjectProgress[];
   };
-  // Admin stats (nested structure from API)
+  
   users?: {
     total: number;
     students: number;
@@ -265,7 +265,7 @@ interface Stats {
     quizAttempts: Array<{ period: string; attempts: number }>;
     courseEnrollments: Array<{ period: string; enrollments: number }>;
   };
-  // Legacy flat structure for backwards compatibility
+  
   subjectsCount?: number;
   tasksStats?: { total: number; completed: number; pending: number; inProgress: number };
   averageQuizScore?: number;
@@ -280,9 +280,9 @@ interface Stats {
   recentUsers?: User[];
 }
 
-// ============================================
-// CONSTANTS
-// ============================================
+
+
+
 
 const SUBJECT_COLORS = [
   '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
@@ -293,9 +293,9 @@ const SUBJECT_COLORS = [
 
 const CHART_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#22c55e', '#06b6d4'];
 
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
+
+
+
 
 const formatDate = (date: string | Date) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -349,11 +349,11 @@ const getLevelColor = (level: string) => {
   }
 };
 
-// ============================================
-// API HELPERS
-// ============================================
 
-const API_TIMEOUT = 20000; // 20 seconds timeout for slow connections
+
+
+
+const API_TIMEOUT = 20000; 
 
 const api = {
   async get<T>(url: string, timeout = API_TIMEOUT): Promise<T> {
@@ -363,7 +363,7 @@ const api = {
     try {
       const res = await fetch(url, { 
         signal: controller.signal,
-        credentials: 'include', // Include cookies
+        credentials: 'include', 
       });
       clearTimeout(timeoutId);
       
@@ -391,7 +391,7 @@ const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
         signal: controller.signal,
-        credentials: 'include', // Include cookies
+        credentials: 'include', 
       });
       clearTimeout(timeoutId);
       
@@ -419,7 +419,7 @@ const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
         signal: controller.signal,
-        credentials: 'include', // Include cookies
+        credentials: 'include', 
       });
       clearTimeout(timeoutId);
       
@@ -445,7 +445,7 @@ const api = {
       const res = await fetch(url, { 
         method: 'DELETE',
         signal: controller.signal,
-        credentials: 'include', // Include cookies
+        credentials: 'include', 
       });
       clearTimeout(timeoutId);
       
@@ -464,9 +464,9 @@ const api = {
   },
 };
 
-// ============================================
-// LANDING PAGE COMPONENTS (Keep previous implementation)
-// ============================================
+
+
+
 
 const GradientIcon = ({ icon: Icon, className = '' }: { icon: LucideIcon; className?: string }) => (
   <div className={`relative ${className}`}>
@@ -477,9 +477,9 @@ const GradientIcon = ({ icon: Icon, className = '' }: { icon: LucideIcon; classN
   </div>
 );
 
-// ============================================
-// DASHBOARD LAYOUT
-// ============================================
+
+
+
 
 interface DashboardLayoutProps {
   user: User;
@@ -504,7 +504,7 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile Sidebar Overlay */}
+      
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <motion.div
@@ -517,13 +517,13 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      
       <aside
         className={`fixed top-0 left-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50 transition-all duration-300 ${
           isSidebarOpen ? 'w-64' : 'w-20'
         } ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
-        {/* Logo */}
+        
         <div className="h-14 sm:h-16 flex items-center justify-between px-3 sm:px-4 border-b border-gray-200 dark:border-gray-700">
           {isSidebarOpen ? (
             <Logo size="sm" />
@@ -540,7 +540,7 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
           </Button>
         </div>
 
-        {/* Navigation */}
+        
         <ScrollArea className="h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)]">
           <nav className="p-2 sm:p-3 space-y-1">
             {navItems.map((item) => (
@@ -564,9 +564,9 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
         </ScrollArea>
       </aside>
 
-      {/* Main Content */}
+      
       <main className={`transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
-        {/* Top Bar */}
+        
         <header className="h-14 sm:h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 sm:px-4 lg:px-6 sticky top-0 z-30">
           <div className="flex items-center gap-2 sm:gap-4">
             <Button
@@ -628,16 +628,16 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
           </div>
         </header>
 
-        {/* Page Content */}
+        
         <div className="p-3 sm:p-4 lg:p-6">{children}</div>
       </main>
     </div>
   );
 };
 
-// ============================================
-// AI CHAT WIDGET
-// ============================================
+
+
+
 
 interface AIChatWidgetProps {
   isOpen: boolean;
@@ -695,7 +695,7 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 left-2 sm:left-auto sm:w-96 sm:h-[500px] w-[calc(100vw-1rem)] h-[70vh] sm:h-[500px] max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50 overflow-hidden"
     >
-      {/* Header */}
+      
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -711,7 +711,7 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
         </Button>
       </div>
 
-      {/* Messages */}
+      
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -733,7 +733,7 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
         )}
       </div>
 
-      {/* Input */}
+      
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex gap-2">
           <Input
@@ -752,16 +752,16 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
   );
 };
 
-// ============================================
-// STUDENT DASHBOARD
-// ============================================
+
+
+
 
 interface StudentDashboardProps {
   user: User;
   onViewChange: (view: string) => void;
 }
 
-// Mini Sparkline Chart Component - Memoized for performance
+
 const MiniSparkline = memo(({ data, color = '#6366f1', height = 30 }: { data: number[]; color?: string; height?: number }) => {
   const max = Math.max(...data, 1);
   const points = useMemo(() => 
@@ -783,7 +783,7 @@ const MiniSparkline = memo(({ data, color = '#6366f1', height = 30 }: { data: nu
 });
 MiniSparkline.displayName = 'MiniSparkline';
 
-// Progress Ring Component - Memoized for performance
+
 const ProgressRing = memo(({ progress, size = 80, strokeWidth = 6, color = '#6366f1' }: { progress: number; size?: number; strokeWidth?: number; color?: string }) => {
   const { radius, circumference, offset } = useMemo(() => {
     const r = (size - strokeWidth) / 2;
@@ -814,7 +814,7 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   const [streak, setStreak] = useState({ current: 0, best: 0 });
   const mounted = useMounted();
 
-  // Default fallback stats
+  
   const defaultStats: Stats = {
     subjects: { total: 0 },
     tasks: { total: 0, completed: 0, pending: 0, inProgress: 0, completionRate: 0, weeklyCompleted: 0, overdueTasks: 0 },
@@ -827,14 +827,14 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Use Promise.allSettled to handle partial failures gracefully
+        
         const [statsResult, subjectsResult, tasksResult] = await Promise.allSettled([
-          api.get<Stats>('/api/stats', 30000), // 30s timeout for stats
+          api.get<Stats>('/api/stats', 30000), 
           api.get<{ subjects: Subject[] }>('/api/subjects'),
           api.get<{ tasks: Task[] }>('/api/tasks?status=pending'),
         ]);
 
-        // Handle stats result
+        
         if (statsResult.status === 'fulfilled') {
           setStats(statsResult.value);
           if (statsResult.value.streak) {
@@ -845,14 +845,14 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
           setStats(defaultStats);
         }
 
-        // Handle subjects result
+        
         if (subjectsResult.status === 'fulfilled') {
           setSubjects(subjectsResult.value.subjects || []);
         } else {
           console.error('Failed to fetch subjects:', subjectsResult.reason);
         }
 
-        // Handle tasks result
+        
         if (tasksResult.status === 'fulfilled') {
           setRecentTasks((tasksResult.value.tasks || []).slice(0, 5));
         } else {
@@ -874,7 +874,7 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Task Progress */}
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -911,9 +911,9 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
         </Card>
       </motion.div>
 
-      {/* Main Content Grid */}
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Subjects Overview */}
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -969,7 +969,7 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
           </Card>
         </motion.div>
 
-        {/* Upcoming Tasks */}
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1043,9 +1043,9 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   );
 };
 
-// ============================================
-// STATS CARD COMPONENT - Enhanced with animations
-// ============================================
+
+
+
 
 interface StatsCardProps {
   title: string;
@@ -1061,11 +1061,11 @@ interface StatsCardProps {
 const StatsCard = memo(({ title, value, subtitle, icon: Icon, color, onClick, trend, sparklineData }: StatsCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Extract gradient colors from the color prop
+  
   const colors = useMemo(() => color.replace('from-', '').replace('to-', '').split(' '), [color]);
   const primaryColor = colors[0] || 'blue-500';
   
-  // Map Tailwind color names to hex values for sparkline
+  
   const colorMap: Record<string, string> = useMemo(() => ({
     'blue-500': '#3b82f6', 'blue-600': '#2563eb',
     'green-500': '#22c55e', 'green-600': '#16a34a',
@@ -1093,7 +1093,7 @@ const StatsCard = memo(({ title, value, subtitle, icon: Icon, color, onClick, tr
           style={{ transform: isHovered ? 'scaleX(1)' : 'scaleX(0.3)' }}
         />
         <CardContent className="p-3 sm:p-4 relative overflow-hidden">
-          {/* Background decoration */}
+          
           <div 
             className={`absolute -right-4 -top-4 w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br ${color} opacity-5 rounded-full blur-xl transition-transform duration-300`}
             style={{ transform: isHovered ? 'scale(1.5)' : 'scale(1)' }}
@@ -1116,7 +1116,7 @@ const StatsCard = memo(({ title, value, subtitle, icon: Icon, color, onClick, tr
             </div>
           </div>
           
-          {/* Sparkline */}
+          
           {sparklineData && sparklineData.length > 0 && (
             <div className="mt-2 h-8 relative" aria-label={`Trend: ${title}`}>
               <MiniSparkline 
@@ -1127,7 +1127,7 @@ const StatsCard = memo(({ title, value, subtitle, icon: Icon, color, onClick, tr
             </div>
           )}
           
-          {/* Trend indicator */}
+          
           {trend && !sparklineData && (
             <div className={`flex items-center gap-1 mt-1 text-xs sm:text-sm ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
               <TrendingUp className={`w-3 h-3 sm:w-4 sm:h-4 ${!trend.isPositive ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -1141,9 +1141,9 @@ const StatsCard = memo(({ title, value, subtitle, icon: Icon, color, onClick, tr
 });
 StatsCard.displayName = 'StatsCard';
 
-// ============================================
-// STUDY PLANNER MODULE
-// ============================================
+
+
+
 
 interface StudyPlannerProps {
   user: User;
@@ -1162,7 +1162,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'subject' | 'task'; id: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
-  // New state for improvements
+  
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'overdue'>('all');
   const [studyTimer, setStudyTimer] = useState<{ isRunning: boolean; seconds: number; subjectId: string | null }>({
@@ -1173,7 +1173,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
   const [showTimerDialog, setShowTimerDialog] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Form states
+  
   const [subjectForm, setSubjectForm] = useState({
     name: '',
     description: '',
@@ -1215,7 +1215,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     fetchData();
   }, [fetchData]);
 
-  // Subject handlers
+  
   const handleSaveSubject = async () => {
     setIsSaving(true);
     try {
@@ -1264,7 +1264,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     setEditingSubject(null);
   };
 
-  // Task handlers
+  
   const handleSaveTask = async () => {
     setIsSaving(true);
     try {
@@ -1336,7 +1336,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     setEditingTask(null);
   };
 
-  // Timer functions
+  
   useEffect(() => {
     if (studyTimer.isRunning) {
       timerRef.current = setInterval(() => {
@@ -1370,7 +1370,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     setShowTimerDialog(false);
   };
 
-  // Overdue detection
+  
   const isOverdue = (task: Task) => {
     if (task.status === 'completed' || !task.dueDate) return false;
     return new Date(task.dueDate) < new Date();
@@ -1388,11 +1388,11 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     });
   };
 
-  // Smart suggestions
+  
   const getSmartSuggestions = () => {
     const suggestions: { task: Task; reason: string; urgency: 'high' | 'medium' | 'low' }[] = [];
     
-    // Overdue tasks - highest priority
+    
     getOverdueTasks().forEach(task => {
       suggestions.push({
         task,
@@ -1401,7 +1401,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
       });
     });
     
-    // High priority pending tasks
+    
     tasks.filter(t => t.status !== 'completed' && t.priority === 'high' && !isOverdue(t))
       .forEach(task => {
         suggestions.push({
@@ -1411,7 +1411,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         });
       });
     
-    // Tasks due in next 3 days
+    
     const threeDaysFromNow = new Date();
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
     tasks.filter(t => {
@@ -1431,7 +1431,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     return suggestions.slice(0, 5);
   };
 
-  // Filtered tasks based on filter selection
+  
   const getFilteredTasks = () => {
     switch (taskFilter) {
       case 'pending':
@@ -1447,7 +1447,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
     }
   };
 
-  // Calculate completion percentage
+  
   const getCompletionPercentage = (subjectId: string) => {
     const subjectTasks = tasks.filter(t => t.subjectId === subjectId);
     if (subjectTasks.length === 0) return 0;
@@ -1461,7 +1461,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header with Timer */}
+      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
@@ -1470,7 +1470,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {/* Study Timer Quick Access */}
+          
           {studyTimer.isRunning && studyTimer.subjectId && (
             <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg text-white">
               <Timer className="w-4 h-4 animate-pulse" />
@@ -1508,7 +1508,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </div>
       </div>
 
-      {/* Overdue Alert Banner */}
+      
       {getOverdueTasks().length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -1540,7 +1540,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </motion.div>
       )}
 
-      {/* Smart Suggestions */}
+      
       {getSmartSuggestions().length > 0 && (
         <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-800">
           <CardHeader className="pb-2">
@@ -1571,7 +1571,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </Card>
       )}
 
-      {/* Stats Overview */}
+      
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <StatsCard
           title="Total Subjects"
@@ -1599,7 +1599,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         />
       </div>
 
-      {/* Main Content */}
+      
       <Tabs defaultValue="subjects" className="w-full">
         <TabsList>
           <TabsTrigger value="subjects">Subjects</TabsTrigger>
@@ -1671,7 +1671,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      {/* Progress */}
+                      
                       <div className="mb-4">
                         <div className="flex items-center justify-between text-sm mb-2">
                           <span className="text-gray-500">Completion</span>
@@ -1680,13 +1680,13 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                         <Progress value={completion} className="h-2" />
                       </div>
 
-                      {/* Stats */}
+                      
                       <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                         <span>{subjectTasks.length} tasks</span>
                         <span>{subjectTasks.filter(t => t.status === 'completed').length} completed</span>
                       </div>
 
-                      {/* Exam Date */}
+                      
                       {subject.examDate && (
                         <Badge variant="outline" className="mb-4">
                           <Calendar className="w-3 h-3 mr-1" />
@@ -1694,7 +1694,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                         </Badge>
                       )}
 
-                      {/* Recent Tasks */}
+                      
                       <div className="space-y-2">
                         <p className="text-sm font-medium">Recent Tasks</p>
                         {subjectTasks.slice(0, 3).map((task) => (
@@ -1732,7 +1732,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                         Add Task
                       </Button>
                       
-                      {/* Study Timer Button */}
+                      
                       <Button
                         variant="ghost"
                         className="w-full mt-2 text-sm"
@@ -1758,7 +1758,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
               <div className="flex items-center justify-between">
                 <CardTitle>All Tasks</CardTitle>
                 <div className="flex flex-wrap gap-2">
-                  {/* Task Filter */}
+                  
                   <Select
                     value={taskFilter}
                     onValueChange={(value) => setTaskFilter(value as typeof taskFilter)}
@@ -1774,7 +1774,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                       <SelectItem value="overdue">Overdue</SelectItem>
                     </SelectContent>
                   </Select>
-                  {/* Subject Filter */}
+                  
                   <Select
                     value={selectedSubject?.id || 'all'}
                     onValueChange={(value) => setSelectedSubject(value === 'all' ? null : subjects.find(s => s.id === value) || null)}
@@ -1935,9 +1935,9 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
               </div>
             </CardHeader>
             <CardContent>
-              {/* Calendar Grid */}
+              
               <div className="space-y-4">
-                {/* Day Headers */}
+                
                 <div className="grid grid-cols-7 gap-1">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                     <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
@@ -1946,7 +1946,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   ))}
                 </div>
                 
-                {/* Calendar Days */}
+                
                 {(() => {
                   const today = new Date();
                   const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -1954,7 +1954,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   const startPadding = firstDay.getDay();
                   const totalDays = lastDay.getDate();
                   
-                  // Get tasks with due dates for this month
+                  
                   const tasksByDate: Record<string, typeof tasks> = {};
                   tasks.forEach(task => {
                     if (task.dueDate) {
@@ -1964,7 +1964,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                     }
                   });
                   
-                  // Get exam dates for this month
+                  
                   const examsByDate: Record<string, { name: string; color: string }[]> = {};
                   subjects.forEach(subject => {
                     if (subject.examDate) {
@@ -1977,12 +1977,12 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                   const weeks: React.ReactNode[] = [];
                   let days: React.ReactNode[] = [];
                   
-                  // Padding for first week
+                  
                   for (let i = 0; i < startPadding; i++) {
                     days.push(<div key={`pad-${i}`} className="h-24 bg-gray-50 dark:bg-gray-800/50 rounded-lg" />);
                   }
                   
-                  // Days of month
+                  
                   for (let day = 1; day <= totalDays; day++) {
                     const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
                     const dateKey = date.toDateString();
@@ -2044,7 +2044,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                     }
                   }
                   
-                  // Padding for last week
+                  
                   if (days.length > 0) {
                     while (days.length < 7) {
                       days.push(<div key={`pad-end-${days.length}`} className="h-24 bg-gray-50 dark:bg-gray-800/50 rounded-lg" />);
@@ -2060,7 +2060,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
                 })()}
               </div>
               
-              {/* Legend */}
+              
               <div className="flex flex-wrap items-center gap-4 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500" />
@@ -2080,7 +2080,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </TabsContent>
       </Tabs>
 
-      {/* Subject Dialog */}
+      
       <Dialog open={isSubjectDialogOpen} onOpenChange={setIsSubjectDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -2145,7 +2145,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Task Dialog */}
+      
       <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -2244,7 +2244,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -2273,7 +2273,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Study Timer Dialog */}
+      
       <Dialog open={showTimerDialog} onOpenChange={setShowTimerDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -2287,12 +2287,12 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
           </DialogHeader>
           
           <div className="flex flex-col items-center py-8">
-            {/* Timer Display */}
+            
             <div className="text-6xl font-mono font-bold text-gray-900 dark:text-white mb-8">
               {formatTimeFromSeconds(studyTimer.seconds)}
             </div>
             
-            {/* Timer Controls */}
+            
             <div className="flex gap-4">
               {!studyTimer.isRunning ? (
                 <Button 
@@ -2330,7 +2330,7 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
               )}
             </div>
             
-            {/* Subject Selection when not running */}
+            
             {!studyTimer.isRunning && studyTimer.seconds === 0 && subjects.length > 0 && (
               <div className="mt-6 w-full">
                 <Label className="mb-2 block">Select Subject</Label>
@@ -2370,9 +2370,9 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
   );
 };
 
-// ============================================
-// COURSES MODULE (LMS)
-// ============================================
+
+
+
 
 interface CoursesModuleProps {
   user: User;
@@ -2484,7 +2484,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
       if (selectedCourse) {
         const data = await api.get<{ course: Course }>(`/api/courses/${selectedCourse.id}`);
         setSelectedCourse(data.course);
-        // Update viewingModule if it's the one being marked
+        
         if (viewingModule && viewingModule.id === moduleId) {
           const updatedModule = data.course.modules?.find(m => m.id === moduleId);
           if (updatedModule) {
@@ -2503,7 +2503,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -2524,12 +2524,12 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
       </div>
 
       {selectedCourse ? (
-        // Course Detail View
+        
         <div className="space-y-6">
           {viewingModule ? (
-            // Module Learning View
+            
             <div className="space-y-6">
-              {/* Module Header */}
+              
               <div className="flex items-center gap-4">
                 <Button
                   variant="outline"
@@ -2541,7 +2541,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                 </Button>
               </div>
 
-              {/* Video Player */}
+              
               {viewingModule.videoUrl ? (
                 <Card className="overflow-hidden">
                   <div className="relative w-full bg-black rounded-t-lg">
@@ -2588,7 +2588,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                   </CardContent>
                 </Card>
               ) : (
-                // Module header when no video
+                
                 <Card>
                   <CardContent className="p-6">
                     <h2 className="text-xl font-bold mb-2">{viewingModule.title}</h2>
@@ -2624,7 +2624,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                 </Card>
               )}
 
-              {/* Module Content */}
+              
               {viewingModule.content && (
                 <Card>
                   <CardHeader>
@@ -2636,7 +2636,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                   <CardContent>
                     <div className="prose dark:prose-invert max-w-none">
                       {viewingModule.content.split('\n').map((line, idx) => {
-                        // Handle headers
+                        
                         if (line.startsWith('# ')) {
                           return <h1 key={idx} className="text-2xl font-bold mt-6 mb-4">{line.slice(2)}</h1>;
                         }
@@ -2646,22 +2646,21 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                         if (line.startsWith('### ')) {
                           return <h3 key={idx} className="text-lg font-bold mt-4 mb-2">{line.slice(4)}</h3>;
                         }
-                        // Handle code blocks
+                        
                         if (line.startsWith('```')) {
-                          return null; // Skip code fence markers for simplicity
+                          return null; 
                         }
-                        // Handle list items
+                        
                         if (line.startsWith('- ') || line.startsWith('* ')) {
                           return <li key={idx} className="ml-4">{line.slice(2)}</li>;
                         }
                         if (line.match(/^\d+\.\s/)) {
                           return <li key={idx} className="ml-4 list-decimal">{line.replace(/^\d+\.\s/, '')}</li>;
                         }
-                        // Handle bold text
+                        
                         const boldText = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        // Handle inline code
+                        
                         const codeText = boldText.replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">$1</code>');
-                        // Skip empty lines
                         if (line.trim() === '') {
                           return <br key={idx} />;
                         }
@@ -2672,7 +2671,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                 </Card>
               )}
 
-              {/* Navigation */}
+              
               <div className="flex justify-between items-center">
                 {(() => {
                   const currentIndex = selectedCourse.modules?.findIndex(m => m.id === viewingModule.id) ?? -1;
@@ -2713,9 +2712,8 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
               </div>
             </div>
           ) : (
-            // Course Overview
             <>
-              {/* Progress Overview */}
+              
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -2729,7 +2727,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                 </CardContent>
               </Card>
 
-              {/* Modules */}
+              
               <Card>
                 <CardHeader>
                   <CardTitle>Course Modules</CardTitle>
@@ -2784,9 +2782,8 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
           )}
         </div>
       ) : (
-        // Course List View
         <div className="space-y-6">
-          {/* Search and Filter Bar */}
+          
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -2818,7 +2815,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
             </Select>
           </div>
 
-          {/* Category Pills */}
+          
           <div className="flex flex-wrap gap-2">
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
@@ -2841,7 +2838,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
             ))}
           </div>
 
-          {/* Course Grid */}
+          
           {(() => {
             const filteredCourses = courses.filter((course) => {
               const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -2879,7 +2876,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                     transition={{ duration: 0.2 }}
                   >
                     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group cursor-pointer border-0 shadow-md" onClick={() => handleViewCourse(course)}>
-                      {/* Course Thumbnail */}
+                      
                       <div className="relative h-40 overflow-hidden">
                         {course.thumbnail ? (
                           <img
@@ -2907,19 +2904,19 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                         } ${course.thumbnail ? 'opacity-0 group-hover:opacity-30' : ''} transition-opacity flex items-center justify-center`}>
                           <BookOpen className="w-12 h-12 text-white/50" />
                         </div>
-                        {/* Category Badge */}
+                        
                         <div className="absolute top-3 left-3">
                           <Badge className="bg-white/90 text-gray-900 hover:bg-white/90 backdrop-blur-sm">
                             {course.category}
                           </Badge>
                         </div>
-                        {/* Level Badge */}
+                        
                         <div className="absolute top-3 right-3">
                           <Badge className={`${getLevelColor(course.level)} border-0`}>
                             {course.level}
                           </Badge>
                         </div>
-                        {/* Play Button Overlay */}
+                        
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="w-14 h-14 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
                             <Play className="w-6 h-6 text-primary ml-1" />
@@ -2935,7 +2932,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                       </CardHeader>
                       
                       <CardContent className="pt-0">
-                        {/* Course Stats */}
+                        
                         <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                           <span className="flex items-center gap-1">
                             <Layers className="w-4 h-4" />
@@ -2949,7 +2946,7 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
                           )}
                         </div>
                         
-                        {/* Progress Bar (if enrolled) */}
+                        
                         {course.progress !== undefined && course.progress > 0 && (
                           <div className="mb-3">
                             <div className="flex items-center justify-between text-sm mb-1">
@@ -2977,9 +2974,6 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
   );
 };
 
-// ============================================
-// QUIZ MODULE
-// ============================================
 
 interface QuizModuleProps {
   user: User;
@@ -3000,12 +2994,10 @@ const QuizModule = ({ user }: QuizModuleProps) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   
-  // Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   
-  // AI Quiz Generator states
   const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
   const [aiQuestionCount, setAiQuestionCount] = useState(5);
@@ -3043,7 +3035,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
     fetchQuizzes();
   }, [fetchQuizzes]);
 
-  // Timer effect for quiz
   useEffect(() => {
     if (!isTimerRunning || timeLeft <= 0) return;
     
@@ -3060,7 +3051,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
     return () => clearInterval(timer);
   }, [isTimerRunning, timeLeft]);
 
-  // Format time for display
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -3114,7 +3104,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
       setIsTakingQuiz(true);
       setAnswers({});
       setCurrentQuestionIndex(0);
-      // Set timer based on quiz duration (convert minutes to seconds)
       const durationInSeconds = (quiz.duration || 30) * 60;
       setTimeLeft(durationInSeconds);
       setIsTimerRunning(true);
@@ -3127,7 +3116,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
     if (!selectedQuiz) return;
     setIsTimerRunning(false);
     
-    // Calculate time taken (total duration - remaining time)
     const totalDuration = (selectedQuiz.duration || 30) * 60;
     const timeTaken = totalDuration - timeLeft;
     
@@ -3172,7 +3160,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
     }
   };
 
-  // AI Quiz Generation Functions
   const handleGenerateAIQuestions = async () => {
     if (!aiTopic.trim()) {
       setAiError('Please enter a topic');
@@ -3257,7 +3244,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
 
   const passed = attempt && attempt.score >= (selectedQuiz?.passingScore || 60);
   
-  // Filter quizzes based on search, category, and difficulty
   const filteredQuizzes = quizzes.filter(quiz => {
     const matchesSearch = searchQuery === '' || 
       quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -3267,10 +3253,8 @@ const QuizModule = ({ user }: QuizModuleProps) => {
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
   
-  // Get unique categories from quizzes (filter out null, undefined, and empty strings)
   const categories = ['all', ...new Set(quizzes.map(q => q.category).filter(c => c && c.trim()))];
   
-  // Count quizzes by category
   const quizCounts = {
     all: quizzes.length,
     ...Object.fromEntries([...new Set(quizzes.map(q => q.category).filter(c => c && c.trim()))].map(cat => 
@@ -3280,7 +3264,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -3311,9 +3295,8 @@ const QuizModule = ({ user }: QuizModuleProps) => {
       </div>
 
       {isTakingQuiz && selectedQuiz ? (
-        // Quiz Taking View - Enhanced with Timer
         <div className="space-y-6">
-          {/* Timer and Progress Bar */}
+          
           <Card className="border-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -3348,7 +3331,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
             </CardContent>
           </Card>
 
-          {/* Question Navigation Pills */}
+          
           <div className="flex flex-wrap gap-2">
             {selectedQuiz.questions?.map((q, index) => (
               <motion.button
@@ -3369,7 +3352,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
             ))}
           </div>
 
-          {/* Current Question */}
+          
           {selectedQuiz.questions?.[currentQuestionIndex] && (
             <motion.div
               key={currentQuestionIndex}
@@ -3429,7 +3412,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                     })}
                   </div>
                   
-                  {/* Navigation Buttons */}
+                  
                   <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <Button
                       variant="outline"
@@ -3464,7 +3447,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
           )}
         </div>
       ) : attempt ? (
-        // Results View
         <div className="space-y-6">
           <Card className={passed ? 'border-green-500' : 'border-red-500'}>
             <CardContent className="p-8 text-center">
@@ -3499,7 +3481,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
             <CardContent>
               <div className="space-y-4">
                 {selectedQuiz?.questions?.map((q, index) => {
-                  // Parse the graded answers - each answer is an object with userAnswer, correctAnswer, isCorrect, etc.
                   let gradedAnswer: { userAnswer?: string; correctAnswer?: string; isCorrect?: boolean; explanation?: string } | null = null;
                   let userAnswerLetter = '';
                   let isCorrect = false;
@@ -3511,12 +3492,10 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                       userAnswerLetter = gradedAnswer.userAnswer || '';
                       isCorrect = gradedAnswer.isCorrect ?? (userAnswerLetter === q.correctAnswer);
                     } else if (typeof parsedAnswers[q.id] === 'string') {
-                      // Fallback for old format where answers were just strings
                       userAnswerLetter = parsedAnswers[q.id];
                       isCorrect = userAnswerLetter === q.correctAnswer;
                     }
                   } catch {
-                    // If parsing fails, use defaults
                   }
 
                   return (
@@ -3544,9 +3523,8 @@ const QuizModule = ({ user }: QuizModuleProps) => {
           </Card>
         </div>
       ) : (
-        // Quiz List View
         <>
-          {/* Search and Filters */}
+          
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -3584,7 +3562,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
             </div>
           </div>
           
-          {/* Category Pills */}
+          
           <div className="flex flex-wrap gap-2">
             {categories.map(cat => (
               <Button
@@ -3602,7 +3580,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
             ))}
           </div>
           
-          {/* Quiz Grid */}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredQuizzes.length === 0 ? (
             <Card className="col-span-full">
@@ -3628,7 +3606,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                 className="relative"
               >
                 <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden group">
-                  {/* Category Banner */}
+                  
                   <div className={`h-2 ${
                     quiz.category === 'Programming' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
                     quiz.category === 'Mathematics' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
@@ -3667,7 +3645,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {/* Quiz Stats */}
+                    
                     <div className="flex items-center gap-3 mb-4">
                       <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
                         <Timer className="w-4 h-4" />
@@ -3683,7 +3661,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                       </div>
                     </div>
                     
-                    {/* Progress Bar */}
+                    
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                         <span>Passing Score</span>
@@ -3692,7 +3670,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                       <Progress value={quiz.passingScore} className="h-1.5" />
                     </div>
                     
-                    {/* Action Button */}
+                    
                     <Button 
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all"
                       onClick={() => handleStartQuiz(quiz)}
@@ -3709,7 +3687,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
         </>
       )}
 
-      {/* Quiz Creation Dialog */}
+      
       <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -3877,7 +3855,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -3893,13 +3871,13 @@ const QuizModule = ({ user }: QuizModuleProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* AI Quiz Generator Dialog - Enhanced */}
+      
       <Dialog open={isAIGeneratorOpen} onOpenChange={(open) => {
         setIsAIGeneratorOpen(open);
         if (!open) resetAIGenerator();
       }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0">
-          {/* Header with gradient */}
+          
           <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-6 text-white">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <motion.div
@@ -3916,7 +3894,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
           </div>
 
           <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-            {/* Topic Input with Suggestions */}
+            
             <div className="space-y-3">
               <Label className="text-base font-semibold flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-blue-500" />
@@ -3929,7 +3907,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
                 className="text-base h-12 border-2 focus:border-blue-500"
               />
               
-              {/* Quick Topic Suggestions */}
+              
               <div className="space-y-2">
                 <p className="text-xs text-gray-500 font-medium">Quick suggestions:</p>
                 <div className="flex flex-wrap gap-2">
@@ -3962,7 +3940,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
               </div>
             </div>
 
-            {/* Settings Grid */}
+            
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
@@ -4021,7 +3999,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
               </div>
             </div>
 
-            {/* Custom Instructions */}
+            
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-gray-400" />
@@ -4036,7 +4014,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
               />
             </div>
 
-            {/* Error Message */}
+            
             {aiError && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
@@ -4048,7 +4026,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
               </motion.div>
             )}
 
-            {/* Generate Button */}
+            
             <motion.div
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
@@ -4086,7 +4064,7 @@ const QuizModule = ({ user }: QuizModuleProps) => {
               </Button>
             </motion.div>
 
-            {/* Generated Questions Preview */}
+            
             {generatedQuestions && generatedQuestions.length > 0 && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -4190,13 +4168,10 @@ const QuizModule = ({ user }: QuizModuleProps) => {
   );
 };
 
-// ============================================
-// SKELETON LOADER - Lightweight for faster rendering
-// ============================================
 
 const DashboardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
-    {/* Welcome Banner Skeleton */}
+    
     <Card className="bg-gradient-to-br from-blue-500/50 to-purple-600/50 border-0 h-32" />
     
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -4231,9 +4206,6 @@ const DashboardSkeleton = () => (
   </div>
 );
 
-// ============================================
-// ANIMATED COUNTER COMPONENT
-// ============================================
 
 const AnimatedCounter = ({ value, suffix = '', duration = 2000 }: { value: number; suffix?: string; duration?: number }) => {
   const [count, setCount] = useState(0);
@@ -4278,12 +4250,8 @@ const AnimatedCounter = ({ value, suffix = '', duration = 2000 }: { value: numbe
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 };
 
-// ============================================
-// FLOATING PARTICLES COMPONENT (Optimized)
-// ============================================
 
 const FloatingParticles = () => {
-  // Reduced particles for better performance
   const particles = Array.from({ length: 15 }, (_, i) => ({
     id: i,
     size: Math.random() * 4 + 2,
@@ -4321,9 +4289,6 @@ const FloatingParticles = () => {
   );
 };
 
-// ============================================
-// MOUSE GLOW EFFECT (Optimized with throttle)
-// ============================================
 
 const MouseGlow = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -4334,7 +4299,6 @@ const MouseGlow = () => {
     const handleMouseMove = (e: MouseEvent) => {
       targetRef.current = { x: e.clientX, y: e.clientY };
       
-      // Throttle using requestAnimationFrame
       if (!rafRef.current) {
         rafRef.current = requestAnimationFrame(() => {
           setPosition({ ...targetRef.current });
@@ -4362,9 +4326,6 @@ const MouseGlow = () => {
   );
 };
 
-// ============================================
-// INTERACTIVE FEATURE CARD (Optimized)
-// ============================================
 
 const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index, image }: {
   icon: LucideIcon;
@@ -4418,9 +4379,6 @@ const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index, 
   );
 };
 
-// ============================================
-// TESTIMONIAL CAROUSEL
-// ============================================
 
 const TestimonialCarousel = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -4481,7 +4439,7 @@ const TestimonialCarousel = () => {
         </motion.div>
       </div>
 
-      {/* Navigation Dots */}
+      
       <div className="flex justify-center gap-2 mt-8">
         {testimonials.map((_, index) => (
           <button
@@ -4499,9 +4457,6 @@ const TestimonialCarousel = () => {
   );
 };
 
-// ============================================
-// DEMO VIDEO MODAL
-// ============================================
 
 const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -4509,7 +4464,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
   const [progress, setProgress] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressRef = useRef<NodeJS.Timeout | null>(null);
-  const SLIDE_DURATION = 6000; // 6 seconds per slide
+  const SLIDE_DURATION = 6000;
 
   const demoSlides = [
     {
@@ -4579,7 +4534,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
       gradient: 'from-indigo-500 via-blue-500 to-cyan-500',
       content: (
         <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-2xl">
-          {/* Mock Dashboard Header */}
+          
           <div className="bg-gradient-to-r from-indigo-500 to-blue-500 p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
@@ -4593,7 +4548,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             </div>
           </div>
           
-          {/* Stats Cards */}
+          
           <div className="p-4 grid grid-cols-3 gap-3">
             {[
               { label: 'Courses', value: '12', change: '+2', color: 'bg-blue-500' },
@@ -4616,7 +4571,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             ))}
           </div>
           
-          {/* Progress Section */}
+          
           <div className="px-4 pb-4">
             <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
@@ -4699,7 +4654,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
       gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
       content: (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-          {/* AI Header */}
+          
           <div className="bg-gradient-to-r from-violet-500 to-purple-600 p-4 flex items-center gap-3">
             <motion.div
               animate={{ rotate: [0, 360] }}
@@ -4721,7 +4676,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             </motion.div>
           </div>
           
-          {/* Quiz Content */}
+          
           <div className="p-5">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -4766,7 +4721,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
               ))}
             </div>
             
-            {/* AI Explanation */}
+            
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -4791,7 +4746,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
       gradient: 'from-orange-500 via-amber-500 to-yellow-500',
       content: (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-          {/* Calendar Header */}
+          
           <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4">
             <div className="flex items-center justify-between text-white">
               <div>
@@ -4809,7 +4764,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             </div>
           </div>
           
-          {/* Calendar Grid */}
+          
           <div className="p-4">
             <div className="grid grid-cols-7 gap-1 text-center mb-2">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
@@ -4847,7 +4802,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
               })}
             </div>
             
-            {/* Upcoming Events */}
+            
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -4879,7 +4834,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
       gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
       content: (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-5">
-          {/* Stats Row */}
+          
           <div className="grid grid-cols-2 gap-4 mb-5">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -4902,7 +4857,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             </motion.div>
           </div>
           
-          {/* Chart */}
+          
           <div className="h-36">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={[
@@ -4927,7 +4882,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             </ResponsiveContainer>
           </div>
           
-          {/* Achievement */}
+          
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -4989,7 +4944,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             </Button>
           </motion.div>
           
-          {/* Trust indicators */}
+          
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -5028,7 +4983,6 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
     }
   };
 
-  // Auto-play functionality
   useEffect(() => {
     if (isPlaying && currentSlide < demoSlides.length - 1) {
       timerRef.current = setTimeout(() => {
@@ -5042,7 +4996,6 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
     };
   }, [isPlaying, currentSlide, demoSlides.length]);
 
-  // Progress bar animation
   useEffect(() => {
     if (isPlaying) {
       const interval = 50;
@@ -5063,7 +5016,6 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
     };
   }, [isPlaying]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') nextSlide();
@@ -5095,9 +5047,9 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
         className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        
         <div className={`bg-gradient-to-r ${demoSlides[currentSlide].gradient} p-4 sm:p-5 text-white relative overflow-hidden flex-shrink-0`}>
-          {/* Animated background */}
+          
           <motion.div
             className="absolute inset-0 opacity-30"
             animate={{
@@ -5125,7 +5077,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {/* Play/Pause Button */}
+              
               <Button
                 variant="ghost"
                 size="icon"
@@ -5145,7 +5097,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             </div>
           </div>
 
-          {/* Progress Bar */}
+          
           <div className="mt-4 relative">
             <div className="flex gap-1.5">
               {demoSlides.map((slide, i) => (
@@ -5168,7 +5120,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
                 </div>
               ))}
             </div>
-            {/* Step Labels */}
+            
             <div className="flex justify-between mt-2 text-xs text-white/60">
               <span>Step {currentSlide + 1} of {demoSlides.length}</span>
               <span className="hidden sm:block">Use arrow keys to navigate</span>
@@ -5176,7 +5128,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
           </div>
         </div>
 
-        {/* Content */}
+        
         <div className="p-4 sm:p-6 md:p-8 min-h-[260px] sm:min-h-[320px] md:min-h-[380px] overflow-y-auto flex-1">
           <AnimatePresence mode="wait">
             <motion.div
@@ -5191,7 +5143,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
           </AnimatePresence>
         </div>
 
-        {/* Footer */}
+        
         <div className="px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 flex flex-col sm:flex-row items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4 gap-3 sm:gap-0 flex-shrink-0">
           <Button
             variant="outline"
@@ -5202,7 +5154,7 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
             <ChevronLeft className="w-4 h-4" /> Previous
           </Button>
           
-          {/* Dots Navigation */}
+          
           <div className="flex items-center gap-2">
             {demoSlides.map((slide, i) => (
               <motion.button
@@ -5243,16 +5195,12 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-// ============================================
-// FOOTER PAGE MODALS
-// ============================================
 
 interface FooterPageModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// About Us Modal
 const AboutUsModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   if (!isOpen) return null;
 
@@ -5328,7 +5276,6 @@ const AboutUsModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// Contact Modal
 const ContactModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -5337,7 +5284,6 @@ const ContactModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSubmitting(false);
     setSubmitted(true);
@@ -5447,7 +5393,6 @@ const ContactModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// FAQ/Help Center Modal
 const FAQModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -5550,7 +5495,6 @@ const FAQModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// Privacy Policy Modal
 const PrivacyPolicyModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   if (!isOpen) return null;
 
@@ -5626,7 +5570,6 @@ const PrivacyPolicyModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// Terms of Service Modal
 const TermsOfServiceModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   if (!isOpen) return null;
 
@@ -5702,7 +5645,6 @@ const TermsOfServiceModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// Careers Modal
 const CareersModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   const jobs = [
     { title: 'Full-Stack Developer', type: 'Full-time', location: 'Remote', department: 'Engineering' },
@@ -5779,7 +5721,6 @@ const CareersModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// Help Center Modal
 const HelpCenterModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   if (!isOpen) return null;
 
@@ -5877,7 +5818,6 @@ const HelpCenterModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// Blog Modal
 const BlogModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   const posts = [
     { title: '10 Study Techniques Backed by Science', date: 'Jan 15, 2024', readTime: '5 min', category: 'Study Tips' },
@@ -5952,9 +5892,6 @@ const BlogModal = ({ isOpen, onClose }: FooterPageModalProps) => {
   );
 };
 
-// ============================================
-// LANDING PAGE COMPONENTS (Continued from before)
-// ============================================
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -5968,19 +5905,16 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
   const [activeSection, setActiveSection] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
   
-  // Footer modal states
   const [activeFooterModal, setActiveFooterModal] = useState<string | null>(null);
   
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
 
-  // Handle scroll for navbar and back-to-top button
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
       setShowBackToTop(window.scrollY > 500);
       
-      // Detect active section
       const sections = ['features', 'how-it-works'];
       for (const section of sections) {
         const element = document.getElementById(section);
@@ -6013,12 +5947,12 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
   return (
     <main className="min-h-screen bg-white dark:bg-slate-900 overflow-x-hidden">
       
-      {/* Demo Video Modal */}
+      
       <AnimatePresence>
         {showDemoModal && <DemoVideoModal onClose={() => setShowDemoModal(false)} />}
       </AnimatePresence>
       
-      {/* Navigation */}
+      
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -6030,7 +5964,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo - Left */}
+            
             <motion.div
               whileHover={{ scale: 1.02 }}
               className="flex items-center flex-shrink-0"
@@ -6039,7 +5973,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               <LogoIcon size="sm" className="sm:hidden" />
             </motion.div>
             
-            {/* Desktop Navigation - Center */}
+            
             <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2">
               <div className="flex items-center gap-1">
                 {[
@@ -6068,9 +6002,9 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </div>
             </div>
             
-            {/* Right side buttons */}
+            
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Theme Toggle - Desktop */}
+              
               {mounted && (
                 <Button
                   variant="ghost"
@@ -6088,7 +6022,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 </Button>
               )}
               
-              {/* Login Button - Desktop */}
+              
               <Button 
                 variant="ghost" 
                 onClick={onLogin} 
@@ -6097,7 +6031,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 Login
               </Button>
               
-              {/* Get Started Button */}
+              
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button 
                   className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium h-10 lg:h-11 px-4 lg:px-5 text-sm" 
@@ -6108,7 +6042,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 </Button>
               </motion.div>
               
-              {/* Mobile Menu Button */}
+              
               <Button
                 variant="ghost"
                 size="icon"
@@ -6127,7 +6061,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -6137,7 +6071,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               className="md:hidden bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 overflow-hidden"
             >
               <div className="px-4 py-4 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto">
-                {/* Navigation Items */}
+                
                 {[
                   { id: 'features', label: 'Features', icon: Calendar },
                   { id: 'how-it-works', label: 'How It Works', icon: Target },
@@ -6159,14 +6093,14 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                   </motion.button>
                 ))}
                 
-                {/* Divider */}
+                
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.15 }}
                   className="pt-3 mt-2 border-t border-slate-200 dark:border-slate-700"
                 >
-                  {/* Theme Toggle - Mobile */}
+                  
                   {mounted && (
                     <button
                       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -6177,7 +6111,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                     </button>
                   )}
                   
-                  {/* Login - Mobile */}
+                  
                   <button
                     onClick={onLogin}
                     className="flex items-center gap-3 w-full text-left px-4 py-3.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 min-h-[48px]"
@@ -6186,7 +6120,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                     <span className="font-medium">Login</span>
                   </button>
                   
-                  {/* Get Started - Mobile */}
+                  
                   <Button 
                     onClick={onRegister} 
                     className="w-full mt-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl h-12 text-base font-medium"
@@ -6200,13 +6134,13 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </AnimatePresence>
       </motion.nav>
 
-      {/* Hero Section */}
+      
       <section className="relative min-h-screen pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 px-4 overflow-hidden">
-        {/* Clean Background */}
+        
         <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900" />
 
         <div className="max-w-4xl mx-auto relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
-          {/* Trust Badge */}
+          
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -6241,7 +6175,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
             </div>
           </motion.div>
 
-          {/* Title */}
+          
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -6253,7 +6187,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
             <span className="text-indigo-600 dark:text-indigo-400">simplified.</span>
           </motion.h1>
 
-          {/* Subtitle */}
+          
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -6263,7 +6197,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
             A straightforward study planner that helps you organize subjects, track assignments, and stay on top of deadlines. Built by students, for students.
           </motion.p>
 
-          {/* CTA Buttons */}
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -6291,7 +6225,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 </motion.div>
               </motion.div>
 
-              {/* Feature Pills */}
+              
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -6314,7 +6248,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* Stats Section */}
+      
       <section className="py-10 sm:py-12 md:py-16 px-4 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
@@ -6347,7 +6281,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* Features */}
+      
       <section id="features" className="py-12 sm:py-16 md:py-24 px-4 bg-slate-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto">
           <motion.div 
@@ -6379,7 +6313,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* How It Works */}
+      
       <section id="how-it-works" className="py-12 sm:py-16 md:py-24 px-4 bg-white dark:bg-slate-900">
         <div className="max-w-6xl mx-auto">
           <motion.div 
@@ -6427,7 +6361,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      
       <section className="py-24 px-4 bg-slate-50 dark:bg-slate-900">
         <div className="max-w-6xl mx-auto">
           <motion.div 
@@ -6448,7 +6382,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* CTA */}
+      
       <section className="py-20 sm:py-24 px-4 relative overflow-hidden">
         <div className="cta-section max-w-6xl mx-auto py-16 sm:py-20 px-6 sm:px-12">
           <motion.div 
@@ -6502,11 +6436,11 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* Footer */}
+      
       <footer className="relative bg-slate-900 text-white">
-        {/* Main Footer Content */}
+        
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 md:pt-20 pb-8 sm:pb-12">
-          {/* Newsletter Section */}
+          
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -6532,9 +6466,9 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
             </div>
           </motion.div>
 
-          {/* Footer Grid */}
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-8 mb-8 sm:mb-12">
-            {/* Brand Section */}
+            
             <div className="col-span-1 sm:col-span-2 lg:col-span-2">
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -6546,7 +6480,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
                 <p className="text-slate-400 leading-relaxed max-w-sm mb-6">
                   A straightforward study planner that helps you stay organized and on track.
                 </p>
-                {/* Social Links */}
+                
                 <div className="flex gap-3">
                   {[
                     { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
@@ -6570,7 +6504,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </motion.div>
             </div>
 
-            {/* Product Links */}
+            
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -6596,7 +6530,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </ul>
             </motion.div>
 
-            {/* Company Links */}
+            
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -6623,7 +6557,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
               </ul>
             </motion.div>
 
-            {/* Support Links */}
+            
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -6651,7 +6585,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
             </motion.div>
           </div>
 
-          {/* Bottom Bar */}
+          
           <div className="border-t border-slate-800 pt-8">
             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
               <div className="flex items-center gap-2 text-slate-400 text-sm">
@@ -6662,7 +6596,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         </div>
       </footer>
 
-      {/* Footer Page Modals */}
+      
       <AnimatePresence>
         <AboutUsModal isOpen={activeFooterModal === 'about'} onClose={() => setActiveFooterModal(null)} />
         <ContactModal isOpen={activeFooterModal === 'contact'} onClose={() => setActiveFooterModal(null)} />
@@ -6674,7 +6608,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         <HelpCenterModal isOpen={activeFooterModal === 'help'} onClose={() => setActiveFooterModal(null)} />
       </AnimatePresence>
 
-      {/* Back to Top Button */}
+      
       <AnimatePresence>
         {showBackToTop && (
           <motion.button
@@ -6693,9 +6627,6 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
   );
 };
 
-// ============================================
-// AUTH MODAL - ENHANCED VERSION
-// ============================================
 
 interface AuthModalProps {
   mode: 'login' | 'register' | 'forgot-password';
@@ -6705,9 +6636,7 @@ interface AuthModalProps {
   initialError?: string;
 }
 
-// Floating shapes for background animation (Optimized)
 const AuthFloatingShapes = () => {
-  // Reduced from 6 to 3 shapes for better performance
   const shapes = [
     { size: 80, left: 10, top: 20, duration: 8 },
     { size: 60, left: 80, top: 60, duration: 10 },
@@ -6745,7 +6674,6 @@ const AuthFloatingShapes = () => {
   );
 };
 
-// Password strength calculator
 const calculatePasswordStrength = (password: string) => {
   let strength = 0;
   if (password.length >= 6) strength++;
@@ -6764,7 +6692,6 @@ const getPasswordStrengthColor = (strength: number) => {
   return { bar: 'bg-green-500', text: 'text-green-500', label: 'Excellent' };
 };
 
-// FloatingInput component - defined OUTSIDE AuthModal to prevent re-renders
 const FloatingInput = ({
   id,
   label,
@@ -6859,7 +6786,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [googleLoading, setGoogleLoading] = useState(false);
   const [firebaseReady, setFirebaseReady] = useState(false);
   
-  // New states for email auth
   const [emailLoading, setEmailLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
@@ -6867,30 +6793,24 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   
-  // Verification code states
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [verifyCodeLoading, setVerifyCodeLoading] = useState(false);
   const [verifyCodeError, setVerifyCodeError] = useState('');
 
-  // Reset password states
   const [resetPasswordData, setResetPasswordData] = useState({ password: '', confirmPassword: '' });
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [resetPasswordError, setResetPasswordError] = useState('');
   const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false);
 
-  // Pre-cache Firebase auth instance
   const firebaseAuthRef = useRef<{ auth: typeof import('firebase/auth').Auth | null; googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null }>({ auth: null, googleProvider: null });
 
   useEffect(() => {
     setMounted(true);
-    // Check Firebase configuration and pre-initialize on mount
     if (isFirebaseConfigured()) {
-      // Pre-load Firebase in the background
       getFirebaseAuth().then(async ({ auth, googleProvider }) => {
         firebaseAuthRef.current = { auth, googleProvider };
         setFirebaseReady(!!auth && !!googleProvider);
         
-        // Check for redirect result (when returning from Google sign-in)
         if (auth) {
           try {
             const { getRedirectResult } = await import('firebase/auth');
@@ -6904,7 +6824,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                 throw new Error('Could not get email from Google account.');
               }
               
-              // Send the user info to our backend to create a session
               const response = await fetch('/api/auth/firebase', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -6924,7 +6843,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
               }
 
               if (data.success && data.user) {
-                // Show success animation
                 setShowSuccess(true);
                 setTimeout(() => {
                   onSuccess(data.user);
@@ -6933,7 +6851,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
             }
           } catch (redirectError) {
             console.error('🔥 Redirect result error:', redirectError);
-            // Don't show error if it's just "no redirect result"
             const errorCode = (redirectError as { code?: string })?.code || '';
             if (errorCode !== 'auth/no-auth-event') {
               setError(redirectError instanceof Error ? redirectError.message : 'Google sign-in failed');
@@ -6947,7 +6864,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   }, [onSuccess]);
   
-  // Reset states when mode changes
   useEffect(() => {
     setError('');
     setRegistrationSuccess(false);
@@ -6961,7 +6877,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     setGoogleLoading(true);
     
     try {
-      // Use cached auth instance or get it
       let { auth, googleProvider, error: firebaseError } = firebaseAuthRef.current;
       
       if (!auth || !googleProvider) {
@@ -6979,7 +6894,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error('Firebase authentication could not be initialized.');
       }
       
-      // Try popup first, fall back to redirect if popup fails
       try {
         const { signInWithPopup } = await import('firebase/auth');
         const result = await signInWithPopup(auth, googleProvider);
@@ -6989,7 +6903,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
           throw new Error('Could not get email from Google account.');
         }
         
-        // Send the user info to our backend to create a session
         const response = await fetch('/api/auth/firebase', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -7012,7 +6925,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
           throw new Error(data.error || 'Authentication failed.');
         }
 
-        // Show success animation
         setShowSuccess(true);
         setTimeout(() => {
           onSuccess(data.user);
@@ -7020,7 +6932,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       } catch (popupError) {
         const errorCode = (popupError as { code?: string })?.code || '';
         
-        // If popup is blocked or closed, use redirect method
         if (errorCode === 'auth/popup-blocked' || 
             errorCode === 'auth/popup-closed-by-user' ||
             errorCode === 'auth/unauthorized-domain') {
@@ -7028,7 +6939,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
           
           const { signInWithRedirect } = await import('firebase/auth');
           await signInWithRedirect(auth, googleProvider);
-          // Page will redirect, so we don't need to handle success here
           return;
         }
         
@@ -7037,7 +6947,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     } catch (err) {
       console.error('Google sign-in error:', err);
       
-      // Handle specific Firebase errors
       const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
       const errorCode = (err as { code?: string })?.code || '';
       
@@ -7061,7 +6970,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle email/password login
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -7105,7 +7013,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle email/password registration
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -7133,15 +7040,12 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Check if user was auto-verified and logged in
       if (data.autoVerified && data.user) {
-        // User is automatically logged in (development/demo mode)
         setShowSuccess(true);
         setTimeout(() => {
           onSuccess(data.user);
         }, 800);
       } else {
-        // Show success message asking user to check email (production mode)
         setRegistrationSuccess(true);
       }
     } catch (err) {
@@ -7151,7 +7055,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle forgot password
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -7178,7 +7081,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle resend verification email
   const handleResendVerification = async () => {
     setError('');
     setResendLoading(true);
@@ -7204,9 +7106,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle verification code input change
   const handleCodeChange = (index: number, value: string) => {
-    // Only allow digits
     if (value && !/^\d$/.test(value)) return;
 
     const newCode = [...verificationCode];
@@ -7214,14 +7114,12 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     setVerificationCode(newCode);
     setVerifyCodeError('');
 
-    // Auto-focus next input
     if (value && index < 5) {
       const nextInput = document.getElementById(`code-${index + 1}`);
       if (nextInput) nextInput.focus();
     }
   };
 
-  // Handle verification code key down (for backspace navigation)
   const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
       const prevInput = document.getElementById(`code-${index - 1}`);
@@ -7229,7 +7127,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle verification code paste
   const handleCodePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
@@ -7242,7 +7139,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle verify code submission
   const handleVerifyCode = async () => {
     const code = verificationCode.join('');
     if (code.length !== 6) {
@@ -7269,7 +7165,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.error || 'Verification failed');
       }
 
-      // Success - show success animation and log in
       setShowSuccess(true);
       setTimeout(() => {
         onSuccess(data.user);
@@ -7281,7 +7176,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Handle reset password with code submission
   const handleResetPassword = async () => {
     const code = verificationCode.join('');
     if (code.length !== 6) {
@@ -7320,7 +7214,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         throw new Error(data.error || 'Password reset failed');
       }
 
-      // Success - show success animation and log in
       setResetPasswordSuccess(true);
       setShowSuccess(true);
       setTimeout(() => {
@@ -7333,7 +7226,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
     }
   };
 
-  // Get password strength info
   const passwordStrength = calculatePasswordStrength(formData.password);
   const passwordStrengthInfo = getPasswordStrengthColor(passwordStrength);
 
@@ -7345,10 +7237,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
       onClick={onClose}
     >
-      {/* Animated Background */}
+      
       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl pointer-events-none" />
 
-      {/* Floating particles */}
+      
       {mounted && <AuthFloatingShapes />}
 
       <motion.div
@@ -7359,7 +7251,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         className="relative bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden z-10 max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Success Animation Overlay */}
+        
         <AnimatePresence>
           {showSuccess && (
             <motion.div
@@ -7394,9 +7286,9 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
           )}
         </AnimatePresence>
 
-        {/* Header with decorative elements */}
+        
         <div className="relative bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-5 sm:p-6 md:p-8 text-white overflow-hidden flex-shrink-0">
-          {/* Animated circles in header */}
+          
           <motion.div
             className="absolute -top-10 -right-10 w-32 h-32 sm:w-40 sm:h-40 bg-white/10 rounded-full"
             animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
@@ -7438,7 +7330,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
             </motion.div>
           </div>
 
-          {/* Close button */}
+          
           <button
             onClick={onClose}
             className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 text-white/70 hover:text-white hover:bg-white/20 rounded-full transition-all z-20"
@@ -7449,7 +7341,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
         </div>
 
         <div className="p-5 sm:p-6 md:p-8 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
-          {/* Registration Success Message */}
+          
           {registrationSuccess && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -7471,7 +7363,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                     We've sent a 6-digit verification code to <strong className="break-all">{formData.email}</strong>
                   </p>
                   
-                  {/* 6-digit code input */}
+                  
                   <div className="flex justify-center gap-2 sm:gap-3 mb-4">
                     {[0, 1, 2, 3, 4, 5].map((index) => (
                       <input
@@ -7540,7 +7432,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
             </motion.div>
           )}
 
-          {/* Forgot Password Success Message */}
+          
           {forgotPasswordSuccess && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -7569,10 +7461,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
             </motion.div>
           )}
 
-          {/* Show forms only if not in success state */}
+          
           {!registrationSuccess && !forgotPasswordSuccess && (
             <>
-              {/* Error Alert */}
+              
               <AnimatePresence>
                 {error && (
                   <motion.div
@@ -7602,11 +7494,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                 )}
               </AnimatePresence>
 
-              {/* Forgot Password Form */}
+              
               {mode === 'forgot-password' && (
                 <>
                   {!forgotPasswordSuccess ? (
-                    // Step 1: Enter email
                     <form onSubmit={handleForgotPassword} className="space-y-3 sm:space-y-4">
                       <FloatingInput
                         id="forgot-email"
@@ -7648,7 +7539,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                       </p>
                     </form>
                   ) : (
-                    // Step 2: Enter code + new password
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -7669,7 +7559,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                             We've sent a 6-digit code to <strong className="break-all">{formData.email}</strong>
                           </p>
                           
-                          {/* 6-digit code input */}
+                          
                           <div className="flex justify-center gap-2 sm:gap-3 mb-4">
                             {[0, 1, 2, 3, 4, 5].map((index) => (
                               <input
@@ -7688,7 +7578,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                             ))}
                           </div>
 
-                          {/* New Password Fields */}
+                          
                           <div className="space-y-3 mt-4">
                             <div className="relative">
                               <div className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -7710,7 +7600,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                               </button>
                             </div>
 
-                            {/* Password strength indicator */}
+                            
                             {resetPasswordData.password && (
                               <div className="px-1">
                                 <div className="flex gap-1 mb-1">
@@ -7781,7 +7671,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                                     setTimeout(() => setResendSuccess(false), 3000);
                                   }
                                 } catch {
-                                  // Silent fail
                                 } finally {
                                   setResendLoading(false);
                                 }
@@ -7802,10 +7691,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                 </>
               )}
 
-              {/* Login and Register Forms */}
+              
               {mode !== 'forgot-password' && (
                 <>
-                  {/* Google Login Button */}
+                  
                   <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                     <Button
                       type="button"
@@ -7834,7 +7723,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                     </Button>
                   </motion.div>
 
-                  {/* Divider */}
+                  
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
@@ -7844,7 +7733,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                     </div>
                   </div>
 
-                  {/* Login Form */}
+                  
                   {mode === 'login' && (
                     <form onSubmit={handleEmailLogin} className="space-y-3 sm:space-y-4">
                       <FloatingInput
@@ -7923,7 +7812,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
                     </form>
                   )}
 
-                  {/* Register Form */}
+                  
                   {mode === 'register' && (
                     <form onSubmit={handleEmailRegister} className="space-y-3 sm:space-y-4">
                       <FloatingInput
@@ -8019,7 +7908,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
             </>
           )}
 
-          {/* Features */}
+          
           <div className="space-y-2 sm:space-y-3 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-800 flex-shrink-0">
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center">
               By signing in, you agree to our{' '}
@@ -8045,11 +7934,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess, initialError }: Aut
   );
 };
 
-// ============================================
-// MAIN PAGE COMPONENT
-// ============================================
 
-// Verification Modal Component
 interface VerificationModalProps {
   token: string;
   type: 'verify-email' | 'reset-password';
@@ -8299,7 +8184,6 @@ function PageContent() {
   const [verificationToken, setVerificationToken] = useState<{ token: string; type: 'verify-email' | 'reset-password' } | null>(null);
   const searchParams = useSearchParams();
 
-  // Check session on mount
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -8308,7 +8192,6 @@ function PageContent() {
           setUser(data.user);
         }
       } catch {
-        // Not logged in
       } finally {
         setIsLoading(false);
       }
@@ -8316,7 +8199,6 @@ function PageContent() {
     checkSession();
   }, []);
 
-  // Listen for URL param changes
   const [oauthError, setOauthError] = useState('');
 
   useEffect(() => {
@@ -8340,7 +8222,6 @@ function PageContent() {
       setOauthError('');
     }
     
-    // Handle verification tokens
     if (verifyToken) {
       setVerificationToken({ token: verifyToken, type: 'verify-email' });
     } else if (resetToken) {
@@ -8354,11 +8235,9 @@ function PageContent() {
       setUser(null);
       setCurrentView('dashboard');
     } catch {
-      // Ignore
     }
   };
 
-  // Verify session after login to ensure cookie is properly set
   const verifySession = async () => {
     try {
       const data = await api.get<{ user: User | null }>('/api/auth/session');
@@ -8367,7 +8246,6 @@ function PageContent() {
         return true;
       }
     } catch {
-      // Session verification failed
     }
     return false;
   };
@@ -8393,10 +8271,8 @@ function PageContent() {
     );
   }
 
-  // Show Dashboard if logged in
   if (user) {
     const renderContent = () => {
-      // Settings view for all users
       if (currentView === 'settings') {
         return (
           <div className="space-y-6">
@@ -8410,12 +8286,10 @@ function PageContent() {
         );
       }
 
-      // Student views
       if (currentView === 'planner') {
         return <StudyPlanner user={user} />;
       }
 
-      // Shared views
       switch (currentView) {
         case 'courses':
           return <CoursesModule user={user} />;
@@ -8437,7 +8311,7 @@ function PageContent() {
           {renderContent()}
         </DashboardLayout>
         
-        {/* AI Chat Button */}
+        
         <Button
           onClick={() => setIsAIChatOpen(true)}
           className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg z-40"
@@ -8445,7 +8319,7 @@ function PageContent() {
           <Sparkles className="w-6 h-6 text-white" />
         </Button>
         
-        {/* AI Chat Widget */}
+        
         <AnimatePresence>
           {isAIChatOpen && (
             <AIChatWidget isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} />
@@ -8455,7 +8329,6 @@ function PageContent() {
     );
   }
 
-  // Show Landing Page with Auth Modal
   return (
     <>
       <LandingPage 
@@ -8469,8 +8342,6 @@ function PageContent() {
             onClose={() => setAuthMode(null)}
             onSwitchMode={setAuthMode}
             onSuccess={async (_u) => {
-              // Verify the session was actually established (cookie set correctly)
-              // before showing the dashboard
               setIsLoading(true);
               const success = await verifySession();
               setIsLoading(false);
@@ -8478,7 +8349,6 @@ function PageContent() {
                 setAuthMode(null);
                 handleViewChange('dashboard');
               } else {
-                // Session verification failed - show error
                 setAuthMode(null);
               }
             }}
@@ -8491,14 +8361,12 @@ function PageContent() {
             type={verificationToken.type}
             onClose={() => {
               setVerificationToken(null);
-              // Clear URL params
               const url = new URL(window.location.href);
               url.searchParams.delete('verify_token');
               url.searchParams.delete('reset_token');
               window.history.replaceState({}, '', url);
             }}
             onSuccess={async (_u) => {
-              // Verify session after verification
               const success = await verifySession();
               if (success) {
                 setVerificationToken(null);
@@ -8512,7 +8380,6 @@ function PageContent() {
   );
 }
 
-// Wrap PageContent in Suspense to handle useSearchParams
 export default function Page() {
   return (
     <Suspense fallback={
