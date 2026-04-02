@@ -8,79 +8,44 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 const getDefaultStudentStats = () => ({
-  subjects: { total: 3 },
+  subjects: { total: 0 },
   tasks: { 
-    total: 12, 
-    completed: 5, 
-    pending: 4, 
-    inProgress: 3, 
-    completionRate: 42,
-    weeklyCompleted: 3,
-    overdueTasks: 2,
+    total: 0, 
+    completed: 0, 
+    pending: 0, 
+    inProgress: 0, 
+    completionRate: 0,
+    weeklyCompleted: 0,
+    overdueTasks: 0,
   },
   quizzes: { 
-    totalAttempts: 4, 
-    passed: 3, 
-    averageScore: 78, 
-    bestScore: 92, 
-    passRate: 75, 
-    recentAttempts: [
-      { quizTitle: 'JavaScript Basics', score: 85, passed: true, completedAt: new Date().toISOString() },
-      { quizTitle: 'React Fundamentals', score: 92, passed: true, completedAt: new Date(Date.now() - 86400000).toISOString() },
-    ],
-    improvement: 12,
-    averageTimePerQuiz: 15,
+    totalAttempts: 0, 
+    passed: 0, 
+    averageScore: 0, 
+    bestScore: 0, 
+    passRate: 0, 
+    recentAttempts: [],
+    improvement: 0,
+    averageTimePerQuiz: 0,
   },
   courses: { 
-    enrolled: 4, 
-    completed: 1, 
-    averageProgress: 52,
+    enrolled: 0, 
+    completed: 0, 
+    averageProgress: 0,
   },
-  upcomingTasks: [
-    { id: '1', title: 'Complete React Project', dueDate: new Date(Date.now() + 86400000).toISOString(), priority: 'high', subject: { name: 'Web Development', color: '#6366f1' } },
-    { id: '2', title: 'Study for Math Exam', dueDate: new Date(Date.now() + 172800000).toISOString(), priority: 'medium', subject: { name: 'Mathematics', color: '#22c55e' } },
-  ],
-  streak: { current: 7, best: 14 },
+  upcomingTasks: [],
+  streak: { current: 0, best: 0 },
   productivity: {
-    score: 72,
-    weeklyTrend: [
-      { day: 'Mon', tasks: 3, hours: 2.5 },
-      { day: 'Tue', tasks: 2, hours: 1.5 },
-      { day: 'Wed', tasks: 4, hours: 3 },
-      { day: 'Thu', tasks: 1, hours: 1 },
-      { day: 'Fri', tasks: 3, hours: 2 },
-      { day: 'Sat', tasks: 2, hours: 2.5 },
-      { day: 'Sun', tasks: 1, hours: 1 },
-    ],
-    monthlyProgress: [
-      { week: 'Week 1', completed: 8, target: 10 },
-      { week: 'Week 2', completed: 12, target: 10 },
-      { week: 'Week 3', completed: 9, target: 10 },
-      { week: 'Week 4', completed: 11, target: 10 },
-    ],
-    bestSubject: 'Mathematics',
-    studyHoursThisWeek: 13.5,
-    averageDailyStudyTime: 1.9,
+    score: 0,
+    weeklyTrend: [],
+    monthlyProgress: [],
+    bestSubject: null,
+    studyHoursThisWeek: 0,
+    averageDailyStudyTime: 0,
   },
-  achievements: [
-    { id: '1', title: 'First Steps', description: 'Complete your first task', icon: '🎯', earned: true, progress: 100 },
-    { id: '2', title: 'Quiz Master', description: 'Pass 5 quizzes', icon: '🧠', earned: false, progress: 60 },
-    { id: '3', title: 'Streak Champion', description: '7-day study streak', icon: '🔥', earned: true, progress: 100 },
-  ],
-  recommendations: [
-    { type: 'study', message: 'Your Mathematics scores improved 15%! Keep it up!', priority: 'high' },
-    { type: 'tip', message: 'Try studying during peak hours (10am-2pm) for better focus', priority: 'medium' },
-  ],
-  learningInsights: {
-    peakStudyHours: [10, 14, 19],
-    mostProductiveDay: 'Wednesday',
-    averageQuizTime: 15,
-    subjectProgress: [
-      { subject: 'Mathematics', progress: 78, trend: 'up' },
-      { subject: 'Web Development', progress: 65, trend: 'up' },
-      { subject: 'Physics', progress: 42, trend: 'stable' },
-    ],
-  },
+  achievements: [],
+  recommendations: [],
+  learningInsights: { peakStudyHours: [], mostProductiveDay: '', averageQuizTime: 0, subjectProgress: [] },
 });
 
 export async function GET() {
@@ -98,16 +63,16 @@ export async function GET() {
           success: true,
           role: 'admin',
           stats: {
-            users: { total: 15, students: 13, admins: 2, recentNewUsers: 3, growth: 20 },
-            courses: { total: stats.totalCourses, averageProgress: 48, completionRate: 65 },
-            quizzes: { total: stats.totalQuizzes, published: stats.totalQuizzes, totalAttempts: 32, recentAttempts: 8, averageScore: 76, passRate: 72 },
-            tasks: { total: 28, completed: 15, pending: 8, inProgress: 5, completionRate: 54 },
-            subjects: { total: 6 },
-            engagement: { dailyActiveUsers: 11, weeklyActiveUsers: 13, monthlyActiveUsers: 15, averageSessionTime: 28 },
+            users: { total: 0, students: 0, admins: 0, recentNewUsers: 0, growth: 0 },
+            courses: { total: stats.totalCourses, averageProgress: 0, completionRate: 0 },
+            quizzes: { total: stats.totalQuizzes, published: stats.totalQuizzes, totalAttempts: 0, recentAttempts: 0, averageScore: 0, passRate: 0 },
+            tasks: { total: 0, completed: 0, pending: 0, inProgress: 0, completionRate: 0 },
+            subjects: { total: 0 },
+            engagement: { dailyActiveUsers: 0, weeklyActiveUsers: 0, monthlyActiveUsers: 0, averageSessionTime: 0 },
             trends: {
-              userGrowth: [{ period: 'Week 1', users: 10 }, { period: 'Week 2', users: 12 }, { period: 'Week 3', users: 13 }, { period: 'Week 4', users: 15 }],
-              quizAttempts: [{ period: 'Week 1', attempts: 6 }, { period: 'Week 2', attempts: 8 }, { period: 'Week 3', attempts: 9 }, { period: 'Week 4', attempts: 9 }],
-              courseEnrollments: [{ period: 'Week 1', enrollments: 4 }, { period: 'Week 2', enrollments: 6 }, { period: 'Week 3', enrollments: 5 }, { period: 'Week 4', enrollments: 7 }],
+              userGrowth: [],
+              quizAttempts: [],
+              courseEnrollments: [],
             },
           },
         });
@@ -140,16 +105,16 @@ export async function GET() {
             success: true,
             role: 'admin',
             stats: {
-              users: { total: 12, students: 10, admins: 2, recentNewUsers: 3, growth: 18 },
-              courses: { total: 8, averageProgress: 52, completionRate: 68 },
-              quizzes: { total: 6, published: 6, totalAttempts: 24, recentAttempts: 6, averageScore: 74, passRate: 70 },
-              tasks: { total: 22, completed: 12, pending: 6, inProgress: 4, completionRate: 55 },
-              subjects: { total: 5 },
-              engagement: { dailyActiveUsers: 8, weeklyActiveUsers: 10, monthlyActiveUsers: 12, averageSessionTime: 25 },
+              users: { total: 0, students: 0, admins: 0, recentNewUsers: 0, growth: 0 },
+              courses: { total: 0, averageProgress: 0, completionRate: 0 },
+              quizzes: { total: 0, published: 0, totalAttempts: 0, recentAttempts: 0, averageScore: 0, passRate: 0 },
+              tasks: { total: 0, completed: 0, pending: 0, inProgress: 0, completionRate: 0 },
+              subjects: { total: 0 },
+              engagement: { dailyActiveUsers: 0, weeklyActiveUsers: 0, monthlyActiveUsers: 0, averageSessionTime: 0 },
               trends: {
-                userGrowth: [{ period: 'Week 1', users: 8 }, { period: 'Week 2', users: 9 }, { period: 'Week 3', users: 10 }, { period: 'Week 4', users: 12 }],
-                quizAttempts: [{ period: 'Week 1', attempts: 5 }, { period: 'Week 2', attempts: 6 }, { period: 'Week 3', attempts: 7 }, { period: 'Week 4', attempts: 6 }],
-                courseEnrollments: [{ period: 'Week 1', enrollments: 3 }, { period: 'Week 2', enrollments: 5 }, { period: 'Week 3', enrollments: 4 }, { period: 'Week 4', enrollments: 6 }],
+                userGrowth: [],
+                quizAttempts: [],
+                courseEnrollments: [],
               },
             },
           });
@@ -175,12 +140,37 @@ export async function GET() {
     }
 
     try {
-      const [subjectsCount, subjectsList, taskStats, quizAttempts, courseProgress] = await Promise.all([
+      const now = new Date();
+      
+      const [subjectsCount, subjectsList, taskStats, overdueTasksCount, quizAttempts, courseProgress, upcomingTasksData] = await Promise.all([
         db.subject.count({ where: { userId: user.id } }).catch(() => 0),
         db.subject.findMany({ where: { userId: user.id }, include: { _count: { select: { tasks: true } } } }).catch(() => []),
         db.task.groupBy({ by: ['status'], where: { userId: user.id }, _count: true }).catch(() => []),
+        db.task.count({ 
+          where: { 
+            userId: user.id, 
+            status: { in: ['pending', 'in_progress'] },
+            dueDate: { lt: now }
+          } 
+        }).catch(() => 0),
         db.quizAttempt.findMany({ where: { userId: user.id }, select: { score: true, quiz: { select: { passingScore: true } } }, take: 10 }).catch(() => []),
         db.courseProgress.findMany({ where: { userId: user.id }, select: { progress: true } }).catch(() => []),
+        db.task.findMany({
+          where: {
+            userId: user.id,
+            status: { in: ['pending', 'in_progress'] },
+            dueDate: { gte: now }
+          },
+          select: {
+            id: true,
+            title: true,
+            dueDate: true,
+            priority: true,
+            subject: { select: { name: true, color: true } }
+          },
+          orderBy: { dueDate: 'asc' },
+          take: 5
+        }).catch(() => []),
       ]);
 
       const completedTasks = taskStats.find(t => t.status === 'completed')?._count || 0;
@@ -212,15 +202,23 @@ export async function GET() {
         (averageProgress * 0.2)
       );
 
+      const formattedUpcomingTasks = upcomingTasksData.map(task => ({
+        id: task.id,
+        title: task.title,
+        dueDate: task.dueDate ? task.dueDate.toISOString() : null,
+        priority: task.priority,
+        subject: task.subject
+      }));
+
       return NextResponse.json({
         success: true,
         role: 'student',
         stats: {
           subjects: { total: subjectsCount },
-          tasks: { total: totalTasks, completed: completedTasks, pending: pendingTasks, inProgress: inProgressTasks, completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0, weeklyCompleted: completedTasks, overdueTasks: 0 },
+          tasks: { total: totalTasks, completed: completedTasks, pending: pendingTasks, inProgress: inProgressTasks, completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0, weeklyCompleted: completedTasks, overdueTasks: overdueTasksCount },
           quizzes: { totalAttempts: totalQuizAttempts, passed: passedQuizzes, averageScore: Math.round(averageScore), bestScore: quizAttempts.length > 0 ? Math.max(...quizAttempts.map(a => a.score)) : 0, passRate: totalQuizAttempts > 0 ? Math.round((passedQuizzes / totalQuizAttempts) * 100) : 0, recentAttempts: [], improvement: 0, averageTimePerQuiz: 0 },
           courses: { enrolled: totalCoursesEnrolled, completed: completedCourses, averageProgress: Math.round(averageProgress) },
-          upcomingTasks: [],
+          upcomingTasks: formattedUpcomingTasks,
           streak: { current: 0, best: 0 },
           productivity: {
             score: productivityScore,
