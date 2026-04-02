@@ -812,7 +812,6 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState({ current: 0, best: 0 });
-  const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month'>('week');
   const mounted = useMounted();
 
   // Default fallback stats
@@ -873,476 +872,172 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
     return <DashboardSkeleton />;
   }
 
-  const taskCompletionRate = stats?.tasks?.completionRate || (stats?.tasksStats
-    ? Math.round((stats.tasksStats.completed / stats.tasksStats.total) * 100) || 0
-    : 0);
-
-  // Calculate productivity score
-  const productivityScore = stats?.productivity?.score || Math.min(100, Math.round(
-    (taskCompletionRate * 0.4) +
-    ((stats?.quizzes?.passRate || 0) * 0.3) +
-    ((stats?.courses?.averageProgress || 0) * 0.3)
-  ));
-
-  // Weekly activity data for sparkline
-  const weeklyActivity = stats?.productivity?.weeklyTrend?.map(d => d.tasks) || [2, 3, 1, 4, 2, 3, 1];
-
-  // Upcoming deadlines (next 7 days)
-  const upcomingDeadlines = recentTasks
-    .filter(t => t.dueDate && new Date(t.dueDate) >= new Date())
-    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
-    .slice(0, 3);
-
   return (
     <div className="space-y-6">
-      {/* Stats Grid - Enhanced */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatsCard
-          title="Total Subjects"
-          value={stats?.subjects?.total || subjects.length || 0}
-          icon={BookOpen}
-          color="from-blue-500 to-blue-600"
-          trend={{ value: 12, isPositive: true }}
-          sparklineData={[1, 2, 2, 3, 3, 4, 4]}
-        />
-        <StatsCard
-          title="Tasks Completed"
-          value={stats?.tasks?.completed || 0}
-          subtitle={`of ${stats?.tasks?.total || 0} total`}
-          icon={CheckCircle}
-          color="from-green-500 to-green-600"
-          trend={{ value: taskCompletionRate > 50 ? 8 : -5, isPositive: taskCompletionRate > 50 }}
-          sparklineData={weeklyActivity}
-        />
-        <StatsCard
-          title="Quiz Score"
-          value={`${Math.round(stats?.quizzes?.averageScore || 0)}%`}
-          icon={Award}
-          color="from-purple-500 to-purple-600"
-          trend={{ value: stats?.quizzes?.improvement || 5, isPositive: true }}
-          sparklineData={[70, 75, 72, 80, 78, 85, 82]}
-        />
-        <StatsCard
-          title="Course Progress"
-          value={`${Math.round(stats?.courses?.averageProgress || 0)}%`}
-          icon={Layers}
-          color="from-orange-500 to-orange-600"
-          sparklineData={[20, 35, 45, 50, 55, 60, 65]}
-        />
-      </div>
+      {/* Task Progress */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-green-500" />
+              Task Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: 'Completed', value: stats?.tasks?.completed || 0, color: '#22c55e', icon: CheckCircle, bg: 'bg-green-50 dark:bg-green-900/20' },
+                { label: 'In Progress', value: stats?.tasks?.inProgress || 0, color: '#3b82f6', icon: Clock, bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                { label: 'Pending', value: stats?.tasks?.pending || 0, color: '#f59e0b', icon: AlertCircle, bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
+                { label: 'Overdue', value: stats?.tasks?.overdueTasks || 0, color: '#ef4444', icon: AlertCircle, bg: 'bg-red-50 dark:bg-red-900/20' },
+              ].map((item, index) => (
+                <motion.div 
+                  key={index}
+                  className={`p-4 rounded-xl ${item.bg} border border-gray-100 dark:border-gray-800`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <item.icon className="w-5 h-5 mb-2" style={{ color: item.color }} />
+                  <p className="text-2xl font-bold">{item.value}</p>
+                  <p className="text-sm text-gray-500">{item.label}</p>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Task Progress & Activity */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Task Progress Enhanced */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-green-500" />
-                    Task Progress
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={selectedTimeRange === 'week' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedTimeRange('week')}
-                      className="h-7 text-xs"
-                    >
-                      Week
-                    </Button>
-                    <Button
-                      variant={selectedTimeRange === 'month' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedTimeRange('month')}
-                      className="h-7 text-xs"
-                    >
-                      Month
-                    </Button>
-                  </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Subjects Overview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-blue-500" />
+                  Your Subjects
+                </CardTitle>
+                <Button variant="outline" size="sm" onClick={() => onViewChange('planner')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {subjects.length === 0 ? (
+                <div className="text-center py-8">
+                  <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                  <p className="text-gray-500 text-sm mb-3">No subjects yet</p>
+                  <Button size="sm" onClick={() => onViewChange('planner')}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your First Subject
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">
-                  {[
-                    { label: 'Completed', value: stats?.tasks?.completed || 0, color: '#22c55e', icon: CheckCircle, bg: 'bg-green-50 dark:bg-green-900/20' },
-                    { label: 'In Progress', value: stats?.tasks?.inProgress || 0, color: '#3b82f6', icon: Clock, bg: 'bg-blue-50 dark:bg-blue-900/20' },
-                    { label: 'Pending', value: stats?.tasks?.pending || 0, color: '#f59e0b', icon: AlertCircle, bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
-                    { label: 'Overdue', value: stats?.tasks?.overdueTasks || 0, color: '#ef4444', icon: AlertCircle, bg: 'bg-red-50 dark:bg-red-900/20' },
-                  ].map((item, index) => (
-                    <motion.div 
-                      key={index}
-                      className={`p-3 sm:p-4 rounded-xl ${item.bg} border border-gray-100 dark:border-gray-800`}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+              ) : (
+                <div className="space-y-2">
+                  {subjects.slice(0, 5).map((subject, index) => (
+                    <motion.div
+                      key={subject.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                      onClick={() => onViewChange('planner')}
                     >
-                      <item.icon className="w-4 h-4 sm:w-5 sm:h-5 mb-1 sm:mb-2" style={{ color: item.color }} />
-                      <p className="text-lg sm:text-2xl font-bold">{item.value}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">{item.label}</p>
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: subject.color }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{subject.name}</p>
+                        <p className="text-xs text-gray-500">{subject._count?.tasks || 0} tasks</p>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
-                
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Completion Rate</span>
-                    <span className="font-semibold">{taskCompletionRate}%</span>
-                  </div>
-                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-green-500 to-indigo-500 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${taskCompletionRate}%` }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-                {/* Weekly Chart */}
-                <div className="h-40 mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={stats?.productivity?.weeklyTrend || [
-                      { day: 'Mon', tasks: 2, hours: 1.5 },
-                      { day: 'Tue', tasks: 3, hours: 2 },
-                      { day: 'Wed', tasks: 1, hours: 1 },
-                      { day: 'Thu', tasks: 4, hours: 3 },
-                      { day: 'Fri', tasks: 2, hours: 1.5 },
-                      { day: 'Sat', tasks: 3, hours: 2.5 },
-                      { day: 'Sun', tasks: 1, hours: 1 },
-                    ]}>
-                      <defs>
-                        <linearGradient id="taskGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                      <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} width={30} />
-                      <ChartTooltip content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border text-sm">
-                              <p className="font-medium">{label}</p>
-                              <p className="text-green-600">{payload[0]?.value} tasks</p>
-                              {payload[1] && <p className="text-blue-600">{payload[1].value} hours</p>}
-                            </div>
-                          );
-                        }
-                        return null;
-                      }} />
-                      <Area type="monotone" dataKey="tasks" stroke="#22c55e" strokeWidth={2} fill="url(#taskGradient)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Subjects Overview - Enhanced */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-blue-500" />
-                    Your Subjects
-                  </CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => onViewChange('planner')}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Subject
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {subjects.length === 0 ? (
-                  <div className="text-center py-8">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring' }}
-                    >
-                      <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                    </motion.div>
-                    <p className="text-gray-500 mb-4">No subjects yet. Start organizing your studies!</p>
-                    <Button onClick={() => onViewChange('planner')}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Your First Subject
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {subjects.slice(0, 6).map((subject, index) => (
-                      <motion.div
-                        key={subject.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        className="cursor-pointer"
-                        onClick={() => onViewChange('planner')}
-                      >
-                        <Card className="overflow-hidden group border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
-                          <div className="h-1.5 transition-all group-hover:h-2" style={{ backgroundColor: subject.color }} />
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <h3 className="font-semibold group-hover:text-blue-600 transition-colors">{subject.name}</h3>
-                              <div 
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                                style={{ backgroundColor: subject.color }}
-                              >
-                                {subject.name.charAt(0).toUpperCase()}
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                              {subject.description || 'No description'}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1 text-sm text-gray-400">
-                                <ClipboardList className="w-3.5 h-3.5" />
-                                {subject._count?.tasks || 0} tasks
-                              </div>
-                              {subject.examDate && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Calendar className="w-3 h-3 mr-1" />
-                                  {formatDate(subject.examDate)}
-                                </Badge>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* Right Column - Upcoming Tasks & Insights */}
-        <div className="space-y-6">
-          {/* Upcoming Tasks - Enhanced */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-orange-500" />
-                    Upcoming Tasks
-                  </span>
-                  <Button variant="ghost" size="sm" onClick={() => onViewChange('planner')}>
-                    View All
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentTasks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring' }}
-                    >
-                      <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-400" />
-                    </motion.div>
-                    <p className="text-gray-500 text-sm">All caught up! 🎉</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-3"
-                      onClick={() => onViewChange('planner')}
-                    >
-                      Add New Task
-                    </Button>
-                  </div>
-                ) : (
-                  <ScrollArea className="h-72">
-                    <div className="space-y-2">
-                      {recentTasks.map((task, index) => {
-                        const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
-                        return (
-                          <motion.div
-                            key={task.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className={`p-3 rounded-xl border transition-all cursor-pointer group ${
-                              isOverdue 
-                                ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10' 
-                                : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 bg-gray-50 dark:bg-gray-800/50'
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div
-                                className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900"
-                                style={{ backgroundColor: task.subject?.color || '#6366f1', ringColor: task.subject?.color || '#6366f1' }}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate group-hover:text-blue-600 transition-colors">
-                                  {task.title}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-0.5">{task.subject?.name}</p>
-                                {task.dueDate && (
-                                  <p className={`text-xs mt-1 flex items-center gap-1 ${isOverdue ? 'text-red-500' : 'text-gray-400'}`}>
-                                    <Clock className="w-3 h-3" />
-                                    {isOverdue ? 'Overdue: ' : 'Due: '}
-                                    {formatDate(task.dueDate)}
-                                  </p>
-                                )}
-                              </div>
-                              <Badge className={`${getPriorityColor(task.priority)} text-xs`}>
-                                {task.priority}
-                              </Badge>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Productivity Insights */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
-            <Card className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-0">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Productivity Score
-                  </h3>
-                  <span className="text-2xl font-bold">{productivityScore}</span>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-white/70">Task Completion</span>
-                      <span>{taskCompletionRate}%</span>
-                    </div>
-                    <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-green-400"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${taskCompletionRate}%` }}
-                        transition={{ delay: 0.5, duration: 0.8 }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-white/70">Quiz Performance</span>
-                      <span>{stats?.quizzes?.passRate || 0}%</span>
-                    </div>
-                    <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-yellow-400"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${stats?.quizzes?.passRate || 0}%` }}
-                        transition={{ delay: 0.6, duration: 0.8 }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-white/70">Course Progress</span>
-                      <span>{Math.round(stats?.courses?.averageProgress || 0)}%</span>
-                    </div>
-                    <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-blue-400"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${stats?.courses?.averageProgress || 0}%` }}
-                        transition={{ delay: 0.7, duration: 0.8 }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                {stats?.productivity?.bestSubject && (
-                  <div className="mt-4 pt-4 border-t border-white/20">
-                    <p className="text-sm text-white/70">
-                      🏆 Best performing: <span className="font-medium text-white">{stats.productivity.bestSubject}</span>
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Study Time Widget */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Timer className="w-5 h-5 text-blue-500" />
-                  Study Time This Week
-                </h3>
-                <div className="text-center py-4">
-                  <motion.p 
-                    className="text-4xl font-bold text-blue-600"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', delay: 0.2 }}
+        {/* Upcoming Tasks */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-orange-500" />
+                  Upcoming Tasks
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => onViewChange('planner')}>
+                  View All
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {recentTasks.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-400" />
+                  <p className="text-gray-500 text-sm">All caught up! 🎉</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-3"
+                    onClick={() => onViewChange('planner')}
                   >
-                    {stats?.productivity?.studyHoursThisWeek?.toFixed(1) || '0.0'}h
-                  </motion.p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Avg {stats?.productivity?.averageDailyStudyTime?.toFixed(1) || '0.0'}h/day
-                  </p>
+                    Add New Task
+                  </Button>
                 </div>
-                <div className="grid grid-cols-7 gap-1 mt-2">
-                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
-                    const hours = stats?.productivity?.weeklyTrend?.[i]?.hours || Math.random() * 3;
-                    const maxHours = 3;
+              ) : (
+                <div className="space-y-2">
+                  {recentTasks.slice(0, 5).map((task, index) => {
+                    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
                     return (
-                      <div key={i} className="text-center">
-                        <div 
-                          className="h-12 rounded bg-blue-100 dark:bg-blue-900/30 relative overflow-hidden"
-                          title={`${hours.toFixed(1)}h`}
-                        >
-                          <motion.div 
-                            className="absolute bottom-0 left-0 right-0 bg-blue-500 rounded"
-                            initial={{ height: 0 }}
-                            animate={{ height: `${(hours / maxHours) * 100}%` }}
-                            transition={{ delay: 0.3 + i * 0.05, duration: 0.5 }}
-                          />
+                      <motion.div
+                        key={task.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`flex items-center gap-3 p-3 rounded-lg ${
+                          isOverdue 
+                            ? 'bg-red-50 dark:bg-red-900/10' 
+                            : 'bg-gray-50 dark:bg-gray-800/50'
+                        }`}
+                      >
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: task.subject?.color || '#6366f1' }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{task.title}</p>
+                          <p className="text-xs text-gray-500">{task.subject?.name}</p>
                         </div>
-                        <span className="text-xs text-gray-400 mt-1">{day}</span>
-                      </div>
+                        {task.dueDate && (
+                          <p className={`text-xs ${isOverdue ? 'text-red-500' : 'text-gray-400'}`}>
+                            {formatDate(task.dueDate)}
+                          </p>
+                        )}
+                      </motion.div>
                     );
                   })}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
