@@ -1,5 +1,3 @@
-
-
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.config';
 import { getCurrentUser } from '@/lib/auth';
@@ -13,8 +11,7 @@ export interface AuthenticatedUser {
 
 export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   console.log('[AuthHelper] getAuthenticatedUser called');
-  
-  
+
   try {
     const nextAuthSession = await getServerSession(authOptions);
     console.log('[AuthHelper] NextAuth session result:', nextAuthSession ? 'found' : 'not found');
@@ -31,7 +28,6 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     console.log('[AuthHelper] NextAuth session check failed:', error instanceof Error ? error.message : error);
   }
 
-  
   console.log('[AuthHelper] Falling back to custom JWT auth');
   const user = await getCurrentUser();
   console.log('[AuthHelper] Custom JWT auth result:', user ? `found: ${user.email}` : 'not found');

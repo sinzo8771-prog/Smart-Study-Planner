@@ -137,15 +137,12 @@ const QUIZZES_TO_SEED = [
 let cleanupInProgress = false;
 
 export function runCleanupInBackground(): void {
-  
   if (isCleanupCompleted() || cleanupInProgress) {
     return;
   }
 
-  
   cleanupInProgress = true;
 
-  
   runCleanupIfNeeded()
     .catch((error) => {
       console.error('Background cleanup error:', error);
@@ -156,71 +153,59 @@ export function runCleanupInBackground(): void {
 }
 
 export async function runCleanupIfNeeded(): Promise<void> {
-  
   if (isCleanupCompleted()) return;
-  
+
   try {
-    
     await runCourseCleanup();
-    
-    
     await ensureQuizzesExist();
-    
-    
     markCleanupCompleted();
   } catch (error) {
     console.error('Cleanup error (non-fatal):', error);
-    
     markCleanupCompleted();
   }
 }
 
 async function runCourseCleanup(): Promise<void> {
   try {
-    
     const coursesCount = await db.course.count({
       where: {
         title: { in: COURSES_TO_REMOVE }
       }
     });
-    
+
     if (coursesCount === 0) {
       return;
     }
-    
+
     console.log('🧹 Running course cleanup...');
-    
+
     for (const courseTitle of COURSES_TO_REMOVE) {
       const course = await db.course.findFirst({
         where: { title: courseTitle },
         include: { modules: true }
       });
-      
+
       if (course) {
         console.log(`Removing: ${courseTitle}`);
-        
-        
+
         for (const courseModule of course.modules) {
           await db.moduleProgress.deleteMany({
             where: { moduleId: courseModule.id }
           }).catch(() => {});
         }
-        
-        
+
         await db.courseProgress.deleteMany({
           where: { courseId: course.id }
         }).catch(() => {});
-        
-        
+
         await db.module.deleteMany({
           where: { courseId: course.id }
         }).catch(() => {});
-        
-        
+
         const quizzes = await db.quiz.findMany({
           where: { courseId: course.id }
         });
-        
+
         for (const quiz of quizzes) {
           await db.question.deleteMany({
             where: { quizId: quiz.id }
@@ -229,20 +214,19 @@ async function runCourseCleanup(): Promise<void> {
             where: { quizId: quiz.id }
           }).catch(() => {});
         }
-        
+
         await db.quiz.deleteMany({
           where: { courseId: course.id }
         }).catch(() => {});
-        
-        
+
         await db.course.delete({
           where: { id: course.id }
         }).catch(() => {});
-        
+
         console.log(`✅ Removed: ${courseTitle}`);
       }
     }
-    
+
     console.log('✅ Course cleanup complete');
   } catch (error) {
     console.error('Course cleanup error:', error);
@@ -251,51 +235,43 @@ async function runCourseCleanup(): Promise<void> {
 
 async function ensureQuizzesExist(): Promise<void> {
   try {
-    
     const existingCount = await db.quiz.count();
-    
-    
+
     if (existingCount >= QUIZZES_TO_SEED.length) {
       return;
     }
-    
+
     console.log('📝 Seeding quizzes...');
-    
-    
+
     const adminUser = await db.user.findFirst({
       where: { role: 'admin' }
     });
-    
+
     if (!adminUser) {
       console.log('⚠️ No admin user found, skipping quiz seeding');
       return;
     }
-    
-    
+
     const courses = await db.course.findMany();
-    
-    
+
     const categoryToCourse = new Map<string, string>();
     for (const course of courses) {
       if (course.category) {
         categoryToCourse.set(course.category, course.id);
       }
     }
-    
+
     for (const quizData of QUIZZES_TO_SEED) {
-      
       const existing = await db.quiz.findFirst({
         where: { title: quizData.title }
       });
-      
+
       if (existing) {
-        continue; 
+        continue;
       }
-      
-      
+
       const courseId = categoryToCourse.get(quizData.category) || null;
-      
-      
+
       await db.quiz.create({
         data: {
           title: quizData.title,
@@ -312,10 +288,10 @@ async function ensureQuizzesExist(): Promise<void> {
           }
         }
       });
-      
+
       console.log(`✅ Created quiz: ${quizData.title}`);
     }
-    
+
     console.log('✅ Quiz seeding complete');
   } catch (error) {
     console.error('Quiz seeding error:', error);

@@ -159,7 +159,6 @@ export async function DELETE(
     if (!existingSubject) {
       console.log('[Subject DELETE] Subject not found for user. Subject ID:', id, 'User ID:', user.id);
       
-      // Check if subject exists but belongs to another user
       const subjectExists = await db.subject.findUnique({
         where: { id },
         select: { userId: true }

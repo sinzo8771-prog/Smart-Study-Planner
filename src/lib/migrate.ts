@@ -1,5 +1,3 @@
-
-
 import { PrismaClient } from '@prisma/client';
 
 const globalForMigration = globalThis as unknown as {
@@ -7,7 +5,6 @@ const globalForMigration = globalThis as unknown as {
 };
 
 export async function runMigrations(): Promise<void> {
-  
   if (globalForMigration.migrationRan) {
     console.log('[Migration] Already ran in this process, skipping');
     return;
@@ -20,7 +17,6 @@ export async function runMigrations(): Promise<void> {
   });
   
   try {
-    
     const columns = await prisma.$queryRaw<Array<{ column_name: string }>>`
       SELECT column_name 
       FROM information_schema.columns 
@@ -33,8 +29,7 @@ export async function runMigrations(): Promise<void> {
     const hasDifficulty = columnNames.includes('difficulty');
     
     console.log(`[Migration] Quiz table columns: category=${hasCategory}, difficulty=${hasDifficulty}`);
-    
-    
+
     if (!hasCategory) {
       console.log('[Migration] Adding category column to Quiz table...');
       await prisma.$executeRawUnsafe(`ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'General'`);
@@ -51,7 +46,6 @@ export async function runMigrations(): Promise<void> {
     console.log('[Migration] Database migration check completed successfully');
   } catch (error) {
     console.error('[Migration] Error during migration:', error);
-    
   } finally {
     await prisma.$disconnect();
   }

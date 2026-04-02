@@ -95,10 +95,6 @@ export async function setAuthCookie(token: string) {
   const isProduction = process.env.NODE_ENV === 'production';
   const isVercel = process.env.VERCEL === '1';
   
-  
-  
-  
-  
   const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -149,8 +145,6 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
 
     console.log('[Auth] Token payload:', JSON.stringify({ id: payload.id, email: payload.email, role: payload.role }));
 
-    
-    
     if (shouldUseStaticData()) {
       console.log('[Auth] Static mode - trusting JWT token for user:', payload.email);
       return {
@@ -161,7 +155,6 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
       };
     }
 
-    
     const user = await fetchUserById(payload.id);
     if (!user) {
       logger.debug(`User not found in database: ${payload.id}`);
@@ -172,7 +165,6 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
 
     logger.debug(`Success for user: ${user.email}`);
     console.log('[Auth] User authenticated:', user.email);
-    
     
     return {
       id: user.id,

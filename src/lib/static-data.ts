@@ -1,5 +1,3 @@
-
-
 export interface StaticUser {
   id: string;
   name: string;
@@ -121,9 +119,6 @@ export const staticUsers: StaticUser[] = [
 ];
 
 export const staticCourses: StaticCourse[] = [
-  
-  
-  
   {
     id: 'course-math-2',
     title: 'Calculus 1 Full Course',
@@ -239,9 +234,6 @@ Explore the human mind and behavior.
       }
     ]
   },
-  
-  
-  
   {
     id: 'course-tech-1',
     title: 'HTML & CSS Full Course',
@@ -509,9 +501,6 @@ export const staticQuizzes: StaticQuiz[] = [
       }
     ]
   },
-  
-  
-  
   {
     id: 'quiz-math-2',
     title: 'Calculus Fundamentals Quiz',

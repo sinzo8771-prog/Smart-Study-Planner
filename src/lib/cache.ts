@@ -1,5 +1,3 @@
-
-
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -23,15 +21,12 @@ export async function cachedFetch<T>(
   const cached = globalCache.get(key) as CacheEntry<T> | undefined;
   const now = Date.now();
 
-  
   if (cached && (now - cached.timestamp) < cached.ttl) {
     return cached.data;
   }
 
-  
   const data = await fetcher();
-  
-  
+
   globalCache.set(key, {
     data,
     timestamp: now,

@@ -39,7 +39,6 @@ export const Errors = {
 } as const;
 
 export function handleApiError(error: unknown): NextResponse {
-  
   if (error instanceof ApiError) {
     logger.warn(`API Error: ${error.message}`, { 
       code: error.code, 
@@ -50,7 +49,6 @@ export function handleApiError(error: unknown): NextResponse {
     logger.error('Unhandled API error', error);
   }
 
-  
   if (error instanceof ApiError) {
     const response: ApiErrorResponse = {
       error: error.message,
@@ -70,7 +68,6 @@ export function handleApiError(error: unknown): NextResponse {
     return NextResponse.json(response, { status: error.statusCode, headers });
   }
 
-  
   if (error instanceof ZodError) {
     const response: ApiErrorResponse = {
       error: 'Validation failed',
@@ -82,7 +79,6 @@ export function handleApiError(error: unknown): NextResponse {
     return NextResponse.json(response, { status: 400 });
   }
 
-  
   if (error instanceof SyntaxError && 'body' in error) {
     const response: ApiErrorResponse = {
       error: 'Invalid JSON in request body',
@@ -93,7 +89,6 @@ export function handleApiError(error: unknown): NextResponse {
     return NextResponse.json(response, { status: 400 });
   }
 
-  
   const response: ApiErrorResponse = {
     error: process.env.NODE_ENV === 'production' 
       ? 'An unexpected error occurred' 

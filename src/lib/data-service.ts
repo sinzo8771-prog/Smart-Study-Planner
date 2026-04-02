@@ -1,5 +1,3 @@
-
-
 import { db, runMigrations } from './db';
 import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, findUserByIdFromAll } from './static-data';
 import { cachedFetch, getCached, setCache, CACHE_KEYS, CACHE_TTL, invalidateCachePattern } from './cache';
@@ -44,7 +42,6 @@ export async function getCourses(filters?: { category?: string; level?: string }
     }));
   }
 
-  
   const cacheKey = filters 
     ? `${CACHE_KEYS.COURSES}_${filters.category || 'all'}_${filters.level || 'all'}`
     : CACHE_KEYS.COURSES;
@@ -52,7 +49,6 @@ export async function getCourses(filters?: { category?: string; level?: string }
   return cachedFetch(
     cacheKey,
     async () => {
-      
       runCleanupInBackground();
       
       const where: Record<string, unknown> = { isPublished: true };
@@ -164,7 +160,6 @@ export async function getQuizzes() {
   return cachedFetch(
     CACHE_KEYS.QUIZZES,
     async () => {
-      
       runMigrations().catch(() => {});
       runCleanupInBackground();
 
@@ -191,7 +186,6 @@ export async function getQuizById(id: string) {
   return cachedFetch(
     cacheKey,
     async () => {
-      
       await runMigrations();
 
       const quiz = await db.quiz.findFirst({
@@ -210,7 +204,6 @@ export async function getQuizById(id: string) {
 
 export async function getUserByEmail(email: string) {
   if (shouldUseStaticData()) {
-    
     return findUserByEmailFromAll(email);
   }
 
@@ -227,7 +220,6 @@ export async function getUserByEmail(email: string) {
 
 export async function getUserById(id: string) {
   if (shouldUseStaticData()) {
-    
     return findUserByIdFromAll(id);
   }
 
@@ -244,13 +236,11 @@ export async function getUserById(id: string) {
 
 export async function createUser(data: { name: string; email: string; password?: string; role: string; image?: string | null; emailVerified?: Date | null }) {
   if (shouldUseStaticData()) {
-    
     const existing = findUserByEmailFromAll(data.email);
     if (existing) {
       throw new Error('User already exists');
     }
-    
-    
+
     const newUser = {
       id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: data.name,
@@ -260,8 +250,7 @@ export async function createUser(data: { name: string; email: string; password?:
       image: data.image || null,
       emailVerified: data.emailVerified || new Date(),
     };
-    
-    
+
     addRegisteredUser(newUser);
     
     console.log('[DataService] Created new user in static mode:', data.email);
@@ -284,8 +273,7 @@ export async function createUser(data: { name: string; email: string; password?:
         emailVerified: data.emailVerified || new Date(), 
       }
     });
-    
-    
+
     invalidateCachePattern(CACHE_KEYS.USER_PREFIX);
     
     return user;
@@ -307,14 +295,12 @@ export async function createUser(data: { name: string; email: string; password?:
 
 export async function updateUser(id: string, data: Record<string, unknown>) {
   if (shouldUseStaticData()) {
-    
     return { id, ...data, updatedAt: new Date() };
   }
 
   try {
     const user = await db.user.update({ where: { id }, data });
-    
-    
+
     invalidateCachePattern(CACHE_KEYS.USER_PREFIX);
     
     return user;

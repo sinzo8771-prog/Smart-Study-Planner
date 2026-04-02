@@ -1,5 +1,3 @@
-
-
 const requiredEnvVars = [
   'JWT_SECRET',
   'DATABASE_URL',
