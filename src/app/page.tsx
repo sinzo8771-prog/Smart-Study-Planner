@@ -20,7 +20,7 @@ import {
   ChevronDown, ChevronLeft, PieChart, LineChart, Activity, Layers, FileText,
   Video, Check, XCircle, HelpCircle, RefreshCw, Download, Upload, UserCog,
   LayoutDashboard, ListTodo, GraduationCap as GradCap, Building2, Sparkles,
-  MessageCircle, Send, Bot, Loader2, Twitter, Github, Linkedin, Mail, ArrowUp,
+  MessageCircle, Send, Loader2, Twitter, Github, Linkedin, Mail, ArrowUp,
   Heart, ExternalLink, Key, Bell, KeyRound, Lock, LogIn, UserPlus, CheckSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -605,119 +605,6 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
         <div className="p-3 sm:p-4 lg:p-6">{children}</div>
       </main>
     </div>
-  );
-};
-
-interface AIChatWidgetProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
-    { role: 'assistant', content: 'Hello! I\'m your AI Study Assistant. How can I help you today? I can help with study tips, explain concepts, or answer academic questions.' }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage }),
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
-      } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
-      }
-    } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I couldn\'t connect to the AI service. Please try again later.' }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 left-2 sm:left-auto sm:w-96 sm:h-[500px] w-[calc(100vw-1rem)] h-[70vh] sm:h-[500px] max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50 overflow-hidden"
-    >
-      
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-            <Bot className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-white">AI Study Assistant</h3>
-            <p className="text-xs text-white/80">Powered by AI</p>
-          </div>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
-
-      
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-              msg.role === 'user'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-            }`}>
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-2">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-            </div>
-          </div>
-        )}
-      </div>
-
-      
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="Ask me anything..."
-            className="flex-1"
-          />
-          <Button onClick={handleSend} disabled={isLoading || !input.trim()} className="bg-blue-600 hover:bg-blue-700">
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </motion.div>
   );
 };
 
@@ -7080,8 +6967,7 @@ function PageContent() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
-  
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -7194,21 +7080,6 @@ function PageContent() {
         >
           {renderContent()}
         </DashboardLayout>
-        
-        
-        <Button
-          onClick={() => setIsAIChatOpen(true)}
-          className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg z-40"
-        >
-          <Sparkles className="w-6 h-6 text-white" />
-        </Button>
-        
-        
-        <AnimatePresence>
-          {isAIChatOpen && (
-            <AIChatWidget isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} />
-          )}
-        </AnimatePresence>
       </>
     );
   }
