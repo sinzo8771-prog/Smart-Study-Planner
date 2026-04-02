@@ -1,49 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { shouldUseStaticData } from '@/lib/data-service';
+import { shouldUseStaticData, getStaticTasks, addStaticTask, getStaticSubjects, StaticTask } from '@/lib/static-data';
 import { sanitizeString, isValidTaskStatus, isValidTaskPriority } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
-
-let staticTasks = [
-  {
-    id: 'task-1',
-    title: 'Complete Chapter 3 exercises',
-    description: 'Work through all practice problems',
-    status: 'pending',
-    priority: 'high',
-    dueDate: new Date(Date.now() + 86400000),
-    subjectId: 'subject-1',
-    userId: 'demo-user',
-    createdAt: new Date(),
-    subject: { id: 'subject-1', name: 'Mathematics', color: '#6366f1' },
-  },
-  {
-    id: 'task-2',
-    title: 'Watch lecture video',
-    description: 'Physics mechanics lecture',
-    status: 'in_progress',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 172800000),
-    subjectId: 'subject-2',
-    userId: 'demo-user',
-    createdAt: new Date(),
-    subject: { id: 'subject-2', name: 'Physics', color: '#f59e0b' },
-  },
-  {
-    id: 'task-3',
-    title: 'Submit programming assignment',
-    description: 'Complete the React project',
-    status: 'completed',
-    priority: 'high',
-    dueDate: new Date(Date.now() - 86400000),
-    subjectId: 'subject-3',
-    userId: 'demo-user',
-    createdAt: new Date(),
-    subject: { id: 'subject-3', name: 'Computer Science', color: '#10b981' },
-  },
-];
 
 export async function GET(request: NextRequest) {
   try {
@@ -56,7 +17,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    
     if (user.role !== 'student') {
       return NextResponse.json(
         { error: 'Only students can view tasks' },
@@ -68,9 +28,8 @@ export async function GET(request: NextRequest) {
     const subjectId = searchParams.get('subjectId');
     const status = searchParams.get('status');
 
-    
     if (shouldUseStaticData()) {
-      let filteredTasks = [...staticTasks];
+      let filteredTasks = getStaticTasks(user.id);
 
       if (status && isValidTaskStatus(status)) {
         filteredTasks = filteredTasks.filter(t => t.status === status);
@@ -83,7 +42,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ tasks: filteredTasks });
     }
 
-    
     const where: {
       userId: string;
       subjectId?: string;
@@ -93,7 +51,6 @@ export async function GET(request: NextRequest) {
     };
 
     if (subjectId) {
-      
       const subject = await db.subject.findFirst({
         where: {
           id: subjectId,
@@ -133,8 +90,8 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: [
-        { status: 'asc' }, 
-        { priority: 'desc' }, 
+        { status: 'asc' },
+        { priority: 'desc' },
         { dueDate: 'asc' },
       ],
     });
@@ -142,10 +99,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ tasks });
   } catch (error) {
     console.error('Error fetching tasks:', error);
-    
-    if (shouldUseStaticData()) {
-      return NextResponse.json({ tasks: staticTasks });
-    }
     return NextResponse.json(
       { error: 'Failed to fetch tasks' },
       { status: 500 }
@@ -164,7 +117,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     if (user.role !== 'student') {
       return NextResponse.json(
         { error: 'Only students can create tasks' },
@@ -175,7 +127,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, status, priority, dueDate, subjectId } = body;
 
-    
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json(
         { error: 'Task title is required' },
@@ -183,7 +134,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     if (title.trim().length > 200) {
       return NextResponse.json(
         { error: 'Task title must be less than 200 characters' },
@@ -198,7 +148,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const taskStatus = status || 'pending';
     if (!isValidTaskStatus(taskStatus)) {
       return NextResponse.json(
@@ -207,7 +156,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const taskPriority = priority || 'medium';
     if (!isValidTaskPriority(taskPriority)) {
       return NextResponse.json(
@@ -216,7 +164,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     let parsedDueDate: Date | null = null;
     if (dueDate) {
       parsedDueDate = new Date(dueDate);
@@ -228,12 +175,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    
     if (shouldUseStaticData()) {
-      
-      const subject = staticTasks.find(t => t.subjectId === subjectId)?.subject || { id: subjectId, name: 'Subject', color: '#6366f1' };
-      
-      const mockTask = {
+      const subjects = getStaticSubjects(user.id);
+      const subject = subjects.find(s => s.id === subjectId) || { id: subjectId, name: 'Subject', color: '#6366f1' };
+
+      const mockTask: StaticTask = {
         id: `task-${Date.now()}`,
         title: sanitizeString(title.trim()),
         description: description ? sanitizeString(description.trim()) : null,
@@ -243,14 +189,13 @@ export async function POST(request: NextRequest) {
         subjectId,
         userId: user.id,
         createdAt: new Date(),
-        subject,
+        subject: { id: subject.id, name: subject.name, color: subject.color },
       };
-      
-      staticTasks.push(mockTask);
+
+      addStaticTask(user.id, mockTask);
       return NextResponse.json({ task: mockTask }, { status: 201 });
     }
 
-    
     const subject = await db.subject.findFirst({
       where: {
         id: subjectId,

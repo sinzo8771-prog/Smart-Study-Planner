@@ -1119,6 +1119,138 @@ export const staticQuizzes: StaticQuiz[] = [
 
 const registeredUsers = new Map<string, StaticUser>();
 
+export interface StaticSubject {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  examDate: Date | null;
+  createdAt: Date;
+  userId: string;
+  tasks: unknown[];
+  _count: { tasks: number };
+}
+
+export interface StaticTask {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  dueDate: Date | null;
+  subjectId: string;
+  userId: string;
+  createdAt: Date;
+  subject: { id: string; name: string; color: string };
+}
+
+const staticSubjectsStore = new Map<string, StaticSubject[]>();
+const staticTasksStore = new Map<string, StaticTask[]>();
+
+const defaultSubjects: StaticSubject[] = [
+  {
+    id: 'subject-1',
+    name: 'Mathematics',
+    description: 'Algebra, Calculus, and Statistics',
+    color: '#6366f1',
+    examDate: null,
+    createdAt: new Date(),
+    userId: 'demo-user',
+    tasks: [],
+    _count: { tasks: 3 },
+  },
+  {
+    id: 'subject-2',
+    name: 'Physics',
+    description: 'Mechanics and Thermodynamics',
+    color: '#f59e0b',
+    examDate: null,
+    createdAt: new Date(),
+    userId: 'demo-user',
+    tasks: [],
+    _count: { tasks: 2 },
+  },
+  {
+    id: 'subject-3',
+    name: 'Computer Science',
+    description: 'Programming and Algorithms',
+    color: '#10b981',
+    examDate: null,
+    createdAt: new Date(),
+    userId: 'demo-user',
+    tasks: [],
+    _count: { tasks: 4 },
+  },
+];
+
+export function getStaticSubjects(userId: string): StaticSubject[] {
+  if (!staticSubjectsStore.has(userId)) {
+    staticSubjectsStore.set(userId, [...defaultSubjects]);
+  }
+  return staticSubjectsStore.get(userId)!;
+}
+
+export function addStaticSubject(userId: string, subject: StaticSubject): void {
+  const subjects = getStaticSubjects(userId);
+  subjects.push(subject);
+}
+
+export function updateStaticSubject(userId: string, id: string, data: Partial<StaticSubject>): StaticSubject | null {
+  const subjects = getStaticSubjects(userId);
+  const index = subjects.findIndex(s => s.id === id);
+  if (index === -1) return null;
+  subjects[index] = { ...subjects[index], ...data };
+  return subjects[index];
+}
+
+export function deleteStaticSubject(userId: string, id: string): StaticSubject | null {
+  const subjects = getStaticSubjects(userId);
+  const index = subjects.findIndex(s => s.id === id);
+  if (index === -1) return null;
+  const deleted = subjects[index];
+  subjects.splice(index, 1);
+  return deleted;
+}
+
+export function findStaticSubjectById(userId: string, id: string): StaticSubject | null {
+  const subjects = getStaticSubjects(userId);
+  return subjects.find(s => s.id === id) || null;
+}
+
+export function getStaticTasks(userId: string): StaticTask[] {
+  if (!staticTasksStore.has(userId)) {
+    staticTasksStore.set(userId, []);
+  }
+  return staticTasksStore.get(userId)!;
+}
+
+export function addStaticTask(userId: string, task: StaticTask): void {
+  const tasks = getStaticTasks(userId);
+  tasks.push(task);
+}
+
+export function updateStaticTask(userId: string, id: string, data: Partial<StaticTask>): StaticTask | null {
+  const tasks = getStaticTasks(userId);
+  const index = tasks.findIndex(t => t.id === id);
+  if (index === -1) return null;
+  tasks[index] = { ...tasks[index], ...data };
+  return tasks[index];
+}
+
+export function deleteStaticTask(userId: string, id: string): StaticTask | null {
+  const tasks = getStaticTasks(userId);
+  const index = tasks.findIndex(t => t.id === id);
+  if (index === -1) return null;
+  const deleted = tasks[index];
+  tasks.splice(index, 1);
+  return deleted;
+}
+
+export function findStaticTaskById(userId: string, id: string): StaticTask | null {
+  const tasks = getStaticTasks(userId);
+  return tasks.find(t => t.id === id) || null;
+}
+
 export function addRegisteredUser(user: StaticUser) {
   registeredUsers.set(user.email.toLowerCase(), user);
 }

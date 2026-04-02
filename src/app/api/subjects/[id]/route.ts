@@ -1,56 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { shouldUseStaticData } from '@/lib/data-service';
-
-let staticSubjectsStore: Array<{
-  id: string;
-  name: string;
-  description: string | null;
-  color: string;
-  examDate: Date | null;
-  createdAt: Date;
-  tasks: unknown[];
-  _count: { tasks: number };
-}> | null = null;
-
-function getStaticSubjects() {
-  if (!staticSubjectsStore) {
-    staticSubjectsStore = [
-      {
-        id: 'subject-1',
-        name: 'Mathematics',
-        description: 'Algebra, Calculus, and Statistics',
-        color: '#6366f1',
-        examDate: null,
-        createdAt: new Date(),
-        tasks: [],
-        _count: { tasks: 3 },
-      },
-      {
-        id: 'subject-2',
-        name: 'Physics',
-        description: 'Mechanics and Thermodynamics',
-        color: '#f59e0b',
-        examDate: null,
-        createdAt: new Date(),
-        tasks: [],
-        _count: { tasks: 2 },
-      },
-      {
-        id: 'subject-3',
-        name: 'Computer Science',
-        description: 'Programming and Algorithms',
-        color: '#10b981',
-        examDate: null,
-        createdAt: new Date(),
-        tasks: [],
-        _count: { tasks: 4 },
-      },
-    ];
-  }
-  return staticSubjectsStore;
-}
+import { shouldUseStaticData, getStaticSubjects, findStaticSubjectById, updateStaticSubject, deleteStaticSubject } from '@/lib/static-data';
 
 export async function GET(
   request: NextRequest,
@@ -68,10 +19,8 @@ export async function GET(
 
     const { id } = await params;
 
-    
     if (shouldUseStaticData()) {
-      const subjects = getStaticSubjects();
-      const subject = subjects.find(s => s.id === id);
+      const subject = findStaticSubjectById(user.id, id);
       
       if (!subject) {
         return NextResponse.json(
@@ -133,31 +82,25 @@ export async function PUT(
     const body = await request.json();
     const { name, description, color, examDate } = body;
 
-    
     if (shouldUseStaticData()) {
-      const subjects = getStaticSubjects();
-      const subjectIndex = subjects.findIndex(s => s.id === id);
+      const updateData: Record<string, unknown> = {};
+      if (name !== undefined) updateData.name = name.trim();
+      if (description !== undefined) updateData.description = description?.trim() || null;
+      if (color !== undefined) updateData.color = color;
+      if (examDate !== undefined) updateData.examDate = examDate ? new Date(examDate) : null;
       
-      if (subjectIndex === -1) {
+      const updatedSubject = updateStaticSubject(user.id, id, updateData);
+      
+      if (!updatedSubject) {
         return NextResponse.json(
           { error: 'Subject not found' },
           { status: 404 }
         );
       }
       
-      
-      subjects[subjectIndex] = {
-        ...subjects[subjectIndex],
-        name: name !== undefined ? name.trim() : subjects[subjectIndex].name,
-        description: description !== undefined ? (description?.trim() || null) : subjects[subjectIndex].description,
-        color: color !== undefined ? color : subjects[subjectIndex].color,
-        examDate: examDate !== undefined ? (examDate ? new Date(examDate) : null) : subjects[subjectIndex].examDate,
-      };
-      
-      return NextResponse.json({ subject: subjects[subjectIndex] });
+      return NextResponse.json({ subject: updatedSubject });
     }
 
-    
     const existingSubject = await db.subject.findFirst({
       where: {
         id,
@@ -172,7 +115,6 @@ export async function PUT(
       );
     }
 
-    
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim().length === 0) {
         return NextResponse.json(
@@ -182,7 +124,6 @@ export async function PUT(
       }
     }
 
-    
     if (color !== undefined && color !== null && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
       return NextResponse.json(
         { error: 'Invalid color format. Use hex format like #6366f1' },
@@ -234,20 +175,15 @@ export async function DELETE(
 
     const { id } = await params;
 
-    
     if (shouldUseStaticData()) {
-      const subjects = getStaticSubjects();
-      const subjectIndex = subjects.findIndex(s => s.id === id);
+      const deletedSubject = deleteStaticSubject(user.id, id);
       
-      if (subjectIndex === -1) {
+      if (!deletedSubject) {
         return NextResponse.json(
           { error: 'Subject not found' },
           { status: 404 }
         );
       }
-      
-      const deletedSubject = subjects[subjectIndex];
-      subjects.splice(subjectIndex, 1);
       
       return NextResponse.json({
         message: 'Subject deleted successfully',
@@ -255,7 +191,6 @@ export async function DELETE(
       });
     }
 
-    
     const existingSubject = await db.subject.findFirst({
       where: {
         id,
@@ -275,7 +210,6 @@ export async function DELETE(
       );
     }
 
-    
     await db.subject.delete({
       where: { id },
     });

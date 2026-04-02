@@ -1,65 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { shouldUseStaticData } from '@/lib/data-service';
+import { shouldUseStaticData, getStaticSubjects, addStaticSubject, StaticSubject } from '@/lib/static-data';
 import { sanitizeString, isValidHexColor } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
-
-const defaultSubjects = [
-  {
-    id: 'subject-1',
-    name: 'Mathematics',
-    description: 'Algebra, Calculus, and Statistics',
-    color: '#6366f1',
-    examDate: null,
-    createdAt: new Date(),
-    tasks: [],
-    _count: { tasks: 3 },
-  },
-  {
-    id: 'subject-2',
-    name: 'Physics',
-    description: 'Mechanics and Thermodynamics',
-    color: '#f59e0b',
-    examDate: null,
-    createdAt: new Date(),
-    tasks: [],
-    _count: { tasks: 2 },
-  },
-  {
-    id: 'subject-3',
-    name: 'Computer Science',
-    description: 'Programming and Algorithms',
-    color: '#10b981',
-    examDate: null,
-    createdAt: new Date(),
-    tasks: [],
-    _count: { tasks: 4 },
-  },
-  {
-    id: 'subject-4',
-    name: 'Web Development',
-    description: 'HTML, CSS, JavaScript, and React',
-    color: '#3b82f6',
-    examDate: null,
-    createdAt: new Date(),
-    tasks: [],
-    _count: { tasks: 5 },
-  },
-  {
-    id: 'subject-5',
-    name: 'Data Science',
-    description: 'Python, Machine Learning, and Analytics',
-    color: '#8b5cf6',
-    examDate: null,
-    createdAt: new Date(),
-    tasks: [],
-    _count: { tasks: 2 },
-  },
-];
-
-let staticSubjects = [...defaultSubjects];
 
 export async function GET() {
   try {
@@ -73,7 +18,8 @@ export async function GET() {
     }
 
     if (shouldUseStaticData()) {
-      return NextResponse.json({ subjects: staticSubjects });
+      const subjects = getStaticSubjects(user.id);
+      return NextResponse.json({ subjects });
     }
 
     const subjects = await db.subject.findMany({
@@ -95,17 +41,10 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (subjects.length === 0) {
-      return NextResponse.json({ subjects: defaultSubjects });
-    }
-
     return NextResponse.json({ subjects });
   } catch (error) {
     console.error('Error fetching subjects:', error);
-    if (shouldUseStaticData()) {
-      return NextResponse.json({ subjects: staticSubjects });
-    }
-    return NextResponse.json({ subjects: defaultSubjects });
+    return NextResponse.json({ subjects: [] });
   }
 }
 
@@ -161,26 +100,21 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      if (parsedExamDate < new Date()) {
-        return NextResponse.json(
-          { error: 'Exam date must be in the future' },
-          { status: 400 }
-        );
-      }
     }
 
     if (shouldUseStaticData()) {
-      const mockSubject = {
+      const mockSubject: StaticSubject = {
         id: `subject-${Date.now()}`,
         name: sanitizeString(name.trim()),
         description: description ? sanitizeString(description.trim()) : null,
         color: sanitizedColor,
         examDate: parsedExamDate,
         createdAt: new Date(),
+        userId: user.id,
         tasks: [],
         _count: { tasks: 0 },
       };
-      staticSubjects.push(mockSubject);
+      addStaticSubject(user.id, mockSubject);
       return NextResponse.json({ subject: mockSubject }, { status: 201 });
     }
 
