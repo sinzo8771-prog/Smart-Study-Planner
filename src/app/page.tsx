@@ -792,16 +792,17 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
       try {
         
         const [statsResult, subjectsResult, tasksResult] = await Promise.allSettled([
-          api.get<Stats>('/api/stats', 30000), 
+          api.get<{ success: boolean; role: string; stats: Stats }>('/api/stats', 30000),
           api.get<{ subjects: Subject[] }>('/api/subjects'),
           api.get<{ tasks: Task[] }>('/api/tasks?status=pending'),
         ]);
 
-        
+
         if (statsResult.status === 'fulfilled') {
-          setStats(statsResult.value);
-          if (statsResult.value.streak) {
-            setStreak(statsResult.value.streak);
+          const statsData = statsResult.value.stats || defaultStats;
+          setStats(statsData);
+          if (statsData.streak) {
+            setStreak(statsData.streak);
           }
         } else {
           console.error('Failed to fetch stats:', statsResult.reason);
