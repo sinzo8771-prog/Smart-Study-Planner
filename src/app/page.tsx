@@ -6070,42 +6070,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
         <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900" />
 
         <div className="max-w-4xl mx-auto relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, type: 'spring', stiffness: 100 }}
-            className="mb-6 sm:mb-8"
-          >
-            <div className="inline-flex items-center gap-3 px-4 sm:px-5 py-2.5 sm:py-3 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.15 + i * 0.05 }}
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 border-white dark:border-slate-800 ${
-                      i === 1 ? 'bg-indigo-500' :
-                      i === 2 ? 'bg-slate-600' :
-                      i === 3 ? 'bg-amber-500' :
-                      'bg-rose-500'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-                <span className="text-indigo-600 font-bold">2,500+</span> students already learning
-              </span>
-              <div className="hidden sm:flex items-center gap-0.5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-            </div>
-          </motion.div>
 
-          
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
