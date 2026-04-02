@@ -101,7 +101,6 @@ This is a **First Year Project** demonstrating:
 | 📋 **Review System** | Review answers with correct explanations |
 | 🎯 **Pass Threshold** | Configurable passing scores per quiz |
 | ⏱️ **Time Limits** | Optional quiz duration settings |
-| 🤖 **AI Quiz Generator** | Generate quizzes from course content using AI |
 
 ### 📊 Analytics Dashboard
 | Student Dashboard | Admin Dashboard |
@@ -217,8 +216,6 @@ Make sure you have the following installed:
    NEXTAUTH_SECRET="your-nextauth-secret-key"
    NEXTAUTH_URL="http://localhost:3000"
    
-   # AI Quiz Generator (Optional - for AI features)
-   Z_API_KEY="your-z-ai-api-key"
    ```
 
 4. **Initialize the database**
@@ -406,12 +403,6 @@ model Task {
 | `POST` | `/api/quiz-attempts` | Submit quiz | ✅ | Student |
 | `GET` | `/api/quiz-attempts/:id` | Get attempt | ✅ | Any |
 
-### AI Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/api/ai/generate-quiz` | Generate quiz from content | ✅ |
-
 ---
 
 ## 📦 Deployment
@@ -434,9 +425,6 @@ DIRECT_DATABASE_URL="your-postgresql-connection-string"
 JWT_SECRET="your-production-secret-min-32-chars"
 NEXTAUTH_SECRET="your-nextauth-secret"
 NEXTAUTH_URL="https://your-domain.com"
-
-# Optional - AI Quiz Generator
-Z_API_KEY="your-z-ai-api-key"
 ```
 
 ### Database Setup with Supabase
