@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { shouldUseStaticData, getCourseById } from '@/lib/data-service';
 import { db } from '@/lib/db';
 
-// GET: Get user's progress for all courses
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Use static data fallback for Vercel
+    
     if (shouldUseStaticData()) {
       const { searchParams } = new URL(request.url);
       const courseId = searchParams.get('courseId');
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
 
-    // If courseId is specified, get progress for that specific course
+    
     if (courseId) {
       const course = await db.course.findUnique({
         where: { id: courseId },
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get all course progress for the user
+    
     const allCourseProgress = await db.courseProgress.findMany({
       where: { userId: user.id },
       include: {
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Update module completion
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'moduleId and completed (boolean) are required' }, { status: 400 });
     }
 
-    // Use static data fallback for Vercel
+    
     if (shouldUseStaticData()) {
       return NextResponse.json({
         success: true,

@@ -229,7 +229,7 @@ export default function CareersPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Navigation */}
+      {}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -251,7 +251,7 @@ export default function CareersPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {}
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
         <div className="absolute top-20 right-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
@@ -286,7 +286,7 @@ export default function CareersPage() {
         </motion.div>
       </section>
 
-      {/* Perks Section */}
+      {}
       <section className="py-16 px-4 border-y border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
@@ -310,12 +310,12 @@ export default function CareersPage() {
         </div>
       </section>
 
-      {/* Job Listings */}
+      {}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Filters */}
+          {}
           <div className="mb-8 space-y-6">
-            {/* Search */}
+            {}
             <div className="relative max-w-xl">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -328,7 +328,7 @@ export default function CareersPage() {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              {/* Department Filter */}
+              {}
               <div className="flex items-center gap-2 overflow-x-auto pb-2">
                 {departments.map((dept) => (
                   <button
@@ -346,7 +346,7 @@ export default function CareersPage() {
                 ))}
               </div>
 
-              {/* Location Filter */}
+              {}
               <select
                 value={selectedLocation}
                 onChange={(e) => setSelectedLocation(e.target.value)}
@@ -359,12 +359,12 @@ export default function CareersPage() {
             </div>
           </div>
 
-          {/* Results Count */}
+          {}
           <p className="text-gray-500 dark:text-gray-400 mb-6">
             Showing {filteredJobs.length} open position{filteredJobs.length !== 1 ? 's' : ''}
           </p>
 
-          {/* Job Cards */}
+          {}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredJobs.map((job, index) => (
               <motion.div
@@ -429,7 +429,7 @@ export default function CareersPage() {
         </div>
       </section>
 
-      {/* Job Detail Modal */}
+      {}
       <AnimatePresence>
         {selectedJob && !showApplicationForm && (
           <motion.div
@@ -525,7 +525,7 @@ export default function CareersPage() {
         )}
       </AnimatePresence>
 
-      {/* Application Form Modal */}
+      {}
       <AnimatePresence>
         {showApplicationForm && selectedJob && (
           <motion.div
@@ -614,7 +614,7 @@ export default function CareersPage() {
         )}
       </AnimatePresence>
 
-      {/* Culture Section */}
+      {}
       <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
           <motion.div 
@@ -662,7 +662,7 @@ export default function CareersPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {}
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 overflow-hidden">
@@ -681,7 +681,7 @@ export default function CareersPage() {
         </div>
       </section>
 
-      {/* Footer */}
+      {}
       <footer className="py-8 px-4 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto text-center text-gray-500 dark:text-gray-400 text-sm">
           <p>&copy; {new Date().getFullYear()} StudyPlanner. All rights reserved.</p>

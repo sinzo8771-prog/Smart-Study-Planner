@@ -1,5 +1,5 @@
-// Static data for Vercel deployment (when database is not available)
-// This serves as a fallback for demo purposes
+
+
 
 export interface StaticUser {
   id: string;
@@ -70,7 +70,7 @@ export interface StaticQuestion {
   createdAt: Date;
 }
 
-// Default users (passwords are bcrypt hashed)
+
 export const staticUsers: StaticUser[] = [
   {
     id: 'admin-001',
@@ -122,11 +122,11 @@ export const staticUsers: StaticUser[] = [
   },
 ];
 
-// Courses with verified working YouTube videos - Mix of Tech and Non-Tech
+
 export const staticCourses: StaticCourse[] = [
-  // ==========================================
-  // NON-TECH COURSES
-  // ==========================================
+  
+  
+  
   {
     id: 'course-math-2',
     title: 'Calculus 1 Full Course',
@@ -245,9 +245,9 @@ Explore the human mind and behavior.
       }
     ]
   },
-  // ==========================================
-  // TECH COURSES
-  // ==========================================
+  
+  
+  
   {
     id: 'course-tech-1',
     title: 'HTML & CSS Full Course',
@@ -428,7 +428,7 @@ Master version control.
   }
 ];
 
-// Sample quizzes for courses
+
 export const staticQuizzes: StaticQuiz[] = [
   {
     id: 'quiz-tech-1',
@@ -516,9 +516,9 @@ export const staticQuizzes: StaticQuiz[] = [
       }
     ]
   },
-  // ==========================================
-  // ADDITIONAL QUIZZES FOR REMAINING COURSES
-  // ==========================================
+  
+  
+  
   {
     id: 'quiz-math-2',
     title: 'Calculus Fundamentals Quiz',
@@ -1126,7 +1126,7 @@ export const staticQuizzes: StaticQuiz[] = [
   }
 ];
 
-// In-memory store for registered users
+
 const registeredUsers = new Map<string, StaticUser>();
 
 export function addRegisteredUser(user: StaticUser) {

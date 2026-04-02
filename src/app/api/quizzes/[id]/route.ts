@@ -4,7 +4,7 @@ import { getCurrentUser, isAdmin } from '@/lib/auth';
 import { db, runMigrations } from '@/lib/db';
 import { sanitizeString } from '@/lib/validation';
 
-// GET: Get a single quiz by ID with questions
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -33,7 +33,7 @@ export async function GET(
   }
 }
 
-// PUT: Update a quiz (admin only)
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -52,7 +52,7 @@ export async function PUT(
     const body = await request.json();
     const { title, description, courseId, duration, passingScore, isPublished, category, difficulty, questions } = body;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const mockQuiz = {
         id,
@@ -70,7 +70,7 @@ export async function PUT(
       return NextResponse.json({ success: true, quiz: mockQuiz });
     }
 
-    // Check if quiz exists
+    
     await runMigrations();
 
     const existingQuiz = await db.quiz.findUnique({
@@ -81,7 +81,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
     }
 
-    // Build update data
+    
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = sanitizeString(title.trim());
     if (description !== undefined) updateData.description = description ? sanitizeString(description.trim()) : null;
@@ -92,7 +92,7 @@ export async function PUT(
     if (category !== undefined) updateData.category = category;
     if (difficulty !== undefined) updateData.difficulty = difficulty;
 
-    // Update quiz with questions if provided
+    
     const quiz = await db.quiz.update({
       where: { id },
       data: {
@@ -127,7 +127,7 @@ export async function PUT(
   }
 }
 
-// DELETE: Delete a quiz (admin only)
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -144,12 +144,12 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       return NextResponse.json({ success: true, message: 'Quiz deleted successfully' });
     }
 
-    // Check if quiz exists
+    
     await runMigrations();
 
     const existingQuiz = await db.quiz.findUnique({
@@ -160,7 +160,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
     }
 
-    // Delete quiz (cascade will handle questions and attempts)
+    
     await db.quiz.delete({
       where: { id },
     });

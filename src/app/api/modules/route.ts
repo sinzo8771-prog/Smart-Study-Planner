@@ -2,20 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 
-// GET: List modules (filter: courseId)
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
 
-    // Build filter conditions
+    
     const where: Record<string, unknown> = {};
 
     if (courseId) {
       where.courseId = courseId;
 
-      // Check course access for students
+      
       const course = await db.course.findUnique({
         where: { id: courseId },
         select: { isPublished: true },
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Students can only see modules of published courses
+      
       if (!course.isPublished && (!user || user.role !== 'admin')) {
         return NextResponse.json(
           { error: 'Course not found' },
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       orderBy: [{ courseId: 'asc' }, { order: 'asc' }],
     });
 
-    // Filter out modules from unpublished courses for non-admin users
+    
     const filteredModules = user?.role === 'admin'
       ? modules
       : modules.filter((m) => m.course.isPublished);
@@ -69,12 +69,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create a new module (admin only)
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
 
-    // Check if user is authenticated and is admin
+    
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, content, videoUrl, duration, order, courseId } = body;
 
-    // Validate required fields
+    
     if (!title || !courseId) {
       return NextResponse.json(
         { error: 'Title and courseId are required' },
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if course exists
+    
     const course = await db.course.findUnique({
       where: { id: courseId },
     });
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If order is not specified, get the next order number
+    
     let moduleOrder = order;
     if (moduleOrder === undefined || moduleOrder === null) {
       const lastModule = await db.module.findFirst({
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       moduleOrder = (lastModule?.order ?? -1) + 1;
     }
 
-    // Create module
+    
     const newModule = await db.module.create({
       data: {
         title,

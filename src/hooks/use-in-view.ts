@@ -8,10 +8,7 @@ interface UseInViewOptions {
   triggerOnce?: boolean;
 }
 
-/**
- * Hook to detect if an element is in the viewport
- * Useful for lazy loading components and animations
- */
+
 export function useInView<T extends HTMLElement = HTMLElement>(
   options: UseInViewOptions = {}
 ): [RefObject<T | null>, boolean] {
@@ -23,9 +20,9 @@ export function useInView<T extends HTMLElement = HTMLElement>(
     const element = ref.current;
     if (!element) return;
 
-    // Check if IntersectionObserver is available
+    
     if (typeof IntersectionObserver === 'undefined') {
-      // Use setTimeout to defer setState outside of the effect
+      
       const timer = setTimeout(() => setIsInView(true), 0);
       return () => clearTimeout(timer);
     }
@@ -54,9 +51,7 @@ export function useInView<T extends HTMLElement = HTMLElement>(
   return [ref, isInView];
 }
 
-/**
- * Hook to get multiple elements in view status
- */
+
 export function useInViewItems<T extends HTMLElement = HTMLElement>(
   itemCount: number,
   options: UseInViewOptions = {}
@@ -69,7 +64,7 @@ export function useInViewItems<T extends HTMLElement = HTMLElement>(
 
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') {
-      // Use setTimeout to defer setState outside of the effect
+      
       const timer = setTimeout(() => setInViewStates(Array(itemCount).fill(true)), 0);
       return () => clearTimeout(timer);
     }

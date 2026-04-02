@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-// Courses to remove
+
 const COURSES_TO_REMOVE = [
   'Personal Finance Full Course',
   'World History Full Course',
@@ -12,7 +12,7 @@ const COURSES_TO_REMOVE = [
 
 export async function POST(request: Request) {
   try {
-    // Verify authorization (simple secret check)
+    
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
     
@@ -23,31 +23,31 @@ export async function POST(request: Request) {
     const results: string[] = [];
 
     for (const courseTitle of COURSES_TO_REMOVE) {
-      // Find the course
+      
       const course = await db.course.findFirst({
         where: { title: courseTitle },
         include: { modules: true }
       });
 
       if (course) {
-        // Delete module progress first
+        
         for (const courseModule of course.modules) {
           await db.moduleProgress.deleteMany({
             where: { moduleId: courseModule.id }
           });
         }
         
-        // Delete course progress
+        
         await db.courseProgress.deleteMany({
           where: { courseId: course.id }
         });
         
-        // Delete modules
+        
         await db.module.deleteMany({
           where: { courseId: course.id }
         });
         
-        // Delete related quizzes
+        
         const quizzes = await db.quiz.findMany({
           where: { courseId: course.id }
         });
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
           where: { courseId: course.id }
         });
         
-        // Delete the course
+        
         await db.course.delete({
           where: { id: course.id }
         });
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // Get remaining courses
+    
     const remainingCourses = await db.course.findMany({
       select: { title: true, category: true }
     });

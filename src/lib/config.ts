@@ -1,12 +1,12 @@
-// Environment configuration with validation
 
-// Required environment variables
+
+
 const requiredEnvVars = [
   'JWT_SECRET',
   'DATABASE_URL',
 ] as const;
 
-// Optional environment variables with defaults
+
 const optionalEnvVars = {
   NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
   SMTP_HOST: 'smtp.gmail.com',
@@ -24,7 +24,7 @@ const optionalEnvVars = {
   NEXT_PUBLIC_ENABLE_GOOGLE_LOGIN: 'true',
 } as const;
 
-// Validate required environment variables
+
 function validateEnv(): void {
   const missing: string[] = [];
 
@@ -42,22 +42,22 @@ function validateEnv(): void {
   }
 }
 
-// Get environment variable with fallback
+
 export function getEnv<K extends keyof typeof optionalEnvVars>(
   key: K
 ): string {
   return process.env[key] || optionalEnvVars[key];
 }
 
-// Check if feature is enabled
+
 export function isFeatureEnabled(feature: string): boolean {
   const key = `NEXT_PUBLIC_ENABLE_${feature.toUpperCase()}` as keyof typeof optionalEnvVars;
   return getEnv(key) === 'true';
 }
 
-// App configuration
+
 export const config = {
-  // App settings
+  
   app: {
     url: getEnv('NEXT_PUBLIC_APP_URL'),
     name: 'Smart Study Planner',
@@ -65,14 +65,14 @@ export const config = {
     isProduction: process.env.NODE_ENV === 'production',
   },
 
-  // Authentication settings
+  
   auth: {
     jwtSecret: process.env.JWT_SECRET || '',
     nextAuthSecret: process.env.NEXTAUTH_SECRET || '',
-    sessionMaxAge: 7 * 24 * 60 * 60, // 7 days
+    sessionMaxAge: 7 * 24 * 60 * 60, 
   },
 
-  // Email settings
+  
   email: {
     host: getEnv('SMTP_HOST'),
     port: parseInt(getEnv('SMTP_PORT')),
@@ -82,23 +82,23 @@ export const config = {
     isConfigured: !!(getEnv('SMTP_USER') && getEnv('SMTP_PASS')),
   },
 
-  // Feature flags
+  
   features: {
     registration: isFeatureEnabled('REGISTRATION'),
     googleLogin: isFeatureEnabled('GOOGLE_LOGIN'),
   },
 
-  // Security settings
+  
   security: {
     rateLimit: {
-      windowMs: 60 * 1000, // 1 minute
+      windowMs: 60 * 1000, 
       maxRequests: 100,
     },
     bcryptSaltRounds: 12,
   },
 } as const;
 
-// Validate on import in production
+
 if (typeof window === 'undefined') {
   validateEnv();
 }

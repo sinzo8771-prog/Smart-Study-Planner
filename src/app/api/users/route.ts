@@ -6,7 +6,7 @@ import { hashPassword } from '@/lib/auth';
 import { sanitizeString, isValidEmail, isValidPassword, isValidName, isValidRole } from '@/lib/validation';
 import bcrypt from 'bcryptjs';
 
-// Static users for demo mode (Vercel without database)
+
 const staticUsersList = [
   {
     id: 'admin-001',
@@ -70,7 +70,7 @@ const staticUsersList = [
   },
 ];
 
-// GET: List all users with pagination (admin only)
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const role = searchParams.get('role');
 
-    // Use static data ONLY for Vercel deployment (no database)
+    
     if (shouldUseStaticData()) {
       let filteredUsers = [...staticUsersList];
 
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Build filter for database query
+    
     const where: Record<string, unknown> = {};
 
     if (search) {
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
       where.role = role;
     }
 
-    // Get total count and users in parallel for performance
+    
     const [total, users] = await Promise.all([
       db.user.count({ where }),
       db.user.findMany({
@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Optimize stats fetching - do in parallel for all users
+    
     const usersWithStats = await Promise.all(
       users.map(async (u) => {
         const [quizStats, taskStats] = await Promise.all([
@@ -221,7 +221,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get users error:', error);
-    // Fallback to static data on error
+    
     return NextResponse.json({
       success: true,
       users: staticUsersList.slice(0, 10),
@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create a new user (admin only)
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -252,24 +252,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, email, password, role = 'student' } = body;
 
-    // Validate name
+    
     const nameValidation = isValidName(name);
     if (!nameValidation.valid) {
       return NextResponse.json({ error: nameValidation.error }, { status: 400 });
     }
 
-    // Validate email
+    
     if (!email || !isValidEmail(email)) {
       return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 });
     }
 
-    // Validate password
+    
     const passwordValidation = isValidPassword(password);
     if (!passwordValidation.valid) {
       return NextResponse.json({ error: passwordValidation.error }, { status: 400 });
     }
 
-    // Validate role
+    
     if (!isValidRole(role)) {
       return NextResponse.json({ error: 'Invalid role. Must be "student" or "admin"' }, { status: 400 });
     }
@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
     const sanitizedEmail = email.toLowerCase().trim();
     const sanitizedName = sanitizeString(name.trim());
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const mockUser = {
         id: `user-${Date.now()}`,
@@ -297,7 +297,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, user: mockUser }, { status: 201 });
     }
 
-    // Check if email already exists
+    
     const existingUser = await db.user.findUnique({
       where: { email: sanitizedEmail },
     });
@@ -306,10 +306,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
     }
 
-    // Hash password
+    
     const hashedPassword = await hashPassword(password);
 
-    // Create user
+    
     const newUser = await db.user.create({
       data: {
         name: sanitizedName,
@@ -347,7 +347,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT: Update a user (admin only)
+
 export async function PUT(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -366,7 +366,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const existingUser = staticUsersList.find(u => u.id === id);
       if (!existingUser) {
@@ -382,7 +382,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: true, user: updatedUser });
     }
 
-    // Check if user exists
+    
     const existingUser = await db.user.findUnique({
       where: { id },
     });
@@ -391,7 +391,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Build update data with validation
+    
     const updateData: Record<string, unknown> = {};
 
     if (name) {
@@ -433,7 +433,7 @@ export async function PUT(request: NextRequest) {
       updateData.password = await hashPassword(password);
     }
 
-    // Update user
+    
     const updatedUser = await db.user.update({
       where: { id },
       data: updateData,
@@ -455,7 +455,7 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    // Get quiz stats in parallel
+    
     const quizStats = await db.quizAttempt.aggregate({
       where: { userId: id },
       _count: true,
@@ -485,7 +485,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE: Delete a user (admin only)
+
 export async function DELETE(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -504,12 +504,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Prevent admin from deleting themselves
+    
     if (id === user.id) {
       return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
     }
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const existingUser = staticUsersList.find(u => u.id === id);
       if (!existingUser) {
@@ -518,7 +518,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'User deleted successfully' });
     }
 
-    // Check if user exists
+    
     const existingUser = await db.user.findUnique({
       where: { id },
     });
@@ -527,7 +527,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Delete user (cascades will handle related data)
+    
     await db.user.delete({
       where: { id },
     });

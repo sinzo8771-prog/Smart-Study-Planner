@@ -96,7 +96,7 @@ export default function HelpCenterPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Navigation */}
+      {}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -121,7 +121,7 @@ export default function HelpCenterPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {}
       <section className="relative pt-32 pb-16 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
@@ -142,7 +142,7 @@ export default function HelpCenterPage() {
             Find answers to common questions, learn how to use StudyPlanner, and get support when you need it.
           </p>
 
-          {/* Search */}
+          {}
           <div className="relative max-w-xl mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -156,7 +156,7 @@ export default function HelpCenterPage() {
         </motion.div>
       </section>
 
-      {/* Quick Actions */}
+      {}
       <section className="py-8 px-4 -mt-4">
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -186,11 +186,11 @@ export default function HelpCenterPage() {
         </div>
       </section>
 
-      {/* Main Content */}
+      {}
       <section className="py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Categories */}
+            {}
             <div className="lg:col-span-1 space-y-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Categories</h2>
               <div className="space-y-3">
@@ -223,7 +223,7 @@ export default function HelpCenterPage() {
                 ))}
               </div>
 
-              {/* Popular Articles */}
+              {}
               <div className="mt-8">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-500" /> Popular Articles
@@ -250,7 +250,7 @@ export default function HelpCenterPage() {
               </div>
             </div>
 
-            {/* Articles */}
+            {}
             <div className="lg:col-span-2">
               {searchQuery && (
                 <div className="mb-6">
@@ -334,7 +334,7 @@ export default function HelpCenterPage() {
         </div>
       </section>
 
-      {/* Contact Support CTA */}
+      {}
       <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 shadow-xl overflow-hidden">
@@ -366,7 +366,7 @@ export default function HelpCenterPage() {
         </div>
       </section>
 
-      {/* Support Ticket Modal */}
+      {}
       <AnimatePresence>
         {showTicketForm && (
           <motion.div
@@ -439,7 +439,7 @@ export default function HelpCenterPage() {
         )}
       </AnimatePresence>
 
-      {/* Footer */}
+      {}
       <footer className="py-8 px-4 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto text-center text-gray-500 dark:text-gray-400 text-sm">
           <p>&copy; {new Date().getFullYear()} StudyPlanner. All rights reserved.</p>

@@ -4,7 +4,7 @@ import { getCurrentUser, isAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sanitizeString, isValidCourseLevel } from '@/lib/validation';
 
-// GET: Get a single course by ID
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    // If user is logged in, include module progress
+    
     if (user && !shouldUseStaticData()) {
       try {
         const moduleIds = course.modules?.map((m: { id: string }) => m.id) || [];
@@ -31,13 +31,13 @@ export async function GET(
 
         const progressMap = new Map(moduleProgress.map((mp) => [mp.moduleId, mp.completed]));
 
-        // Add completion status to modules
+        
         const modulesWithProgress = course.modules?.map((m: { id: string; completed?: boolean }) => ({
           ...m,
           completed: progressMap.get(m.id) || false,
         }));
 
-        // Calculate course progress
+        
         const completedModules = moduleProgress.filter((mp) => mp.completed).length;
         const totalModules = moduleIds.length;
         const progressPercentage = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
@@ -52,7 +52,7 @@ export async function GET(
         });
       } catch (progressError) {
         console.error('Error fetching progress:', progressError);
-        // Return course without progress if there's an error
+        
         return NextResponse.json({
           success: true,
           course: {
@@ -67,7 +67,7 @@ export async function GET(
       }
     }
 
-    // For static mode or unauthenticated users, return course without progress
+    
     return NextResponse.json({
       success: true,
       course: {
@@ -88,7 +88,7 @@ export async function GET(
   }
 }
 
-// PUT: Update a course (admin only)
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -107,7 +107,7 @@ export async function PUT(
     const body = await request.json();
     const { title, description, category, level, duration, isPublished, thumbnail } = body;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const mockCourse = {
         id,
@@ -124,7 +124,7 @@ export async function PUT(
       return NextResponse.json({ success: true, course: mockCourse });
     }
 
-    // Check if course exists
+    
     const existingCourse = await db.course.findUnique({
       where: { id },
     });
@@ -133,7 +133,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    // Build update data
+    
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = sanitizeString(title.trim());
     if (description !== undefined) updateData.description = description ? sanitizeString(description.trim()) : null;
@@ -148,7 +148,7 @@ export async function PUT(
     if (isPublished !== undefined) updateData.isPublished = isPublished;
     if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
 
-    // Update course
+    
     const course = await db.course.update({
       where: { id },
       data: updateData,
@@ -165,7 +165,7 @@ export async function PUT(
   }
 }
 
-// DELETE: Delete a course (admin only)
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -182,12 +182,12 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       return NextResponse.json({ success: true, message: 'Course deleted successfully' });
     }
 
-    // Check if course exists
+    
     const existingCourse = await db.course.findUnique({
       where: { id },
     });
@@ -196,7 +196,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    // Delete course (cascade will handle modules and progress)
+    
     await db.course.delete({
       where: { id },
     });

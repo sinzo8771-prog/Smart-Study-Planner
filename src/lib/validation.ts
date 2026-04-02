@@ -1,81 +1,74 @@
-// Input validation and sanitization utilities
 
-/**
- * Sanitize string input to prevent XSS attacks
- * Uses iterative replacement to handle multi-character sanitization bypass attempts
- * as recommended by CodeQL (js/incomplete-multi-character-sanitization)
- */
+
+
 export function sanitizeString(input: string): string {
   if (typeof input !== 'string') return '';
   
   let sanitized = input;
   let previous: string;
   
-  // Iteratively apply sanitization until no more changes occur
-  // This prevents bypass attempts like "ononload=" -> "onload="
+  
+  
   do {
     previous = sanitized;
     sanitized = sanitized
-      .replace(/[<>]/g, '') // Remove < and > to prevent HTML injection
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+=/gi, '') // Remove event handlers
-      .replace(/data:/gi, '') // Remove data: protocol
-      .replace(/vbscript:/gi, '') // Remove vbscript: protocol
-      .replace(/expression\s*\(/gi, '') // Remove CSS expressions
-      .replace(/url\s*\(/gi, '') // Remove CSS url() for safety
-      .replace(/&#/g, '') // Remove HTML entity encodings
-      .replace(/&lt/gi, '') // Remove encoded <
-      .replace(/&gt/gi, ''); // Remove encoded >
+      .replace(/[<>]/g, '') 
+      .replace(/javascript:/gi, '') 
+      .replace(/on\w+=/gi, '') 
+      .replace(/data:/gi, '') 
+      .replace(/vbscript:/gi, '') 
+      .replace(/expression\s*\(/gi, '') 
+      .replace(/url\s*\(/gi, '') 
+      .replace(/&#/g, '') 
+      .replace(/&lt/gi, '') 
+      .replace(/&gt/gi, ''); 
   } while (sanitized !== previous);
   
-  // Remove any remaining dangerous characters and normalize whitespace
+  
   return sanitized
-    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '') // Remove control characters
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '') 
     .trim();
 }
 
-/**
- * Validate email format
- * Uses a safe regex pattern to prevent ReDoS attacks
- */
+
 export function isValidEmail(email: string): boolean {
-  // Prevent ReDoS by limiting input length first
+  
   if (!email || email.length > 254) {
     return false;
   }
 
-  // Check basic structure without using vulnerable regex patterns
-  // Must have exactly one @ symbol
+  
+  
   const atCount = (email.match(/@/g) || []).length;
   if (atCount !== 1) {
     return false;
   }
 
-  // Split and validate parts
+  
   const [localPart, domain] = email.split('@');
   
-  // Local part must be non-empty and not too long (max 64 chars per RFC)
+  
   if (!localPart || localPart.length > 64) {
     return false;
   }
 
-  // Domain must be non-empty, contain a dot, and not be too long
+  
   if (!domain || domain.length > 253 || !domain.includes('.')) {
     return false;
   }
 
-  // Check for no whitespace characters
+  
   if (/\s/.test(email)) {
     return false;
   }
 
-  // Validate domain has at least one dot with content on both sides
+  
   const domainParts = domain.split('.');
   if (domainParts.length < 2 || domainParts.some(part => part.length === 0)) {
     return false;
   }
 
-  // Check TLD is at least 2 characters
+  
   const tld = domainParts[domainParts.length - 1];
   if (tld.length < 2) {
     return false;
@@ -84,13 +77,7 @@ export function isValidEmail(email: string): boolean {
   return true;
 }
 
-/**
- * Validate password strength
- * - At least 8 characters
- * - At least one uppercase letter
- * - At least one lowercase letter
- * - At least one number
- */
+
 export function isValidPassword(password: string): { valid: boolean; error?: string } {
   if (!password || password.length < 8) {
     return { valid: false, error: 'Password must be at least 8 characters long' };
@@ -111,9 +98,7 @@ export function isValidPassword(password: string): { valid: boolean; error?: str
   return { valid: true };
 }
 
-/**
- * Validate name (no special characters, reasonable length)
- */
+
 export function isValidName(name: string): { valid: boolean; error?: string } {
   if (!name || name.trim().length === 0) {
     return { valid: false, error: 'Name is required' };
@@ -127,7 +112,7 @@ export function isValidName(name: string): { valid: boolean; error?: string } {
     return { valid: false, error: 'Name must be less than 100 characters' };
   }
   
-  // Allow letters, spaces, hyphens, and apostrophes
+  
   if (!/^[a-zA-Z\s\-']+$/.test(name.trim())) {
     return { valid: false, error: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
   }
@@ -146,11 +131,11 @@ export function isValidHexColor(color: string): boolean {
  * Validate ID (CUID or UUID format)
  */
 export function isValidId(id: string): boolean {
-  // CUID format (used by Prisma)
+  
   const cuidRegex = /^[a-z0-9]{25}$/;
-  // UUID format
+  
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  // Static IDs for demo mode
+  
   const staticIdRegex = /^(course|quiz|subject|task|mod|user|admin)-[\w-]+$/i;
   
   return cuidRegex.test(id) || uuidRegex.test(id) || staticIdRegex.test(id);
@@ -217,7 +202,7 @@ export function checkRateLimit(
   const record = rateLimitStore.get(key);
   
   if (!record || now > record.resetTime) {
-    // Create new record
+    
     rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
     return { allowed: true, remaining: maxRequests - 1, resetTime: now + windowMs };
   }
@@ -242,7 +227,7 @@ export function cleanupRateLimits(): void {
   }
 }
 
-// Run cleanup every 5 minutes
+
 if (typeof setInterval !== 'undefined') {
   setInterval(cleanupRateLimits, 5 * 60 * 1000);
 }

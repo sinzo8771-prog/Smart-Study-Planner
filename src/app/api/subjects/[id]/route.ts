@@ -3,8 +3,8 @@ import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 
-// Import the mutable static subjects array from the parent route
-// Note: In a real app, you'd use a shared data store
+
+
 let staticSubjectsStore: Array<{
   id: string;
   name: string;
@@ -16,7 +16,7 @@ let staticSubjectsStore: Array<{
   _count: { tasks: number };
 }> | null = null;
 
-// Initialize static subjects store
+
 function getStaticSubjects() {
   if (!staticSubjectsStore) {
     staticSubjectsStore = [
@@ -55,7 +55,7 @@ function getStaticSubjects() {
   return staticSubjectsStore;
 }
 
-// GET /api/subjects/[id] - Get single subject with tasks
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -72,7 +72,7 @@ export async function GET(
 
     const { id } = await params;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const subjects = getStaticSubjects();
       const subject = subjects.find(s => s.id === id);
@@ -119,7 +119,7 @@ export async function GET(
   }
 }
 
-// PUT /api/subjects/[id] - Update subject
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -138,7 +138,7 @@ export async function PUT(
     const body = await request.json();
     const { name, description, color, examDate } = body;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const subjects = getStaticSubjects();
       const subjectIndex = subjects.findIndex(s => s.id === id);
@@ -150,7 +150,7 @@ export async function PUT(
         );
       }
       
-      // Update the subject
+      
       subjects[subjectIndex] = {
         ...subjects[subjectIndex],
         name: name !== undefined ? name.trim() : subjects[subjectIndex].name,
@@ -162,7 +162,7 @@ export async function PUT(
       return NextResponse.json({ subject: subjects[subjectIndex] });
     }
 
-    // Check if subject exists and belongs to user
+    
     const existingSubject = await db.subject.findFirst({
       where: {
         id,
@@ -177,7 +177,7 @@ export async function PUT(
       );
     }
 
-    // Validate name if provided
+    
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim().length === 0) {
         return NextResponse.json(
@@ -187,7 +187,7 @@ export async function PUT(
       }
     }
 
-    // Validate color format if provided
+    
     if (color !== undefined && color !== null && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
       return NextResponse.json(
         { error: 'Invalid color format. Use hex format like #6366f1' },
@@ -223,7 +223,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/subjects/[id] - Delete subject and all its tasks
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -240,7 +240,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const subjects = getStaticSubjects();
       const subjectIndex = subjects.findIndex(s => s.id === id);
@@ -261,7 +261,7 @@ export async function DELETE(
       });
     }
 
-    // Check if subject exists and belongs to user
+    
     const existingSubject = await db.subject.findFirst({
       where: {
         id,
@@ -281,7 +281,7 @@ export async function DELETE(
       );
     }
 
-    // Delete the subject (tasks will be cascade deleted due to schema relation)
+    
     await db.subject.delete({
       where: { id },
     });

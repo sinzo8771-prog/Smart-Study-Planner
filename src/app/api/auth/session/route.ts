@@ -3,12 +3,12 @@ import { getCurrentUser } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.config';
 
-// Cache control for session endpoint
+
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // First check for NextAuth session (Google OAuth)
+    
     const nextAuthSession = await getServerSession(authOptions);
 
     if (nextAuthSession?.user) {
@@ -27,7 +27,7 @@ export async function GET() {
       });
     }
 
-    // Fall back to custom JWT auth
+    
     const user = await getCurrentUser();
 
     if (!user) {

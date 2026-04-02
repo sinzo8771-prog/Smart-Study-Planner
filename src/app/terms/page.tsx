@@ -394,7 +394,7 @@ export default function TermsOfServicePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Navigation */}
+      {}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -411,7 +411,7 @@ export default function TermsOfServicePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {}
       <section className="relative pt-32 pb-12 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
         <motion.div 
@@ -432,11 +432,11 @@ export default function TermsOfServicePage() {
         </motion.div>
       </section>
 
-      {/* Main Content */}
+      {}
       <section className="py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar Navigation */}
+            {}
             <div className="lg:col-span-1">
               <div className="sticky top-24 space-y-2">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-sm uppercase tracking-wider">Table of Contents</h3>
@@ -460,7 +460,7 @@ export default function TermsOfServicePage() {
               </div>
             </div>
 
-            {/* Content */}
+            {}
             <div className="lg:col-span-3 space-y-12">
               {sections.map((section) => (
                 <motion.div
@@ -490,7 +490,7 @@ export default function TermsOfServicePage() {
         </div>
       </section>
 
-      {/* Footer */}
+      {}
       <footer className="py-8 px-4 border-t border-gray-200 dark:border-gray-800 mt-12">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <p className="text-gray-500 dark:text-gray-400 text-sm">

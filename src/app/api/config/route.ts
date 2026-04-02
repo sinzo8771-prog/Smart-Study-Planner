@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-// This endpoint provides Firebase config at runtime
-// Useful when NEXT_PUBLIC_ variables aren't being picked up at build time
+
+
 export async function GET() {
   return NextResponse.json({
     firebase: {

@@ -1,4 +1,4 @@
-// Production-ready logging utility
+
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -14,10 +14,10 @@ interface LogEntry {
   };
 }
 
-// Check if we're in production
+
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Format log entry
+
 function formatLogEntry(level: LogLevel, message: string, data?: Record<string, unknown>, error?: Error): LogEntry {
   const entry: LogEntry = {
     timestamp: new Date().toISOString(),
@@ -40,13 +40,13 @@ function formatLogEntry(level: LogLevel, message: string, data?: Record<string, 
   return entry;
 }
 
-// Output log based on environment
+
 function output(entry: LogEntry): void {
   if (isProduction) {
-    // In production, output JSON for log aggregation
+    
     console.log(JSON.stringify(entry));
   } else {
-    // In development, output readable format
+    
     const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}]`;
     
     switch (entry.level) {
@@ -62,7 +62,7 @@ function output(entry: LogEntry): void {
   }
 }
 
-// Logger class
+
 class Logger {
   private context: string;
 
@@ -89,15 +89,15 @@ class Logger {
   }
 }
 
-// Create logger instance
+
 export function createLogger(context: string): Logger {
   return new Logger(context);
 }
 
-// Default logger
+
 export const logger = createLogger('App');
 
-// Request logger for API routes
+
 export function logRequest(
   method: string,
   path: string,
@@ -116,12 +116,12 @@ export function logRequest(
   }));
 }
 
-// Error logger
+
 export function logError(error: Error, context?: string): void {
   output(formatLogEntry('error', context || 'Unhandled error', undefined, error));
 }
 
-// Audit logger for sensitive operations
+
 export function logAudit(
   action: string,
   userId: string,

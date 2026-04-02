@@ -4,7 +4,7 @@ import { createLogger } from './logger';
 
 const logger = createLogger('API');
 
-// Standard API error response
+
 export interface ApiErrorResponse {
   error: string;
   details?: string;
@@ -12,7 +12,7 @@ export interface ApiErrorResponse {
   timestamp: string;
 }
 
-// Error types
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -25,7 +25,7 @@ export class ApiError extends Error {
   }
 }
 
-// Common errors
+
 export const Errors = {
   Unauthorized: (message = 'Unauthorized') => new ApiError(message, 401, 'UNAUTHORIZED'),
   Forbidden: (message = 'Forbidden') => new ApiError(message, 403, 'FORBIDDEN'),
@@ -41,9 +41,9 @@ export const Errors = {
   Internal: (message = 'Internal server error') => new ApiError(message, 500, 'INTERNAL_ERROR'),
 } as const;
 
-// Handle API errors consistently
+
 export function handleApiError(error: unknown): NextResponse {
-  // Log the error
+  
   if (error instanceof ApiError) {
     logger.warn(`API Error: ${error.message}`, { 
       code: error.code, 
@@ -54,7 +54,7 @@ export function handleApiError(error: unknown): NextResponse {
     logger.error('Unhandled API error', error);
   }
 
-  // Handle known error types
+  
   if (error instanceof ApiError) {
     const response: ApiErrorResponse = {
       error: error.message,
@@ -74,7 +74,7 @@ export function handleApiError(error: unknown): NextResponse {
     return NextResponse.json(response, { status: error.statusCode, headers });
   }
 
-  // Handle Zod validation errors
+  
   if (error instanceof ZodError) {
     const response: ApiErrorResponse = {
       error: 'Validation failed',
@@ -86,7 +86,7 @@ export function handleApiError(error: unknown): NextResponse {
     return NextResponse.json(response, { status: 400 });
   }
 
-  // Handle JSON parsing errors
+  
   if (error instanceof SyntaxError && 'body' in error) {
     const response: ApiErrorResponse = {
       error: 'Invalid JSON in request body',
@@ -97,7 +97,7 @@ export function handleApiError(error: unknown): NextResponse {
     return NextResponse.json(response, { status: 400 });
   }
 
-  // Generic error response
+  
   const response: ApiErrorResponse = {
     error: process.env.NODE_ENV === 'production' 
       ? 'An unexpected error occurred' 
@@ -109,17 +109,17 @@ export function handleApiError(error: unknown): NextResponse {
   return NextResponse.json(response, { status: 500 });
 }
 
-// Success response helper
+
 export function apiResponse<T>(data: T, status = 200): NextResponse {
   return NextResponse.json(data, { status });
 }
 
-// Created response helper
+
 export function createdResponse<T>(data: T): NextResponse {
   return NextResponse.json(data, { status: 201 });
 }
 
-// No content response helper
+
 export function noContentResponse(): NextResponse {
   return new NextResponse(null, { status: 204 });
 }

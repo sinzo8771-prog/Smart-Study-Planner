@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-/**
- * Hook to debounce a value
- * Useful for search inputs, resize handlers, etc.
- */
+
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -22,10 +19,7 @@ export function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-/**
- * Hook to throttle a value
- * Useful for scroll handlers, mouse move, etc.
- */
+
 export function useThrottle<T>(value: T, interval: number): T {
   const [throttledValue, setThrottledValue] = useState<T>(value);
   const lastUpdated = useRef<number>(Date.now());
@@ -50,9 +44,7 @@ export function useThrottle<T>(value: T, interval: number): T {
   return throttledValue;
 }
 
-/**
- * Hook to track scroll position with throttling
- */
+
 export function useScrollPosition(throttleMs: number = 100) {
   const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
   const lastUpdate = useRef<number>(0);
@@ -75,7 +67,7 @@ export function useScrollPosition(throttleMs: number = 100) {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Set initial position after mount
+    
     const timer = setTimeout(() => {
       setScrollPosition({
         x: window.scrollX,
@@ -92,9 +84,7 @@ export function useScrollPosition(throttleMs: number = 100) {
   return scrollPosition;
 }
 
-/**
- * Hook to track window size with debouncing
- */
+
 export function useWindowSize(debounceMs: number = 150) {
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 0,
@@ -125,17 +115,14 @@ export function useWindowSize(debounceMs: number = 150) {
   return windowSize;
 }
 
-/**
- * Hook to detect slow connection
- * Useful for serving lighter content on slow connections
- */
+
 export function useConnectionSpeed() {
   const [isSlowConnection, setIsSlowConnection] = useState(false);
 
   useEffect(() => {
     if (typeof navigator === 'undefined') return;
 
-    // @ts-expect-error - connection API is not in standard types
+    
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     
     if (connection) {
@@ -159,10 +146,7 @@ export function useConnectionSpeed() {
   return { isSlowConnection };
 }
 
-/**
- * Hook to measure component render time
- * Useful for performance debugging
- */
+
 export function useRenderTime(componentName: string) {
   const renderStart = useRef<number>(0);
 

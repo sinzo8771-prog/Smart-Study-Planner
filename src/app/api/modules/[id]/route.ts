@@ -4,7 +4,7 @@ import { getCurrentUser, isAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sanitizeString } from '@/lib/validation';
 
-// GET: Get a single module by ID
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -33,7 +33,7 @@ export async function GET(
   }
 }
 
-// PUT: Update a module (admin only)
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -52,7 +52,7 @@ export async function PUT(
     const body = await request.json();
     const { title, description, content, videoUrl, duration, order } = body;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const mockModule = {
         id,
@@ -67,7 +67,7 @@ export async function PUT(
       return NextResponse.json({ success: true, module: mockModule });
     }
 
-    // Check if module exists
+    
     const existingModule = await db.module.findUnique({
       where: { id },
     });
@@ -76,7 +76,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Module not found' }, { status: 404 });
     }
 
-    // Build update data
+    
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = sanitizeString(title.trim());
     if (description !== undefined) updateData.description = description ? sanitizeString(description.trim()) : null;
@@ -85,7 +85,7 @@ export async function PUT(
     if (duration !== undefined) updateData.duration = duration;
     if (order !== undefined) updateData.order = order;
 
-    // Update module
+    
     const moduleData = await db.module.update({
       where: { id },
       data: updateData,
@@ -98,7 +98,7 @@ export async function PUT(
   }
 }
 
-// DELETE: Delete a module (admin only)
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -115,12 +115,12 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       return NextResponse.json({ success: true, message: 'Module deleted successfully' });
     }
 
-    // Check if module exists
+    
     const existingModule = await db.module.findUnique({
       where: { id },
     });
@@ -129,7 +129,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Module not found' }, { status: 404 });
     }
 
-    // Delete module (cascade will handle progress)
+    
     await db.module.delete({
       where: { id },
     });

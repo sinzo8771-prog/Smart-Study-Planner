@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import ZAI from 'z-ai-web-dev-sdk';
 
-// AI Study Tips based on user's progress
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's stats from request context
+    
     const { searchParams } = new URL(request.url);
     const subjectsParam = searchParams.get('subjects');
     const tasksParam = searchParams.get('tasks');
@@ -32,7 +32,7 @@ Student Stats:
 
 Provide actionable, encouraging study tips formatted as markdown bullet points.`;
 
-    // Create ZAI instance
+    
     const zai = await ZAI.create();
     
     const completion = await zai.chat.completions.create({

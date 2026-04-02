@@ -4,7 +4,7 @@ import { getUserByEmail, createUser, updateUser, shouldUseStaticData } from '@/l
 import { checkRateLimit } from '@/lib/validation';
 import { addRegisteredUser } from '@/lib/static-data';
 
-// JWT secret is now handled centrally in lib/auth.ts - no fallback allowed
+
 
 export async function POST(request: NextRequest) {
   const requestOrigin = request.headers.get('origin') || 'unknown';
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   console.log('[FirebaseAuth] Request headers:', JSON.stringify(Object.fromEntries(request.headers.entries())));
   
   try {
-    // Rate limiting - 10 attempts per minute per IP
+    
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const rateLimit = checkRateLimit(`firebase-auth:${ip}`, 10, 60000);
     
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { idToken, name, email, picture } = body;
 
-    // Validate required fields
+    
     if (!email) {
       console.error('Firebase auth error: Missing email');
       return NextResponse.json({ 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // idToken is optional in static/demo mode since we trust the client-side Firebase auth
+    
     const isStaticMode = shouldUseStaticData();
     console.log('[FirebaseAuth] Static mode:', isStaticMode);
     
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Basic email validation
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       console.error('Firebase auth error: Invalid email format:', email);
@@ -63,25 +63,25 @@ export async function POST(request: NextRequest) {
 
     console.log('Firebase auth: Processing login for email:', email);
 
-    // Find or create user
+    
     let user = await getUserByEmail(email);
 
     if (!user) {
-      // Create new user with emailVerified since Google verifies emails
+      
       const userData = {
         email,
         name: name || email.split('@')[0],
         image: picture || null,
         role: 'student' as const,
-        emailVerified: new Date(), // Google has verified this email
+        emailVerified: new Date(), 
       };
       
       if (isStaticMode) {
-        // In static mode, create user in memory store
+        
         const newUser = {
           id: `google-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           ...userData,
-          password: undefined, // No password for Google users
+          password: undefined, 
         };
         addRegisteredUser(newUser);
         user = newUser;
@@ -89,12 +89,12 @@ export async function POST(request: NextRequest) {
       } else {
         user = await createUser({
           ...userData,
-          password: '', // Empty password for Google users - they use OAuth
+          password: '', 
         });
         console.log('Firebase auth: Created new user:', user.id);
       }
     } else {
-      // Update user info if needed
+      
       if (!user.image && picture) {
         user = await updateUser(user.id, { 
           image: picture, 
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       console.log('Firebase auth: Found existing user:', user.id);
     }
 
-    // Create a JWT token for our session using centralized auth
+    
     console.log('[FirebaseAuth] Generating JWT token for user:', user.id);
     const token = generateToken({
       id: user.id,
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     });
     console.log('[FirebaseAuth] Token generated successfully, length:', token.length);
 
-    // Create response first
+    
     const response = NextResponse.json({ 
       success: true, 
       user: {
@@ -126,18 +126,18 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Set cookie directly on the response object for reliability
+    
     const cookieOptions = {
       httpOnly: true,
-      secure: true, // Always true for Vercel (HTTPS)
-      sameSite: 'lax' as const, // Allows OAuth redirects to work
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      secure: true, 
+      sameSite: 'lax' as const, 
+      maxAge: 60 * 60 * 24 * 7, 
       path: '/',
     };
     
     response.cookies.set('auth_token', token, cookieOptions);
     
-    // Log the Set-Cookie header that was set
+    
     const setCookieHeader = response.headers.get('set-cookie');
     console.log('[FirebaseAuth] Set-Cookie header present:', !!setCookieHeader);
     console.log('[FirebaseAuth] Cookie options:', JSON.stringify(cookieOptions));

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { sendVerificationEmail } from '@/lib/email'
 
-// Generate a 6-digit verification code
+
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim()
 
-    // Find user
+    
     const user = await db.user.findUnique({
       where: { email: normalizedEmail }
     })
@@ -37,13 +37,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Generate new code
+    
     const code = generateVerificationCode()
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) 
 
     console.log('📧 Generated new verification code for:', normalizedEmail)
 
-    // Delete existing unused codes
+    
     try {
       await db.emailVerificationCode.deleteMany({
         where: { email: normalizedEmail, used: false }
@@ -53,13 +53,13 @@ export async function POST(request: NextRequest) {
       console.log('⚠️ Could not delete old codes:', e)
     }
 
-    // Save new code
+    
     await db.emailVerificationCode.create({
       data: { email: normalizedEmail, code, expiresAt }
     })
     console.log('✅ New verification code saved')
 
-    // Send email
+    
     let emailResult = { success: false, devMode: true, devCode: code }
     try {
       emailResult = await sendVerificationEmail(normalizedEmail, code, user.name)

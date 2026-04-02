@@ -64,7 +64,7 @@ export default function ResourcesPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Navigation */}
+      {}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -81,7 +81,7 @@ export default function ResourcesPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {}
       <section className="relative pt-32 pb-16 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
@@ -104,7 +104,7 @@ export default function ResourcesPage() {
         </motion.div>
       </section>
 
-      {/* Popular Articles */}
+      {}
       <section className="py-12 px-4 -mt-4">
         <div className="max-w-6xl mx-auto">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
@@ -133,7 +133,7 @@ export default function ResourcesPage() {
         </div>
       </section>
 
-      {/* Resources Grid */}
+      {}
       <section className="py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -194,7 +194,7 @@ export default function ResourcesPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {}
       <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Need More Help?</h2>

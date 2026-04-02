@@ -6,7 +6,7 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET: Get single attempt with detailed results
+
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await getCurrentUser();
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
 
-    // Get the attempt
+    
     const attempt = await db.quizAttempt.findUnique({
       where: { id },
       include: {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Only the user who took the attempt or admin can view it
+    
     if (user.role !== 'admin' && attempt.userId !== user.id) {
       return NextResponse.json(
         { error: 'Forbidden' },
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Get the questions with correct answers for detailed review
+    
     const questions = await db.question.findMany({
       where: { quizId: attempt.quizId },
       orderBy: { order: 'asc' },
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
     });
 
-    // Parse answers from the attempt
+    
     let gradedAnswers: Record<string, unknown> = {};
     try {
       gradedAnswers = JSON.parse(attempt.answers);
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       gradedAnswers = {};
     }
 
-    // Build detailed results
+    
     const detailedResults = questions.map(q => {
       const answer = gradedAnswers[q.id] as Record<string, unknown> | undefined;
       return {
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       };
     });
 
-    // Calculate statistics
+    
     const correctCount = detailedResults.filter(r => r.isCorrect).length;
     const totalQuestions = questions.length;
 

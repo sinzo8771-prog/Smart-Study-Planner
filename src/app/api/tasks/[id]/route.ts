@@ -3,11 +3,11 @@ import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 
-// Valid status and priority values
+
 const VALID_STATUSES = ['pending', 'in_progress', 'completed'];
 const VALID_PRIORITIES = ['low', 'medium', 'high'];
 
-// Static tasks store for demo mode
+
 let staticTasksStore: Array<{
   id: string;
   title: string;
@@ -21,7 +21,7 @@ let staticTasksStore: Array<{
   subject: { id: string; name: string; color: string };
 }> | null = null;
 
-// Initialize static tasks store
+
 function getStaticTasks() {
   if (!staticTasksStore) {
     staticTasksStore = [
@@ -66,7 +66,7 @@ function getStaticTasks() {
   return staticTasksStore;
 }
 
-// GET /api/tasks/[id] - Get single task
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -83,7 +83,7 @@ export async function GET(
 
     const { id } = await params;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const tasks = getStaticTasks();
       const task = tasks.find(t => t.id === id);
@@ -133,7 +133,7 @@ export async function GET(
   }
 }
 
-// PUT /api/tasks/[id] - Update task (including status toggle)
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -152,7 +152,7 @@ export async function PUT(
     const body = await request.json();
     const { title, description, status, priority, dueDate, subjectId } = body;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const tasks = getStaticTasks();
       const taskIndex = tasks.findIndex(t => t.id === id);
@@ -164,7 +164,7 @@ export async function PUT(
         );
       }
       
-      // Validate status if provided
+      
       if (status !== undefined && !VALID_STATUSES.includes(status)) {
         return NextResponse.json(
           { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
@@ -172,7 +172,7 @@ export async function PUT(
         );
       }
 
-      // Validate priority if provided
+      
       if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
         return NextResponse.json(
           { error: `Invalid priority. Must be one of: ${VALID_PRIORITIES.join(', ')}` },
@@ -180,7 +180,7 @@ export async function PUT(
         );
       }
       
-      // Update the task
+      
       tasks[taskIndex] = {
         ...tasks[taskIndex],
         title: title !== undefined ? title.trim() : tasks[taskIndex].title,
@@ -194,7 +194,7 @@ export async function PUT(
       return NextResponse.json({ task: tasks[taskIndex] });
     }
 
-    // Check if task exists and belongs to user
+    
     const existingTask = await db.task.findFirst({
       where: {
         id,
@@ -209,7 +209,7 @@ export async function PUT(
       );
     }
 
-    // Validate title if provided
+    
     if (title !== undefined) {
       if (typeof title !== 'string' || title.trim().length === 0) {
         return NextResponse.json(
@@ -219,7 +219,7 @@ export async function PUT(
       }
     }
 
-    // Validate status if provided
+    
     if (status !== undefined && !VALID_STATUSES.includes(status)) {
       return NextResponse.json(
         { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
@@ -227,7 +227,7 @@ export async function PUT(
       );
     }
 
-    // Validate priority if provided
+    
     if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
       return NextResponse.json(
         { error: `Invalid priority. Must be one of: ${VALID_PRIORITIES.join(', ')}` },
@@ -235,7 +235,7 @@ export async function PUT(
       );
     }
 
-    // Validate subjectId if provided
+    
     if (subjectId !== undefined) {
       const subject = await db.subject.findFirst({
         where: {
@@ -283,7 +283,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/tasks/[id] - Delete task
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -300,7 +300,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const tasks = getStaticTasks();
       const taskIndex = tasks.findIndex(t => t.id === id);
@@ -319,7 +319,7 @@ export async function DELETE(
       });
     }
 
-    // Check if task exists and belongs to user
+    
     const existingTask = await db.task.findFirst({
       where: {
         id,

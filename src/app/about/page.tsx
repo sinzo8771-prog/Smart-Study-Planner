@@ -104,7 +104,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Navigation */}
+      {}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -129,7 +129,7 @@ export default function AboutPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {}
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
@@ -163,7 +163,7 @@ export default function AboutPage() {
         </motion.div>
       </section>
 
-      {/* Stats Section */}
+      {}
       <section className="py-12 px-4 bg-white dark:bg-gray-900 border-y border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -194,7 +194,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Mission Section */}
+      {}
       <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -259,7 +259,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Timeline Section */}
+      {}
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <motion.div 
@@ -278,7 +278,7 @@ export default function AboutPage() {
           </motion.div>
 
           <div className="relative">
-            {/* Timeline line */}
+            {}
             <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-blue-500 to-purple-500" />
             
             {timeline.map((item, index) => (
@@ -304,7 +304,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Achievements Section */}
+      {}
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-6xl mx-auto">
           <motion.div 
@@ -343,7 +343,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Values Section */}
+      {}
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div 
@@ -386,7 +386,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team Section */}
+      {}
       <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
           <motion.div 
@@ -438,7 +438,7 @@ export default function AboutPage() {
             ))}
           </div>
 
-          {/* Department Stats */}
+          {}
           <div className="mt-16">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white text-center mb-8">Team by Department</h3>
             <div className="flex flex-wrap justify-center gap-4">
@@ -454,7 +454,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {}
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <Card className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-center overflow-hidden">
@@ -483,7 +483,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Footer */}
+      {}
       <footer className="py-8 px-4 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto text-center text-gray-500 dark:text-gray-400 text-sm">
           <p>&copy; {new Date().getFullYear()} StudyPlanner. All rights reserved.</p>

@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { shouldUseStaticData, getQuizById } from '@/lib/data-service';
 import { db, runMigrations } from '@/lib/db';
 
-// In-memory storage for quiz attempts in static mode
+
 const staticQuizAttempts: Map<string, Array<{
   id: string;
   quizId: string;
@@ -18,7 +18,7 @@ const staticQuizAttempts: Map<string, Array<{
   passed: boolean;
 }>> = new Map();
 
-// GET: Get user's quiz attempts
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const quizId = searchParams.get('quizId');
 
-    // Static mode
+    
     if (shouldUseStaticData()) {
       const userAttempts = staticQuizAttempts.get(user.id) || [];
       
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Build filter
+    
     const where: Record<string, unknown> = { userId: user.id };
     if (quizId) {
       where.quizId = quizId;
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       orderBy: { startedAt: 'desc' },
     });
 
-    // Add passed status to each attempt
+    
     const attemptsWithStatus = attempts.map(attempt => ({
       ...attempt,
       passed: attempt.score >= attempt.quiz.passingScore,
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Submit quiz attempt
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { quizId, answers, timeTaken } = body;
 
-    // Validate required fields
+    
     if (!quizId || !answers || typeof answers !== 'object') {
       return NextResponse.json(
         { error: 'Quiz ID and answers are required' },
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Static mode
+    
     if (shouldUseStaticData()) {
       const quiz = await getQuizById(quizId);
       if (!quiz) {
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Calculate score from static quiz data
+      
       let earnedPoints = 0;
       let totalPoints = 0;
       const gradedAnswers: Record<string, { 
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
       const passed = score >= quiz.passingScore;
 
-      // Store attempt in memory
+      
       const attempt = {
         id: `attempt-${Date.now()}`,
         quizId,
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         passed,
       };
 
-      // Get or create user attempts array
+      
       const userAttempts = staticQuizAttempts.get(user.id) || [];
       userAttempts.unshift(attempt);
       staticQuizAttempts.set(user.id, userAttempts);
@@ -191,10 +191,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Run migrations before querying Quiz table
+    
     await runMigrations();
 
-    // Get quiz with questions (including correct answers for grading)
+    
     const quiz = await db.quiz.findUnique({
       where: { id: quizId },
       include: {
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Students can only attempt published quizzes
+    
     if (user.role !== 'admin' && !quiz.isPublished) {
       return NextResponse.json(
         { error: 'Quiz not found' },
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate score
+    
     let earnedPoints = 0;
     let totalPoints = 0;
     const gradedAnswers: Record<string, { 
@@ -248,10 +248,10 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // Calculate score percentage
+    
     const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
 
-    // Create quiz attempt
+    
     const attempt = await db.quizAttempt.create({
       data: {
         userId: user.id,
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Check if passed
+    
     const passed = score >= quiz.passingScore;
 
     return NextResponse.json({

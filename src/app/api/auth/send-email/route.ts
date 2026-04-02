@@ -1,37 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
-// ============================================
-// EMAIL SERVICE CONFIGURATION
-// ============================================
-// This API supports multiple email providers.
-// Configure ONE of the following in Vercel Environment Variables:
-//
-// OPTION 1: Gmail (Free - 500 emails/day)
-//   GMAIL_USER=your-email@gmail.com
-//   GMAIL_APP_PASSWORD=your-16-char-app-password
-//
-// OPTION 2: Outlook/Hotmail (Free - 300 emails/day)
-//   OUTLOOK_USER=your-email@outlook.com
-//   OUTLOOK_APP_PASSWORD=your-app-password
-//
-// OPTION 3: Custom SMTP (Any provider)
-//   SMTP_HOST=smtp.your-provider.com
-//   SMTP_PORT=587
-//   SMTP_USER=your-email@domain.com
-//   SMTP_PASSWORD=your-password
-// ============================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function getEmailTransporter() {
-  // Gmail
+  
   const gmailUser = process.env.GMAIL_USER
   const gmailAppPassword = process.env.GMAIL_APP_PASSWORD
 
-  // Outlook/Hotmail
+  
   const outlookUser = process.env.OUTLOOK_USER
   const outlookPassword = process.env.OUTLOOK_APP_PASSWORD
 
-  // Custom SMTP
+  
   const smtpHost = process.env.SMTP_HOST
   const smtpPort = process.env.SMTP_PORT
   const smtpUser = process.env.SMTP_USER
@@ -80,7 +80,7 @@ function getEmailTransporter() {
 export async function sendVerificationEmail(email: string, code: string, userName: string) {
   const emailConfig = getEmailTransporter()
 
-  // No email configured - dev mode
+  
   if (!emailConfig) {
     console.log(`\n🔐 ==========================================`)
     console.log(`📧 VERIFICATION CODE (DEV MODE)`)
@@ -134,7 +134,7 @@ export async function sendVerificationEmail(email: string, code: string, userNam
   }
 }
 
-// API Route Handler
+
 export async function POST(request: NextRequest) {
   try {
     const { email, code, userName } = await request.json()

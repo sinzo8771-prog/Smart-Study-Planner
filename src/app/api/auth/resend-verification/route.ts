@@ -14,18 +14,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user
+    
     const user = await findUserByEmail(email);
 
     if (!user) {
-      // Don't reveal if user exists or not for security
+      
       return NextResponse.json({
         success: true,
         message: 'If an account with that email exists, a verification code has been sent.',
       });
     }
 
-    // Check if already verified
+    
     if (user.emailVerified) {
       return NextResponse.json({
         success: true,
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create new verification token with code
+    
     const { token, code } = await createVerificationToken(email, 'email_verification', 24, true);
 
     if (!code) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send verification email with code
+    
     const emailResult = await sendVerificationEmail(email, user.name, code, token);
 
     if (!emailResult.success) {

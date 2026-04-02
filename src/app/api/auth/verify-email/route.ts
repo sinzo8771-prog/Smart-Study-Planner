@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify the token
+    
     const result = await verifyToken(token, 'email_verification');
 
     if (!result.valid) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the user
+    
     const user = await db.user.findUnique({
       where: { email: result.identifier },
     });
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if already verified
+    
     if (user.emailVerified) {
       return NextResponse.json({
         success: true,
@@ -50,13 +50,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Mark email as verified
+    
     const updatedUser = await db.user.update({
       where: { id: user.id },
       data: { emailVerified: new Date() },
     });
 
-    // Generate auth token
+    
     const authToken = generateToken({
       id: updatedUser.id,
       email: updatedUser.email,
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       role: updatedUser.role,
     });
 
-    // Create response and set cookie directly
+    
     const response = NextResponse.json({
       success: true,
       message: 'Email verified successfully!',
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7, 
       path: '/',
     });
 

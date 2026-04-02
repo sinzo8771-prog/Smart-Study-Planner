@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-// Email configuration
+
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
 const SMTP_USER = process.env.SMTP_USER || '';
@@ -9,12 +9,12 @@ const EMAIL_FROM = process.env.EMAIL_FROM || SMTP_USER;
 const APP_NAME = 'Smart Study Planner';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-// Check if SMTP is configured
+
 function isSmtpConfigured(): boolean {
   return !!(SMTP_USER && SMTP_PASS);
 }
 
-// Create transporter
+
 function createTransporter() {
   if (!isSmtpConfigured()) {
     return null;
@@ -23,7 +23,7 @@ function createTransporter() {
   return nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
-    secure: SMTP_PORT === 465, // true for 465, false for other ports
+    secure: SMTP_PORT === 465, 
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS,
@@ -38,9 +38,9 @@ export interface EmailOptions {
   text?: string;
 }
 
-// Send email using Gmail SMTP
+
 export async function sendEmail({ to, subject, html, text }: EmailOptions): Promise<{ success: boolean; error?: string }> {
-  // If SMTP is not configured, log the email for development
+  
   if (!isSmtpConfigured()) {
     console.log('📧 Email Service (Development Mode - SMTP not configured)');
     console.log('To:', to);
@@ -59,17 +59,17 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions): Prom
       return { success: true };
     }
 
-    // Verify connection
+    
     await transporter.verify();
     console.log('📧 SMTP connection verified');
 
-    // Send email
+    
     const info = await transporter.sendMail({
       from: `"${APP_NAME}" <${EMAIL_FROM}>`,
       to,
       subject,
       html,
-      text: text || html.replace(/<[^>]*>/g, ''), // Plain text fallback
+      text: text || html.replace(/<[^>]*>/g, ''), 
     });
 
     console.log('✅ Email sent successfully:', info.messageId);
@@ -83,7 +83,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions): Prom
   }
 }
 
-// Generate verification email HTML with code
+
 export function generateVerificationEmailHtml(name: string, verificationCode: string, verificationUrl: string): string {
   return `
     <!DOCTYPE html>
@@ -144,7 +144,7 @@ export function generateVerificationEmailHtml(name: string, verificationCode: st
   `;
 }
 
-// Generate password reset email HTML with code
+
 export function generatePasswordResetEmailHtml(name: string, resetCode: string, resetUrl: string): string {
   return `
     <!DOCTYPE html>
@@ -205,7 +205,7 @@ export function generatePasswordResetEmailHtml(name: string, resetCode: string, 
   `;
 }
 
-// Send verification email with code
+
 export async function sendVerificationEmail(email: string, name: string, code: string, token: string): Promise<{ success: boolean; error?: string }> {
   const verificationUrl = `${APP_URL}/?verify_token=${token}`;
   
@@ -216,7 +216,7 @@ export async function sendVerificationEmail(email: string, name: string, code: s
   });
 }
 
-// Send password reset email with code
+
 export async function sendPasswordResetEmail(email: string, name: string, code: string, token: string): Promise<{ success: boolean; error?: string }> {
   const resetUrl = `${APP_URL}/?reset_token=${token}`;
   
@@ -227,7 +227,7 @@ export async function sendPasswordResetEmail(email: string, name: string, code: 
   });
 }
 
-// Test email connection
+
 export async function testEmailConnection(): Promise<{ success: boolean; error?: string }> {
   if (!isSmtpConfigured()) {
     return { 

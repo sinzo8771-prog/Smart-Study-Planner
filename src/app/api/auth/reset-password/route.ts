@@ -3,14 +3,14 @@ import { verifyToken, verifyCode } from '@/lib/tokens';
 import { hashPassword, generateToken, findUserByEmail } from '@/lib/auth';
 import { shouldUseStaticData } from '@/lib/data-service';
 
-// Helper to create response with auth cookie
+
 function createAuthResponse(data: object, token: string) {
   const response = NextResponse.json(data);
   response.cookies.set('auth_token', token, {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7, 
     path: '/',
   });
   return response;
@@ -20,11 +20,11 @@ export async function POST(request: NextRequest) {
   try {
     const { token, code, email, password, confirmPassword } = await request.json();
 
-    // Support both token-based and code-based reset
+    
     let identifier: string | undefined;
 
     if (token) {
-      // Token-based reset (from email link)
+      
       const result = await verifyToken(token, 'password_reset');
       if (!result.valid) {
         return NextResponse.json(
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       }
       identifier = result.identifier;
     } else if (code && email) {
-      // Code-based reset (from verification code input)
+      
       const result = await verifyCode(code, email, 'password_reset');
       if (!result.valid) {
         return NextResponse.json(
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate password
+    
     if (!password || !confirmPassword) {
       return NextResponse.json(
         { error: 'Password and confirmation are required' },
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check password match
+    
     if (password !== confirmPassword) {
       return NextResponse.json(
         { error: 'Passwords do not match' },
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate password strength
+    
     if (password.length < 8) {
       return NextResponse.json(
         { error: 'Password must be at least 8 characters long' },
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the user
+    
     const user = await findUserByEmail(identifier);
 
     if (!user) {
@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // In static mode, just return success (password can't be changed in demo mode)
+    
     if (shouldUseStaticData()) {
       console.log('[Reset Password] Static mode: Password reset simulated for', identifier);
       
-      // Generate auth token
+      
       const authToken = generateToken({
         id: user.id,
         email: user.email,
@@ -119,22 +119,22 @@ export async function POST(request: NextRequest) {
       }, authToken);
     }
 
-    // Database mode: Hash and update password
+    
     const hashedPassword = await hashPassword(password);
 
-    // Import db only when needed
+    
     const { db } = await import('@/lib/db');
 
-    // Update user password
+    
     const updatedUser = await db.user.update({
       where: { id: user.id },
       data: { 
         password: hashedPassword,
-        emailVerified: user.emailVerified || new Date(), // Verify email if not already
+        emailVerified: user.emailVerified || new Date(), 
       },
     });
 
-    // Generate auth token
+    
     const authToken = generateToken({
       id: updatedUser.id,
       email: updatedUser.email,

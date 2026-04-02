@@ -5,13 +5,13 @@ import { db, runMigrations } from '@/lib/db';
 import { sanitizeString, isValidCourseLevel } from '@/lib/validation';
 import { staticQuizzes } from '@/lib/static-data';
 
-// Enable dynamic rendering
+
 export const dynamic = 'force-dynamic';
 
-// GET: List all published quizzes
+
 export async function GET() {
   try {
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const quizzes = staticQuizzes.filter(q => q.isPublished).map(q => ({
         id: q.id,
@@ -41,7 +41,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Get quizzes error:', error);
-    // Fallback to static data on error
+    
     const quizzes = staticQuizzes.filter(q => q.isPublished).map(q => ({
       id: q.id,
       title: q.title,
@@ -63,7 +63,7 @@ export async function GET() {
   }
 }
 
-// POST: Create a new quiz (admin only)
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, courseId, duration, passingScore, category, difficulty, questions } = body;
 
-    // Validate required fields
+    
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json({ error: 'Quiz title is required' }, { status: 400 });
     }
@@ -87,25 +87,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Quiz title must be less than 200 characters' }, { status: 400 });
     }
 
-    // Validate duration (1-120 minutes)
+    
     const quizDuration = duration || 15;
     if (typeof quizDuration !== 'number' || quizDuration < 1 || quizDuration > 120) {
       return NextResponse.json({ error: 'Duration must be between 1 and 120 minutes' }, { status: 400 });
     }
 
-    // Validate passing score (0-100)
+    
     const quizPassingScore = passingScore || 60;
     if (typeof quizPassingScore !== 'number' || quizPassingScore < 0 || quizPassingScore > 100) {
       return NextResponse.json({ error: 'Passing score must be between 0 and 100' }, { status: 400 });
     }
 
-    // Validate difficulty
+    
     const quizDifficulty = difficulty || 'beginner';
     if (!isValidCourseLevel(quizDifficulty)) {
       return NextResponse.json({ error: 'Invalid difficulty. Must be: beginner, intermediate, or advanced' }, { status: 400 });
     }
 
-    // Validate questions if provided
+    
     if (questions && Array.isArray(questions)) {
       if (questions.length === 0) {
         return NextResponse.json({ error: 'At least one question is required' }, { status: 400 });
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       const mockQuiz = {
         id: `quiz-${Date.now()}`,
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, quiz: mockQuiz }, { status: 201 });
     }
 
-    // Verify course exists if courseId provided
+    
     if (courseId) {
       const course = await db.course.findFirst({
         where: { id: courseId },
@@ -156,10 +156,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Run migrations before creating quiz
+    
     await runMigrations();
 
-    // Create quiz in database
+    
     const quiz = await db.quiz.create({
       data: {
         title: sanitizeString(title.trim()),

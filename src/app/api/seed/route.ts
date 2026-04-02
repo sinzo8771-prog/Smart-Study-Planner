@@ -49,7 +49,7 @@ const staticUsers = [
 
 export async function GET(request: NextRequest) {
   try {
-    // Check for secret key to prevent unauthorized seeding
+    
     const authHeader = request.headers.get('authorization')
     const secretKey = process.env.SEED_SECRET || 'seed-secret-2024'
     
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Auto-seed on first admin check (internal use)
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
-    // Check if admin exists
+    
     const adminExists = await db.user.findUnique({
       where: { id: 'admin-001' },
     })
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Seed admin only
+    
     const adminUser = staticUsers[0]
     const hashedPassword = await bcrypt.hash(adminUser.password, 10)
     

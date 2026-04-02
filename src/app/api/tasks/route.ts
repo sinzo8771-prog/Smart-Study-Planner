@@ -4,11 +4,11 @@ import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 import { sanitizeString, isValidTaskStatus, isValidTaskPriority } from '@/lib/validation';
 
-// Enable dynamic rendering
+
 export const dynamic = 'force-dynamic';
 
-// Static tasks for demo mode (Vercel without database)
-// Using let to allow mutation for demo mode
+
+
 let staticTasks = [
   {
     id: 'task-1',
@@ -48,7 +48,7 @@ let staticTasks = [
   },
 ];
 
-// GET /api/tasks - List all tasks for the authenticated user
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Students only can view their tasks
+    
     if (user.role !== 'student') {
       return NextResponse.json(
         { error: 'Only students can view tasks' },
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const subjectId = searchParams.get('subjectId');
     const status = searchParams.get('status');
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
       let filteredTasks = [...staticTasks];
 
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ tasks: filteredTasks });
     }
 
-    // Build filter conditions
+    
     const where: {
       userId: string;
       subjectId?: string;
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     };
 
     if (subjectId) {
-      // Verify subject belongs to user
+      
       const subject = await db.subject.findFirst({
         where: {
           id: subjectId,
@@ -137,8 +137,8 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: [
-        { status: 'asc' }, // pending first, then in_progress, then completed
-        { priority: 'desc' }, // high first, then medium, then low
+        { status: 'asc' }, 
+        { priority: 'desc' }, 
         { dueDate: 'asc' },
       ],
     });
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ tasks });
   } catch (error) {
     console.error('Error fetching tasks:', error);
-    // Fallback to static data on error
+    
     if (shouldUseStaticData()) {
       return NextResponse.json({ tasks: staticTasks });
     }
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/tasks - Create a new task
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Students only can create tasks
+    
     if (user.role !== 'student') {
       return NextResponse.json(
         { error: 'Only students can create tasks' },
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, status, priority, dueDate, subjectId } = body;
 
-    // Validate required fields
+    
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json(
         { error: 'Task title is required' },
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate title length
+    
     if (title.trim().length > 200) {
       return NextResponse.json(
         { error: 'Task title must be less than 200 characters' },
@@ -203,7 +203,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate status
+    
     const taskStatus = status || 'pending';
     if (!isValidTaskStatus(taskStatus)) {
       return NextResponse.json(
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate priority
+    
     const taskPriority = priority || 'medium';
     if (!isValidTaskPriority(taskPriority)) {
       return NextResponse.json(
@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse and validate due date
+    
     let parsedDueDate: Date | null = null;
     if (dueDate) {
       parsedDueDate = new Date(dueDate);
@@ -233,9 +233,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Use static data for Vercel deployment without database
+    
     if (shouldUseStaticData()) {
-      // Find the subject to get its name and color
+      
       const subject = staticTasks.find(t => t.subjectId === subjectId)?.subject || { id: subjectId, name: 'Subject', color: '#6366f1' };
       
       const mockTask = {
@@ -250,12 +250,12 @@ export async function POST(request: NextRequest) {
         createdAt: new Date(),
         subject,
       };
-      // Add to static tasks array for persistence in demo mode
+      
       staticTasks.push(mockTask);
       return NextResponse.json({ task: mockTask }, { status: 201 });
     }
 
-    // Verify subject exists and belongs to user
+    
     const subject = await db.subject.findFirst({
       where: {
         id: subjectId,

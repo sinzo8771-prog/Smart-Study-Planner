@@ -1,5 +1,5 @@
-// Shared authentication helpers for API routes
-// Supports both NextAuth session and custom JWT authentication
+
+
 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.config';
@@ -12,14 +12,11 @@ export interface AuthenticatedUser {
   role: string;
 }
 
-/**
- * Get the authenticated user from either auth system
- * First tries NextAuth session (for Google OAuth), then falls back to custom JWT
- */
+
 export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   console.log('[AuthHelper] getAuthenticatedUser called');
   
-  // First try NextAuth session (for Google OAuth via NextAuth)
+  
   try {
     const nextAuthSession = await getServerSession(authOptions);
     console.log('[AuthHelper] NextAuth session result:', nextAuthSession ? 'found' : 'not found');
@@ -36,7 +33,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     console.log('[AuthHelper] NextAuth session check failed:', error instanceof Error ? error.message : error);
   }
 
-  // Fall back to custom JWT auth
+  
   console.log('[AuthHelper] Falling back to custom JWT auth');
   const user = await getCurrentUser();
   console.log('[AuthHelper] Custom JWT auth result:', user ? `found: ${user.email}` : 'not found');

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import ZAI from 'z-ai-web-dev-sdk';
 
-// AI Quiz Question Generator
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -26,15 +26,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Topic is required' }, { status: 400 });
     }
 
-    // Build the prompt with all parameters
+    
     let userMessage = `Generate ${count} multiple choice quiz questions about "${topic}" at ${difficulty} difficulty level.`;
     
-    // Add category context
+    
     if (category && category !== 'General') {
       userMessage += ` The questions should be related to the ${category} domain.`;
     }
     
-    // Add custom instructions
+    
     if (instructions && instructions.trim()) {
       userMessage += ` Additional instructions: ${instructions.trim()}`;
     }
@@ -65,7 +65,7 @@ Requirements:
 
     const systemPrompt = `You are an expert quiz generator. Create high-quality, educational multiple choice questions that test understanding of the topic. Always respond with valid JSON only.`;
 
-    // Create ZAI instance
+    
     const zai = await ZAI.create();
     
     const completion = await zai.chat.completions.create({
@@ -84,13 +84,13 @@ Requirements:
 
     let questionsText = completion.choices?.[0]?.message?.content || '[]';
     
-    // Clean up the response - extract JSON if wrapped in markdown
+    
     questionsText = questionsText
       .replace(/```json\n?/g, '')
       .replace(/```\n?/g, '')
       .trim();
     
-    // Find the JSON array
+    
     const jsonMatch = questionsText.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
       questionsText = jsonMatch[0];
@@ -102,14 +102,14 @@ Requirements:
     } catch (parseError) {
       console.error('Failed to parse AI response:', questionsText, parseError);
       
-      // Return fallback questions if parsing fails
+      
       return NextResponse.json({
         success: true,
         questions: generateFallbackQuestions(topic, count, difficulty),
       });
     }
 
-    // Validate and format questions
+    
     const validatedQuestions = questions.map((q: Record<string, unknown>, index: number) => ({
       question: String(q.question || `Question ${index + 1} about ${topic}`),
       optionA: String(q.optionA || 'Option A'),
@@ -129,7 +129,7 @@ Requirements:
   } catch (error) {
     console.error('Generate quiz error:', error);
     
-    // Return fallback questions on error
+    
     return NextResponse.json({
       success: true,
       questions: generateFallbackQuestions('General', 5, 'medium'),
@@ -137,7 +137,7 @@ Requirements:
   }
 }
 
-// Generate fallback questions when AI fails
+
 function generateFallbackQuestions(topic: string, count: number, difficulty: string = 'medium') {
   const difficultyMultiplier = difficulty === 'easy' ? 1 : difficulty === 'hard' ? 3 : 2;
   

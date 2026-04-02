@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   console.log('[Login API] POST request received');
   
   try {
-    // Rate limiting - 5 attempts per minute per IP
+    
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const rateLimit = checkRateLimit(`login:${ip}`, 5, 60000);
     
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const { email, password } = await request.json();
     console.log('[Login API] Email:', email);
 
-    // Validate input
+    
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user
+    
     const user = await findUserByEmail(email);
     console.log('[Login API] User found:', user ? user.email : 'Not found');
     
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user has a password (OAuth users might not)
+    
     if (!user.password) {
       return NextResponse.json(
         { error: 'This account uses Google sign-in. Please sign in with Google.' },
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Login API] Comparing passwords...');
-    // Compare password
+    
     const isValidPassword = await comparePassword(password, user.password);
     console.log('[Login API] Password valid:', isValidPassword);
     
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email is verified (skip in static/demo mode)
+    
     const isStaticMode = shouldUseStaticData();
     if (!isStaticMode && !user.emailVerified) {
       return NextResponse.json(
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate token
+    
     const token = generateToken({
       id: user.id,
       email: user.email,
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[Login API] Login successful for:', email);
     
-    // Create response
+    
     const response = NextResponse.json({
       success: true,
       user: {
@@ -95,12 +95,12 @@ export async function POST(request: NextRequest) {
       },
     });
     
-    // Set cookie directly on the response object for reliability
+    
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: true, // Always true for Vercel (HTTPS)
-      sameSite: 'lax', // Allows OAuth redirects to work
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      secure: true, 
+      sameSite: 'lax', 
+      maxAge: 60 * 60 * 24 * 7, 
       path: '/',
     });
     

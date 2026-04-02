@@ -164,7 +164,7 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Navigation */}
+      {}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -186,7 +186,7 @@ export default function BlogPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {}
       <section className="relative pt-32 pb-16 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
@@ -207,7 +207,7 @@ export default function BlogPage() {
             Expert insights, study tips, and the latest trends in education technology.
           </p>
 
-          {/* Search */}
+          {}
           <div className="relative max-w-xl mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -221,7 +221,7 @@ export default function BlogPage() {
         </motion.div>
       </section>
 
-      {/* Categories */}
+      {}
       <section className="py-8 px-4 border-b border-gray-200 dark:border-gray-800 sticky top-16 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl z-40">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -246,13 +246,13 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* Main Content */}
+      {}
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Main Posts */}
+            {}
             <div className="lg:col-span-3 space-y-8">
-              {/* Featured Post */}
+              {}
               {selectedCategory === 'all' && searchQuery === '' && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -312,7 +312,7 @@ export default function BlogPage() {
                 </motion.div>
               )}
 
-              {/* View Toggle */}
+              {}
               <div className="flex items-center justify-between">
                 <p className="text-gray-500 dark:text-gray-400">
                   Showing {filteredPosts.length} articles
@@ -335,7 +335,7 @@ export default function BlogPage() {
                 </div>
               </div>
 
-              {/* Posts Grid/List */}
+              {}
               <div className={viewMode === 'grid' 
                 ? 'grid grid-cols-1 md:grid-cols-2 gap-6' 
                 : 'space-y-4'
@@ -351,7 +351,7 @@ export default function BlogPage() {
                       viewMode === 'list' ? '' : 'h-full'
                     }`}>
                       <CardContent className={`p-0 ${viewMode === 'list' ? 'flex' : ''}`}>
-                        {/* Thumbnail placeholder */}
+                        {}
                         <div className={`bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 ${
                           viewMode === 'grid' ? 'h-48' : 'w-32 h-32 shrink-0'
                         } flex items-center justify-center`}>
@@ -404,7 +404,7 @@ export default function BlogPage() {
                 ))}
               </div>
 
-              {/* Load More */}
+              {}
               <div className="text-center pt-8">
                 <Button variant="outline" size="lg" className="rounded-full px-10">
                   Load More Articles
@@ -412,9 +412,9 @@ export default function BlogPage() {
               </div>
             </div>
 
-            {/* Sidebar */}
+            {}
             <div className="space-y-8">
-              {/* Newsletter */}
+              {}
               <Card className="border-0 shadow-xl overflow-hidden">
                 <div className="h-2 bg-gradient-to-r from-blue-600 to-purple-600" />
                 <CardContent className="p-6">
@@ -434,7 +434,7 @@ export default function BlogPage() {
                 </CardContent>
               </Card>
 
-              {/* Popular Tags */}
+              {}
               <Card className="border-0 shadow-lg">
                 <CardContent className="p-6">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-4">Popular Tags</h3>
@@ -452,7 +452,7 @@ export default function BlogPage() {
                 </CardContent>
               </Card>
 
-              {/* Most Read */}
+              {}
               <Card className="border-0 shadow-lg">
                 <CardContent className="p-6">
                   <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -477,7 +477,7 @@ export default function BlogPage() {
                 </CardContent>
               </Card>
 
-              {/* Write for Us */}
+              {}
               <Card className="bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0 overflow-hidden">
                 <CardContent className="p-6 relative">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
@@ -496,7 +496,7 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* Footer */}
+      {}
       <footer className="py-8 px-4 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto text-center text-gray-500 dark:text-gray-400 text-sm">
           <p>&copy; {new Date().getFullYear()} StudyPlanner. All rights reserved.</p>

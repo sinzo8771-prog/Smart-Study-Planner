@@ -1,11 +1,11 @@
-// Firebase is only initialized on the client side
-// Supports both build-time (NEXT_PUBLIC_) and runtime config
+
+
 
 let auth: typeof import('firebase/auth').Auth | null = null;
 let googleProvider: typeof import('firebase/auth').GoogleAuthProvider | null = null;
 let runtimeConfig: typeof firebaseConfig | null = null;
 
-// Firebase config - values are embedded at build time
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
@@ -16,12 +16,12 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "",
 };
 
-// Get config - prefer runtime config if available, fallback to build-time
+
 function getConfig() {
   return runtimeConfig || firebaseConfig;
 }
 
-// Fetch runtime config from API
+
 async function fetchRuntimeConfig() {
   if (runtimeConfig) return runtimeConfig;
   
@@ -48,13 +48,13 @@ export const getFirebaseAuth = async () => {
     return { auth, googleProvider, error: null };
   }
 
-  // Try to get runtime config first (in case build-time config is empty)
+  
   const config = await fetchRuntimeConfig();
 
   const { initializeApp, getApps } = await import('firebase/app');
   const { getAuth, GoogleAuthProvider } = await import('firebase/auth');
 
-  // Validate config
+  
   if (!config.apiKey || !config.authDomain || !config.projectId) {
     const missingVars = [];
     if (!config.apiKey) missingVars.push('NEXT_PUBLIC_FIREBASE_API_KEY');
@@ -79,7 +79,7 @@ export const getFirebaseAuth = async () => {
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
     
-    // Add scopes for better user info
+    
     googleProvider.addScope('email');
     googleProvider.addScope('profile');
     
@@ -100,13 +100,13 @@ export const getFirebaseAuth = async () => {
   }
 };
 
-// Helper to check if Firebase is configured
+
 export const isFirebaseConfigured = () => {
   const config = getConfig();
   return !!(config.apiKey && config.authDomain && config.projectId);
 };
 
-// Get Firebase config status for debugging
+
 export const getFirebaseConfigStatus = () => {
   const config = getConfig();
   return {
@@ -117,7 +117,7 @@ export const getFirebaseConfigStatus = () => {
   };
 };
 
-// Sign in with redirect (more reliable than popup)
+
 export const signInWithGoogleRedirect = async () => {
   const { auth: authInstance, googleProvider: provider, error } = await getFirebaseAuth();
   
@@ -135,7 +135,7 @@ export const signInWithGoogleRedirect = async () => {
   }
 };
 
-// Get redirect result after returning from Google sign-in
+
 export const getGoogleRedirectResult = async () => {
   if (typeof window === 'undefined') {
     return { user: null, error: 'Not available on server side' };

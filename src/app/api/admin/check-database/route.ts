@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-// Courses to remove
+
 const COURSES_TO_REMOVE = [
   'Personal Finance Full Course',
   'World History Full Course',
@@ -19,18 +19,18 @@ export async function GET(request: Request) {
     const warnings: string[] = [];
     const stats: Record<string, number> = {};
 
-    // 1. Check users
+    
     const users = await db.user.count();
     stats.users = users;
 
-    // 2. Check courses
+    
     const courses = await db.course.findMany({
       select: { id: true, title: true, category: true, isPublished: true },
       orderBy: { title: 'asc' }
     });
     stats.courses = courses.length;
 
-    // Check for removed courses that still exist
+    
     const coursesToRemove: typeof courses = [];
     for (const removedTitle of COURSES_TO_REMOVE) {
       const found = courses.find(c => c.title === removedTitle);
@@ -40,17 +40,17 @@ export async function GET(request: Request) {
       }
     }
 
-    // 3. Check modules
+    
     const modules = await db.module.count();
     stats.modules = modules;
 
-    // 4. Check quizzes
+    
     const quizzes = await db.quiz.findMany({
       select: { id: true, title: true, courseId: true }
     });
     stats.quizzes = quizzes.length;
 
-    // Check for quizzes linked to removed courses
+    
     const orphanedQuizzes: string[] = [];
     for (const quiz of quizzes) {
       if (quiz.courseId) {
@@ -62,25 +62,25 @@ export async function GET(request: Request) {
       }
     }
 
-    // 5. Check questions
+    
     const questions = await db.question.count();
     stats.questions = questions;
 
-    // 6. Check progress records
+    
     const courseProgress = await db.courseProgress.count();
     const moduleProgress = await db.moduleProgress.count();
     stats.courseProgress = courseProgress;
     stats.moduleProgress = moduleProgress;
 
-    // 7. Check quiz attempts
+    
     const quizAttempts = await db.quizAttempt.count();
     stats.quizAttempts = quizAttempts;
 
-    // Auto-fix if requested
+    
     const fixes: string[] = [];
     if (autoFix && coursesToRemove.length > 0) {
       for (const course of coursesToRemove) {
-        // Delete module progress
+        
         const courseModules = await db.module.findMany({
           where: { courseId: course.id },
           select: { id: true }
@@ -92,17 +92,17 @@ export async function GET(request: Request) {
           });
         }
         
-        // Delete course progress
+        
         await db.courseProgress.deleteMany({
           where: { courseId: course.id }
         });
         
-        // Delete modules
+        
         await db.module.deleteMany({
           where: { courseId: course.id }
         });
         
-        // Delete related quizzes
+        
         const relatedQuizzes = await db.quiz.findMany({
           where: { courseId: course.id }
         });
@@ -119,7 +119,7 @@ export async function GET(request: Request) {
           });
         }
         
-        // Delete the course
+        
         await db.course.delete({
           where: { id: course.id }
         });
@@ -128,7 +128,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // Clean up orphaned quizzes
+    
     if (autoFix && orphanedQuizzes.length > 0) {
       for (const quizId of orphanedQuizzes) {
         await db.question.deleteMany({

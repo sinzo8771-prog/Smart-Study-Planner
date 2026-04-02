@@ -12,16 +12,16 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase()
 
-    // Check if user exists
+    
     let user = await db.user.findUnique({
       where: { email: normalizedEmail }
     })
 
     if (!user) {
-      // Create new user
+      
       user = await db.user.create({
         data: {
-          id: uid, // Use Firebase UID
+          id: uid, 
           email: normalizedEmail,
           name: name || email.split('@')[0],
           image: image,
@@ -30,13 +30,13 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      // Update existing user with new info
+      
       user = await db.user.update({
         where: { email: normalizedEmail },
         data: {
           image: image || user.image,
           name: name || user.name,
-          // Mark email verified if they sign in with OAuth
+          
           emailVerified: provider ? new Date() : user.emailVerified,
         }
       })

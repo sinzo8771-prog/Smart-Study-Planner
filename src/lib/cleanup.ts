@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { isCleanupCompleted, markCleanupCompleted } from './cache';
 
-// Courses to remove
+
 const COURSES_TO_REMOVE = [
   'Personal Finance Full Course',
   'World History Full Course',
@@ -12,7 +12,7 @@ const COURSES_TO_REMOVE = [
   'Algebra Full Course',
 ];
 
-// Quizzes to ensure exist (title -> data mapping)
+
 const QUIZZES_TO_SEED = [
   {
     title: 'HTML & CSS Fundamentals Quiz',
@@ -136,23 +136,20 @@ const QUIZZES_TO_SEED = [
   }
 ];
 
-// Track if cleanup is in progress
+
 let cleanupInProgress = false;
 
-/**
- * Run cleanup in the background - non-blocking
- * This function returns immediately and runs cleanup async
- */
+
 export function runCleanupInBackground(): void {
-  // Skip if already done or in progress
+  
   if (isCleanupCompleted() || cleanupInProgress) {
     return;
   }
 
-  // Mark as in progress
+  
   cleanupInProgress = true;
 
-  // Run cleanup asynchronously without blocking
+  
   runCleanupIfNeeded()
     .catch((error) => {
       console.error('Background cleanup error:', error);
@@ -162,32 +159,30 @@ export function runCleanupInBackground(): void {
     });
 }
 
-/**
- * Main cleanup function - only runs once per deployment
- */
+
 export async function runCleanupIfNeeded(): Promise<void> {
-  // Only run once per deployment
+  
   if (isCleanupCompleted()) return;
   
   try {
-    // Run course cleanup (fast check first)
+    
     await runCourseCleanup();
     
-    // Ensure quizzes exist
+    
     await ensureQuizzesExist();
     
-    // Mark as completed
+    
     markCleanupCompleted();
   } catch (error) {
     console.error('Cleanup error (non-fatal):', error);
-    // Mark as completed anyway to prevent retries
+    
     markCleanupCompleted();
   }
 }
 
 async function runCourseCleanup(): Promise<void> {
   try {
-    // Quick check if cleanup is needed
+    
     const coursesCount = await db.course.count({
       where: {
         title: { in: COURSES_TO_REMOVE }
@@ -209,24 +204,24 @@ async function runCourseCleanup(): Promise<void> {
       if (course) {
         console.log(`Removing: ${courseTitle}`);
         
-        // Delete module progress
+        
         for (const courseModule of course.modules) {
           await db.moduleProgress.deleteMany({
             where: { moduleId: courseModule.id }
           }).catch(() => {});
         }
         
-        // Delete course progress
+        
         await db.courseProgress.deleteMany({
           where: { courseId: course.id }
         }).catch(() => {});
         
-        // Delete modules
+        
         await db.module.deleteMany({
           where: { courseId: course.id }
         }).catch(() => {});
         
-        // Delete related quizzes
+        
         const quizzes = await db.quiz.findMany({
           where: { courseId: course.id }
         });
@@ -244,7 +239,7 @@ async function runCourseCleanup(): Promise<void> {
           where: { courseId: course.id }
         }).catch(() => {});
         
-        // Delete the course
+        
         await db.course.delete({
           where: { id: course.id }
         }).catch(() => {});
@@ -261,17 +256,17 @@ async function runCourseCleanup(): Promise<void> {
 
 async function ensureQuizzesExist(): Promise<void> {
   try {
-    // Check how many quizzes exist
+    
     const existingCount = await db.quiz.count();
     
-    // If we have all 8 quizzes, we're good
+    
     if (existingCount >= QUIZZES_TO_SEED.length) {
       return;
     }
     
     console.log('📝 Seeding quizzes...');
     
-    // Get admin user for createdBy
+    
     const adminUser = await db.user.findFirst({
       where: { role: 'admin' }
     });
@@ -281,10 +276,10 @@ async function ensureQuizzesExist(): Promise<void> {
       return;
     }
     
-    // Get all courses for linking
+    
     const courses = await db.course.findMany();
     
-    // Map categories to courses
+    
     const categoryToCourse = new Map<string, string>();
     for (const course of courses) {
       if (course.category) {
@@ -293,19 +288,19 @@ async function ensureQuizzesExist(): Promise<void> {
     }
     
     for (const quizData of QUIZZES_TO_SEED) {
-      // Check if quiz already exists
+      
       const existing = await db.quiz.findFirst({
         where: { title: quizData.title }
       });
       
       if (existing) {
-        continue; // Skip if already exists
+        continue; 
       }
       
-      // Find matching course by category
+      
       const courseId = categoryToCourse.get(quizData.category) || null;
       
-      // Create quiz with questions
+      
       await db.quiz.create({
         data: {
           title: quizData.title,

@@ -5,7 +5,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { db } from './db';
 import bcrypt from 'bcryptjs';
 
-// Check if Google OAuth is configured
+
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const isGoogleConfigured = googleClientId && googleClientSecret && googleClientId.length > 0 && googleClientSecret.length > 0;
@@ -50,7 +50,7 @@ const providers: NextAuthOptions['providers'] = [
   }),
 ];
 
-// Only add Google provider if configured
+
 if (isGoogleConfigured) {
   providers.push(
     GoogleProvider({
@@ -79,7 +79,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      // For Google sign-in, check if user exists or create new
+      
       if (account?.provider === 'google') {
         try {
           const existingUser = await db.user.findUnique({
@@ -87,7 +87,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!existingUser) {
-            // Create new user for Google sign-in
+            
             await db.user.create({
               data: {
                 email: user.email!,
@@ -110,7 +110,7 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as { role?: string }).role || 'student';
       }
 
-      // Fetch role from database if not in token
+      
       if (!token.role && token.email) {
         const dbUser = await db.user.findUnique({
           where: { email: token.email },
@@ -132,16 +132,16 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
+      
       if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
+      
       else if (new URL(url).origin === baseUrl) return url
       return baseUrl
     }
   },
   events: {
     async signIn({ user, account }) {
-      // Update emailVerified on first OAuth login
+      
       if (account?.provider === 'google' && user.email) {
         const existingUser = await db.user.findUnique({
           where: { email: user.email },
@@ -159,5 +159,5 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
 };
 
-// Export helper to check if Google is configured
+
 export const isGoogleOAuthConfigured = () => isGoogleConfigured;

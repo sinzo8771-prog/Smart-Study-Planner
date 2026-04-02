@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-// Base metadata configuration
+
 export const baseMetadata: Metadata = {
   title: {
     default: 'Smart Study Planner & LMS - Learn Smarter, Not Harder',
@@ -85,7 +85,7 @@ export const baseMetadata: Metadata = {
   manifest: '/manifest.json',
 };
 
-// Generate metadata for specific pages
+
 export function generatePageMetadata(options: {
   title: string;
   description?: string;
@@ -112,7 +112,7 @@ export function generatePageMetadata(options: {
   };
 }
 
-// Generate structured data for courses
+
 export function generateCourseStructuredData(course: {
   title: string;
   description?: string;
@@ -135,7 +135,7 @@ export function generateCourseStructuredData(course: {
   };
 }
 
-// Generate structured data for quizzes
+
 export function generateQuizStructuredData(quiz: {
   title: string;
   description?: string;

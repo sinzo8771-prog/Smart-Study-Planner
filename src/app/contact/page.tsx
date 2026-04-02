@@ -33,7 +33,7 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
+    
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     setIsSubmitted(true);
@@ -98,7 +98,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Navigation */}
+      {}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -115,7 +115,7 @@ export default function ContactPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {}
       <section className="relative pt-32 pb-16 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20" />
         <div className="absolute top-20 right-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
@@ -139,7 +139,7 @@ export default function ContactPage() {
         </motion.div>
       </section>
 
-      {/* Contact Info Cards */}
+      {}
       <section className="py-12 px-4 -mt-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -167,11 +167,11 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Main Contact Section */}
+      {}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Form */}
+            {}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -197,7 +197,7 @@ export default function ContactPage() {
                     </motion.div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
-                      {/* Inquiry Type */}
+                      {}
                       <div>
                         <Label className="text-base font-medium">What can we help you with?</Label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
@@ -287,14 +287,14 @@ export default function ContactPage() {
               </Card>
             </motion.div>
 
-            {/* Right Side */}
+            {}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               className="space-y-6"
             >
-              {/* Quick FAQ */}
+              {}
               <div>
                 <Badge className="mb-4" variant="outline">Quick Answers</Badge>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Frequently Asked Questions</h2>
@@ -324,7 +324,7 @@ export default function ContactPage() {
                 </Button>
               </Link>
 
-              {/* Live Chat CTA */}
+              {}
               <Card className="bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0 overflow-hidden">
                 <CardContent className="p-6 relative">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
@@ -353,7 +353,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Global Offices */}
+      {}
       <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
           <motion.div 
@@ -399,7 +399,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Support Hours */}
+      {}
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 shadow-xl overflow-hidden">
@@ -431,7 +431,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {}
       <section className="py-16 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
@@ -446,7 +446,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Live Chat Widget */}
+      {}
       <AnimatePresence>
         {isChatOpen && (
           <motion.div
@@ -455,7 +455,7 @@ export default function ContactPage() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="fixed bottom-6 right-6 w-96 h-[500px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50 overflow-hidden"
           >
-            {/* Chat Header */}
+            {}
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -474,7 +474,7 @@ export default function ContactPage() {
               </button>
             </div>
 
-            {/* Chat Messages */}
+            {}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <div className="flex justify-start">
                 <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 max-w-[80%]">
@@ -494,7 +494,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Chat Input */}
+            {}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex gap-2">
                 <Input 
@@ -510,7 +510,7 @@ export default function ContactPage() {
         )}
       </AnimatePresence>
 
-      {/* Chat Button (when closed) */}
+      {}
       {!isChatOpen && (
         <motion.button
           initial={{ scale: 0 }}
@@ -522,7 +522,7 @@ export default function ContactPage() {
         </motion.button>
       )}
 
-      {/* Footer */}
+      {}
       <footer className="py-8 px-4 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto text-center text-gray-500 dark:text-gray-400 text-sm">
           <p>&copy; {new Date().getFullYear()} StudyPlanner. All rights reserved.</p>

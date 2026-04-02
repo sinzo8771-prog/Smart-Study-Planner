@@ -3,17 +3,17 @@ import { getCurrentUser } from '@/lib/auth';
 import { getCourses, shouldUseStaticData } from '@/lib/data-service';
 import { db } from '@/lib/db';
 
-// Enable dynamic rendering
+
 export const dynamic = 'force-dynamic';
 
-// GET: List all published courses
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category') || undefined;
     const level = searchParams.get('level') || undefined;
 
-    // Use the data service which handles both static and database modes
+    
     const courses = await getCourses({ category, level });
 
     return NextResponse.json({
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get courses error:', error);
-    // Fallback to empty array on error
+    
     return NextResponse.json({
       success: true,
       courses: [],
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create a new course (admin only)
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Course title is required' }, { status: 400 });
     }
 
-    // Use static data for Vercel (no database)
+    
     if (shouldUseStaticData()) {
       const mockCourse = {
         id: `course-${Date.now()}`,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, course: mockCourse }, { status: 201 });
     }
 
-    // Create course in database
+    
     const course = await db.course.create({
       data: {
         title: title.trim(),

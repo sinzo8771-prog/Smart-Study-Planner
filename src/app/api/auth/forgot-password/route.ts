@@ -6,7 +6,7 @@ import { checkRateLimit } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting - 3 requests per hour per IP to prevent abuse
+    
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const rateLimit = checkRateLimit(`forgot-password:${ip}`, 3, 3600000);
     
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email format
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user
+    
     const user = await findUserByEmail(email);
 
     if (!user) {
-      // Don't reveal if user exists or not for security
+      
       return NextResponse.json({
         success: true,
         message: 'If an account with that email exists, a password reset code has been sent.',
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check if user has password (OAuth users might not)
+    
     if (!user.password) {
       return NextResponse.json({
         success: true,
@@ -56,17 +56,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Delete old reset tokens and create new one with code
+    
     await deleteTokensForIdentifier(email, 'password_reset');
-    const { token, code } = await createVerificationToken(email, 'password_reset', 1); // 1 hour expiry
+    const { token, code } = await createVerificationToken(email, 'password_reset', 1); 
 
-    // Send password reset email with code
+    
     if (code) {
       const emailResult = await sendPasswordResetEmail(email, user.name, code, token);
 
       if (!emailResult.success) {
         console.error('Failed to send password reset email:', emailResult.error);
-        // Still return success to not reveal information
+        
       }
     }
 
