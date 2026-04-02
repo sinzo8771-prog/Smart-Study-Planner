@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findUserByEmail, comparePassword, generateToken } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/validation';
-import { shouldUseStaticData } from '@/lib/data-service';
 
 export async function POST(request: NextRequest) {
   console.log('[Login API] POST request received');
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
     
     if (!user.password) {
       return NextResponse.json(
-        { error: 'This account uses Google sign-in. Please sign in with Google.' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -57,19 +56,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
-      );
-    }
-
-    
-    const isStaticMode = shouldUseStaticData();
-    if (!isStaticMode && !user.emailVerified) {
-      return NextResponse.json(
-        { 
-          error: 'Please verify your email address before logging in',
-          requiresVerification: true,
-          email: user.email
-        },
-        { status: 403 }
       );
     }
 

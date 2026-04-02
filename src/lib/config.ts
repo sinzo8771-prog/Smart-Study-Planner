@@ -14,14 +14,8 @@ const optionalEnvVars = {
   SMTP_USER: '',
   SMTP_PASS: '',
   EMAIL_FROM: '',
-  NEXT_PUBLIC_FIREBASE_API_KEY: '',
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: '',
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID: '',
-  GOOGLE_CLIENT_ID: '',
-  GOOGLE_CLIENT_SECRET: '',
   NEXTAUTH_SECRET: '',
   NEXT_PUBLIC_ENABLE_REGISTRATION: 'true',
-  NEXT_PUBLIC_ENABLE_GOOGLE_LOGIN: 'true',
 } as const;
 
 
@@ -85,7 +79,6 @@ export const config = {
   
   features: {
     registration: isFeatureEnabled('REGISTRATION'),
-    googleLogin: isFeatureEnabled('GOOGLE_LOGIN'),
   },
 
   

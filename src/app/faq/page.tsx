@@ -24,7 +24,7 @@ export default function FAQPage() {
       faqs: [
         {
           question: 'How do I create an account?',
-          answer: 'Click the "Get Started" button on the homepage and fill in your details. You can also sign up using your Google account for faster registration.'
+          answer: 'Click the "Get Started" button on the homepage and fill in your details with your email and password.'
         },
         {
           question: 'Is StudyPlanner free to use?',

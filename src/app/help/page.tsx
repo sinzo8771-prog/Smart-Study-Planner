@@ -44,7 +44,7 @@ export default function HelpCenterPage() {
 
   const articles = {
     'getting-started': [
-      { id: 1, title: 'Getting Started with StudyPlanner', content: 'Welcome to StudyPlanner! This guide will help you set up your account and start organizing your studies effectively. First, create an account using your email or Google. Once logged in, you\'ll see the dashboard where you can add subjects, create tasks, and track your progress.' },
+      { id: 1, title: 'Getting Started with StudyPlanner', content: 'Welcome to StudyPlanner! This guide will help you set up your account and start organizing your studies effectively. First, create an account using your email. Once logged in, you\'ll see the dashboard where you can add subjects, create tasks, and track your progress.' },
       { id: 2, title: 'Creating Your First Subject', content: 'Subjects are the foundation of your study plan. To create a subject, click the "Add Subject" button, enter a name (like "Mathematics"), add an optional description, choose a color for easy identification, and optionally set an exam date. Each subject can contain multiple tasks.' },
       { id: 3, title: 'Adding and Managing Tasks', content: 'Tasks help you break down your subjects into manageable pieces. For each task, you can set a title, description, priority level (low, medium, high), due date, and status (pending, in progress, completed). Mark tasks as complete to track your progress.' },
       { id: 4, title: 'Understanding the Dashboard', content: 'The dashboard gives you an overview of your academic progress. You\'ll see stats like total subjects, completed tasks, average quiz scores, and courses in progress. The task progress chart shows your completion rate over time.' },

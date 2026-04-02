@@ -1,14 +1,8 @@
 import type { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { db } from './db';
 import bcrypt from 'bcryptjs';
-
-
-const googleClientId = process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const isGoogleConfigured = googleClientId && googleClientSecret && googleClientId.length > 0 && googleClientSecret.length > 0;
 
 const providers: NextAuthOptions['providers'] = [
   CredentialsProvider({
@@ -50,23 +44,6 @@ const providers: NextAuthOptions['providers'] = [
   }),
 ];
 
-
-if (isGoogleConfigured) {
-  providers.push(
-    GoogleProvider({
-      clientId: googleClientId,
-      clientSecret: googleClientSecret,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          scope: "openid email profile"
-        }
-      }
-    })
-  );
-}
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   providers,
@@ -78,30 +55,7 @@ export const authOptions: NextAuthOptions = {
     error: '/?auth=login',
   },
   callbacks: {
-    async signIn({ user, account }) {
-      
-      if (account?.provider === 'google') {
-        try {
-          const existingUser = await db.user.findUnique({
-            where: { email: user.email! },
-          });
-
-          if (!existingUser) {
-            
-            await db.user.create({
-              data: {
-                email: user.email!,
-                name: user.name || 'User',
-                image: user.image,
-                role: 'student',
-              },
-            });
-          }
-        } catch (error) {
-          console.error('Error in Google sign-in:', error);
-          return false;
-        }
-      }
+    async signIn() {
       return true;
     },
     async jwt({ token, user }) {
@@ -110,7 +64,6 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as { role?: string }).role || 'student';
       }
 
-      
       if (!token.role && token.email) {
         const dbUser = await db.user.findUnique({
           where: { email: token.email },
@@ -132,17 +85,14 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      
       if (url.startsWith("/")) return `${baseUrl}${url}`
-      
       else if (new URL(url).origin === baseUrl) return url
       return baseUrl
     }
   },
   events: {
-    async signIn({ user, account }) {
-      
-      if (account?.provider === 'google' && user.email) {
+    async signIn({ user }) {
+      if (user.email) {
         const existingUser = await db.user.findUnique({
           where: { email: user.email },
         });
@@ -158,6 +108,3 @@ export const authOptions: NextAuthOptions = {
   },
   debug: process.env.NODE_ENV === 'development',
 };
-
-
-export const isGoogleOAuthConfigured = () => isGoogleConfigured;
