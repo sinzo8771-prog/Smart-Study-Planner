@@ -7,9 +7,9 @@ function createAuthResponse(data: object, token: string) {
   const response = NextResponse.json(data);
   response.cookies.set('auth_token', token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, 
+    maxAge: 60 * 60 * 24 * 7,
     path: '/',
   });
   return response;

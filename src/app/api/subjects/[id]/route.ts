@@ -134,6 +134,7 @@ export async function DELETE(
     const user = await getAuthenticatedUser();
 
     if (!user) {
+      console.log('[Subject DELETE] Unauthorized - no user found');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -141,6 +142,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    console.log('[Subject DELETE] Attempting to delete subject:', id, 'for user:', user.id);
 
     const existingSubject = await db.subject.findFirst({
       where: {
@@ -155,6 +157,20 @@ export async function DELETE(
     });
 
     if (!existingSubject) {
+      console.log('[Subject DELETE] Subject not found for user. Subject ID:', id, 'User ID:', user.id);
+      
+      // Check if subject exists but belongs to another user
+      const subjectExists = await db.subject.findUnique({
+        where: { id },
+        select: { userId: true }
+      });
+      
+      if (subjectExists) {
+        console.log('[Subject DELETE] Subject exists but belongs to user:', subjectExists.userId);
+      } else {
+        console.log('[Subject DELETE] Subject does not exist in database');
+      }
+      
       return NextResponse.json(
         { error: 'Subject not found' },
         { status: 404 }
@@ -165,6 +181,7 @@ export async function DELETE(
       where: { id },
     });
 
+    console.log('[Subject DELETE] Subject deleted successfully:', id);
     return NextResponse.json({
       message: 'Subject deleted successfully',
       deletedTasksCount: existingSubject._count.tasks,

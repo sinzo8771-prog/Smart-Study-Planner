@@ -10,11 +10,14 @@ export async function GET() {
     const user = await getAuthenticatedUser();
 
     if (!user) {
+      console.log('[Subject GET] Unauthorized - no user found');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
+
+    console.log('[Subject GET] Fetching subjects for user:', user.id);
 
     const subjects = await db.subject.findMany({
       where: { userId: user.id },
@@ -35,6 +38,7 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
+    console.log('[Subject GET] Found', subjects.length, 'subjects for user');
     return NextResponse.json({ subjects });
   } catch (error) {
     console.error('Error fetching subjects:', error);
