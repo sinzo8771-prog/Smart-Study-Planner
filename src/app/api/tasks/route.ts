@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { shouldUseStaticData, getStaticTasks, addStaticTask, getStaticSubjects, StaticTask } from '@/lib/static-data';
 import { sanitizeString, isValidTaskStatus, isValidTaskPriority } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
@@ -27,20 +26,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const subjectId = searchParams.get('subjectId');
     const status = searchParams.get('status');
-
-    if (shouldUseStaticData()) {
-      let filteredTasks = getStaticTasks(user.id);
-
-      if (status && isValidTaskStatus(status)) {
-        filteredTasks = filteredTasks.filter(t => t.status === status);
-      }
-
-      if (subjectId) {
-        filteredTasks = filteredTasks.filter(t => t.subjectId === subjectId);
-      }
-
-      return NextResponse.json({ tasks: filteredTasks });
-    }
 
     const where: {
       userId: string;
@@ -173,27 +158,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    }
-
-    if (shouldUseStaticData()) {
-      const subjects = getStaticSubjects(user.id);
-      const subject = subjects.find(s => s.id === subjectId) || { id: subjectId, name: 'Subject', color: '#6366f1' };
-
-      const mockTask: StaticTask = {
-        id: `task-${Date.now()}`,
-        title: sanitizeString(title.trim()),
-        description: description ? sanitizeString(description.trim()) : null,
-        status: taskStatus,
-        priority: taskPriority,
-        dueDate: parsedDueDate,
-        subjectId,
-        userId: user.id,
-        createdAt: new Date(),
-        subject: { id: subject.id, name: subject.name, color: subject.color },
-      };
-
-      addStaticTask(user.id, mockTask);
-      return NextResponse.json({ task: mockTask }, { status: 201 });
     }
 
     const subject = await db.subject.findFirst({

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { shouldUseStaticData, getStaticSubjects, addStaticSubject, StaticSubject } from '@/lib/static-data';
 import { sanitizeString, isValidHexColor } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
@@ -15,11 +14,6 @@ export async function GET() {
         { error: 'Unauthorized' },
         { status: 401 }
       );
-    }
-
-    if (shouldUseStaticData()) {
-      const subjects = getStaticSubjects(user.id);
-      return NextResponse.json({ subjects });
     }
 
     const subjects = await db.subject.findMany({
@@ -100,22 +94,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    }
-
-    if (shouldUseStaticData()) {
-      const mockSubject: StaticSubject = {
-        id: `subject-${Date.now()}`,
-        name: sanitizeString(name.trim()),
-        description: description ? sanitizeString(description.trim()) : null,
-        color: sanitizedColor,
-        examDate: parsedExamDate,
-        createdAt: new Date(),
-        userId: user.id,
-        tasks: [],
-        _count: { tasks: 0 },
-      };
-      addStaticSubject(user.id, mockSubject);
-      return NextResponse.json({ subject: mockSubject }, { status: 201 });
     }
 
     const subject = await db.subject.create({

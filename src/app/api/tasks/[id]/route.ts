@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { shouldUseStaticData, findStaticTaskById, updateStaticTask, deleteStaticTask, getStaticSubjects } from '@/lib/static-data';
 
 const VALID_STATUSES = ['pending', 'in_progress', 'completed'];
 const VALID_PRIORITIES = ['low', 'medium', 'high'];
@@ -21,19 +20,6 @@ export async function GET(
     }
 
     const { id } = await params;
-
-    if (shouldUseStaticData()) {
-      const task = findStaticTaskById(user.id, id);
-
-      if (!task) {
-        return NextResponse.json(
-          { error: 'Task not found' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({ task });
-    }
 
     const task = await db.task.findFirst({
       where: {
@@ -87,48 +73,6 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const { title, description, status, priority, dueDate, subjectId } = body;
-
-    if (shouldUseStaticData()) {
-      if (status !== undefined && !VALID_STATUSES.includes(status)) {
-        return NextResponse.json(
-          { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
-          { status: 400 }
-        );
-      }
-
-      if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
-        return NextResponse.json(
-          { error: `Invalid priority. Must be one of: ${VALID_PRIORITIES.join(', ')}` },
-          { status: 400 }
-        );
-      }
-
-      const updateData: Record<string, unknown> = {};
-      if (title !== undefined) updateData.title = title.trim();
-      if (description !== undefined) updateData.description = description?.trim() || null;
-      if (status !== undefined) updateData.status = status;
-      if (priority !== undefined) updateData.priority = priority;
-      if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
-      if (subjectId !== undefined) {
-        const subjects = getStaticSubjects(user.id);
-        const subject = subjects.find(s => s.id === subjectId);
-        if (subject) {
-          updateData.subjectId = subjectId;
-          updateData.subject = { id: subject.id, name: subject.name, color: subject.color };
-        }
-      }
-
-      const updatedTask = updateStaticTask(user.id, id, updateData);
-
-      if (!updatedTask) {
-        return NextResponse.json(
-          { error: 'Task not found' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({ task: updatedTask });
-    }
 
     const existingTask = await db.task.findFirst({
       where: {
@@ -229,21 +173,6 @@ export async function DELETE(
     }
 
     const { id } = await params;
-
-    if (shouldUseStaticData()) {
-      const deletedTask = deleteStaticTask(user.id, id);
-
-      if (!deletedTask) {
-        return NextResponse.json(
-          { error: 'Task not found' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({
-        message: 'Task deleted successfully',
-      });
-    }
 
     const existingTask = await db.task.findFirst({
       where: {

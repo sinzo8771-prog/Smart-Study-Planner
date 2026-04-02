@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { shouldUseStaticData, getStaticSubjects, findStaticSubjectById, updateStaticSubject, deleteStaticSubject } from '@/lib/static-data';
 
 export async function GET(
   request: NextRequest,
@@ -9,7 +8,7 @@ export async function GET(
 ) {
   try {
     const user = await getAuthenticatedUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,19 +17,6 @@ export async function GET(
     }
 
     const { id } = await params;
-
-    if (shouldUseStaticData()) {
-      const subject = findStaticSubjectById(user.id, id);
-      
-      if (!subject) {
-        return NextResponse.json(
-          { error: 'Subject not found' },
-          { status: 404 }
-        );
-      }
-      
-      return NextResponse.json({ subject });
-    }
 
     const subject = await db.subject.findFirst({
       where: {
@@ -70,7 +56,7 @@ export async function PUT(
 ) {
   try {
     const user = await getAuthenticatedUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -81,25 +67,6 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     const { name, description, color, examDate } = body;
-
-    if (shouldUseStaticData()) {
-      const updateData: Record<string, unknown> = {};
-      if (name !== undefined) updateData.name = name.trim();
-      if (description !== undefined) updateData.description = description?.trim() || null;
-      if (color !== undefined) updateData.color = color;
-      if (examDate !== undefined) updateData.examDate = examDate ? new Date(examDate) : null;
-      
-      const updatedSubject = updateStaticSubject(user.id, id, updateData);
-      
-      if (!updatedSubject) {
-        return NextResponse.json(
-          { error: 'Subject not found' },
-          { status: 404 }
-        );
-      }
-      
-      return NextResponse.json({ subject: updatedSubject });
-    }
 
     const existingSubject = await db.subject.findFirst({
       where: {
@@ -165,7 +132,7 @@ export async function DELETE(
 ) {
   try {
     const user = await getAuthenticatedUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -174,22 +141,6 @@ export async function DELETE(
     }
 
     const { id } = await params;
-
-    if (shouldUseStaticData()) {
-      const deletedSubject = deleteStaticSubject(user.id, id);
-      
-      if (!deletedSubject) {
-        return NextResponse.json(
-          { error: 'Subject not found' },
-          { status: 404 }
-        );
-      }
-      
-      return NextResponse.json({
-        message: 'Subject deleted successfully',
-        deletedTasksCount: deletedSubject._count.tasks,
-      });
-    }
 
     const existingSubject = await db.subject.findFirst({
       where: {
