@@ -1,0 +1,19 @@
+{
+  "baseUrl": "http://localhost:3000",
+  "projectName": "Smart Study Planner",
+  "status": "init",
+  "scope": "codebase",
+  "type": "frontend",
+  "localEndpoint": "http://localhost:3000/",
+  "serverPort": 39919,
+  "executionArgs": {
+    "projectName": "my-project",
+    "projectPath": "/home/z/my-project",
+    "testIds": [],
+    "additionalInstruction": "Test the landing page and login functionality",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user-NxJjvF7JeGJWgeHSSYysTgGlgqWhhd81SzoW6srEkBTWavycJndPqN2nt79xipXdw0ovxE11jSKXtSMqPVIaOl15NvNujmaG8u3IDe33ifIvvdfZkTRgf1-aC9cDMaQSudw"
+    }
+  }
+}
