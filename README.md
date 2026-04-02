@@ -101,13 +101,7 @@ This is a **First Year Project** demonstrating:
 | 📋 **Review System** | Review answers with correct explanations |
 | 🎯 **Pass Threshold** | Configurable passing scores per quiz |
 | ⏱️ **Time Limits** | Optional quiz duration settings |
-
-### 🤖 AI Features
-| Feature | Description |
-|---------|-------------|
-| 🧠 **AI Quiz Generator** | Generate quizzes from course content |
-| 💬 **AI Study Assistant** | Chatbot for study help and questions |
-| 📝 **Study Tips** | AI-powered personalized study recommendations |
+| 🤖 **AI Quiz Generator** | Generate quizzes from course content using AI |
 
 ### 📊 Analytics Dashboard
 | Student Dashboard | Admin Dashboard |
@@ -118,11 +112,11 @@ This is a **First Year Project** demonstrating:
 | Progress charts | System overview |
 
 ### 🔐 Authentication & Security
-- 🔑 **Google OAuth** - One-click sign in with Google
-- 📧 **Email/Password** - Traditional authentication
+- 📧 **Email/Password** - Traditional authentication with secure password hashing
 - 👥 **Role-based Access** - Student and Admin roles
 - 🛡️ **JWT Sessions** - Secure token-based authentication
 - 🍪 **HTTP-only Cookies** - Protected session storage
+- 🔒 **NextAuth.js** - Industry-standard authentication
 
 ### 🎨 User Experience
 - 🌙 **Dark/Light Mode** - Toggle with system preference detection
@@ -152,7 +146,7 @@ This is a **First Year Project** demonstrating:
 | ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma) | Database ORM |
 | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?logo=postgresql) | Production database |
 | ![JWT](https://img.shields.io/badge/JWT-Auth-red) | Secure authentication |
-| ![Firebase](https://img.shields.io/badge/Firebase-Auth-orange?logo=firebase) | Google OAuth |
+| ![NextAuth](https://img.shields.io/badge/NextAuth.js-Auth-blue) | Authentication solution |
 
 ### Development
 | Tool | Purpose |
@@ -193,6 +187,7 @@ Make sure you have the following installed:
 - **Node.js** 18+ or **Bun** runtime
 - **npm**, **yarn**, or **bun** package manager
 - **Git** for version control
+- **PostgreSQL** database (or use Supabase, Neon, etc.)
 
 ### Installation
 
@@ -213,23 +208,17 @@ Make sure you have the following installed:
    
    Create a `.env` file in the root directory:
    ```env
-   # Database
+   # Database (Required)
    DATABASE_URL="postgresql://user:password@host:5432/database"
    DIRECT_DATABASE_URL="postgresql://user:password@host:5432/database"
    
-   # Authentication
+   # Authentication (Required)
    JWT_SECRET="your-super-secret-key-min-32-characters"
    NEXTAUTH_SECRET="your-nextauth-secret-key"
    NEXTAUTH_URL="http://localhost:3000"
    
-   # Firebase (for Google OAuth)
-   NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
-   
-   # Google OAuth (Optional)
-   GOOGLE_CLIENT_ID="your-google-client-id"
-   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+   # AI Quiz Generator (Optional - for AI features)
+   Z_API_KEY="your-z-ai-api-key"
    ```
 
 4. **Initialize the database**
@@ -260,7 +249,7 @@ Make sure you have the following installed:
 ### First-Time Setup
 
 1. Click **"Get Started"** on the landing page
-2. Register with your email or sign in with Google
+2. Register with your email
 3. Choose your role (Student or Admin)
 4. Start exploring the features!
 
@@ -284,12 +273,11 @@ The application is fully responsive with a mobile-first approach:
 |---------|---------------|-------------|
 | 🔑 **Password Security** | bcryptjs with 12 salt rounds | Industry-standard password hashing |
 | 🎫 **JWT Tokens** | 7-day expiration with secure signing | Secure session management |
-| 🍪 **Cookie Security** | HTTP-only, Secure, SameSite=Strict | Prevents XSS and CSRF attacks |
+| 🍪 **Cookie Security** | HTTP-only, Secure (production), SameSite=Lax | Prevents XSS and CSRF attacks |
 | 🛡️ **SQL Injection** | Prisma ORM parameterized queries | All database queries are parameterized |
 | ✅ **Input Validation** | Server-side validation on all endpoints | Prevents malicious input |
 | 🚦 **Rate Limiting** | 5 login attempts/min, 3 registrations/hour | Prevents brute force attacks |
 | 🔒 **CORS Protection** | Configured for secure cross-origin requests | Restricts API access |
-| 📧 **Email Verification** | Required before account activation | Prevents fake accounts |
 | 🧹 **XSS Prevention** | Input sanitization and output encoding | Prevents cross-site scripting |
 
 ### Security Best Practices
@@ -298,6 +286,7 @@ The application is fully responsive with a mobile-first approach:
 - User can only access their own resources
 - Tokens are validated on each request
 - Secure headers configured in production
+- Cookies set with appropriate flags for dev/production
 
 ---
 
@@ -313,10 +302,10 @@ The application is fully responsive with a mobile-first approach:
        │            ┌─────────────┐     ┌─────────────┐
        └───────────<│   Course    │────<│   Module    │
                     └─────────────┘     └─────────────┘
-                           │
-       ┌─────────────┐     │     ┌─────────────┐
-       │    Quiz     │────<┘────<│QuizAttempt  │
-       └─────────────┘           └─────────────┘
+                          │
+       ┌─────────────┐    │     ┌─────────────┐
+       │    Quiz     │────<└────<│QuizAttempt  │
+       └─────────────┘          └─────────────┘
              │
        ┌─────────────┐
        │  Question   │
@@ -380,7 +369,6 @@ model Task {
 | `POST` | `/api/auth/login` | Login user | ❌ |
 | `POST` | `/api/auth/logout` | Logout user | ✅ |
 | `GET` | `/api/auth/session` | Get current session | ❌ |
-| `POST` | `/api/auth/firebase` | Firebase OAuth | ❌ |
 
 ### Subject Endpoints
 
@@ -418,6 +406,12 @@ model Task {
 | `POST` | `/api/quiz-attempts` | Submit quiz | ✅ | Student |
 | `GET` | `/api/quiz-attempts/:id` | Get attempt | ✅ | Any |
 
+### AI Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/api/ai/generate-quiz` | Generate quiz from content | ✅ |
+
 ---
 
 ## 📦 Deployment
@@ -441,11 +435,16 @@ JWT_SECRET="your-production-secret-min-32-chars"
 NEXTAUTH_SECRET="your-nextauth-secret"
 NEXTAUTH_URL="https://your-domain.com"
 
-# Firebase (for Google OAuth)
-NEXT_PUBLIC_FIREBASE_API_KEY="your-key"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
+# Optional - AI Quiz Generator
+Z_API_KEY="your-z-ai-api-key"
 ```
+
+### Database Setup with Supabase
+
+1. Create a Supabase project
+2. Get your database connection string from Project Settings > Database
+3. Use port `6543` for connection pooling (DATABASE_URL)
+4. Use port `5432` for direct connections (DIRECT_DATABASE_URL)
 
 ### Build Commands
 
@@ -458,6 +457,9 @@ bun run start
 
 # Run linting
 bun run lint
+
+# Push database schema
+bun run db:push
 ```
 
 ---
@@ -488,10 +490,11 @@ smart-study-planner/
 │   ├── 📂 hooks/                # Custom hooks
 │   └── 📂 lib/                  # Utilities
 │       ├── 📄 auth.ts           # Auth helpers
+│       ├── 📄 auth.config.ts    # NextAuth config
+│       ├── 📄 auth-helpers.ts   # Auth utilities
 │       ├── 📄 db.ts             # Prisma client
-│       ├── 📄 firebase.ts       # Firebase config
 │       ├── 📄 validation.ts     # Input validation
-│       └── 📄 email.ts          # Email service
+│       └── 📄 data-service.ts   # Data fetching
 ├── 📂 public/                   # Static assets
 ├── 📄 package.json              # Dependencies
 ├── 📄 tailwind.config.ts        # Tailwind config
@@ -550,6 +553,18 @@ This project is developed as a **First Year College Project**.
 - [Recharts](https://recharts.org/) - Charting library
 - [Framer Motion](https://www.framer.com/motion/) - Animations
 - [Lucide](https://lucide.dev/) - Icons
+- [NextAuth.js](https://next-auth.js.org/) - Authentication
+
+---
+
+## 📝 Recent Updates
+
+### Latest Changes
+- ✅ Fixed authentication cookie settings for development environment
+- ✅ Added NEXTAUTH environment variables for proper session management
+- ✅ Enhanced subject API with better logging for debugging
+- ✅ Removed deprecated AI chatbot and study tips features
+- ✅ Improved database connection handling for Supabase pooler
 
 ---
 
