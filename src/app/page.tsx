@@ -2105,6 +2105,9 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
+            <DialogDescription>
+              {editingTask ? 'Update the task details below' : 'Create a new task to track your study progress'}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -3642,6 +3645,9 @@ const QuizModule = ({ user }: QuizModuleProps) => {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingQuiz ? 'Edit Quiz' : 'Create New Quiz'}</DialogTitle>
+            <DialogDescription>
+              {editingQuiz ? 'Update the quiz details and questions below' : 'Create a new quiz with multiple choice questions'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
