@@ -1,8 +1,0 @@
-{
-  "projectPath": "/home/z/my-project",
-  "projectName": "my-project",
-  "type": "frontend",
-  "localPort": 3000,
-  "testScope": "codebase",
-  "baseUrl": "http://localhost:3000"
-}
