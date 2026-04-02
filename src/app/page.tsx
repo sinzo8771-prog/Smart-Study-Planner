@@ -812,7 +812,6 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState({ current: 0, best: 0 });
-  const [greeting, setGreeting] = useState('');
   const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month'>('week');
   const mounted = useMounted();
 
@@ -827,12 +826,6 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   };
 
   useEffect(() => {
-    // Set greeting based on time of day
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 17) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
-    
     const fetchData = async () => {
       try {
         // Use Promise.allSettled to handle partial failures gracefully
@@ -893,32 +886,6 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
 
   // Weekly activity data for sparkline
   const weeklyActivity = stats?.productivity?.weeklyTrend?.map(d => d.tasks) || [2, 3, 1, 4, 2, 3, 1];
-  
-  // Daily goals
-  const dailyGoals = [
-    { id: 'tasks', label: 'Complete 3 tasks', target: 3, current: Math.min(stats?.tasks?.weeklyCompleted || 0, 3), icon: CheckCircle, color: '#22c55e' },
-    { id: 'quiz', label: 'Take a quiz', target: 1, current: stats?.quizzes?.totalAttempts && stats.quizzes.totalAttempts > 0 ? 1 : 0, icon: Brain, color: '#8b5cf6' },
-    { id: 'study', label: 'Study 1 hour', target: 60, current: Math.min((stats?.productivity?.studyHoursThisWeek || 0) * 60, 60), icon: Timer, color: '#f59e0b' },
-  ];
-
-  // Quick actions with enhanced data
-  const quickActions = [
-    { icon: Plus, label: 'Add Subject', description: 'Create new subject', color: 'from-blue-500 to-blue-600', action: () => onViewChange('planner') },
-    { icon: Brain, label: 'Take Quiz', description: 'Test knowledge', color: 'from-purple-500 to-purple-600', action: () => onViewChange('quizzes') },
-    { icon: BookOpen, label: 'Courses', description: 'Browse learning', color: 'from-green-500 to-green-600', action: () => onViewChange('courses') },
-  ];
-
-  // Get motivational message
-  const getMotivationalMessage = () => {
-    const messages = [
-      { condition: streak.current >= 7, message: "Incredible! You're on fire! 🔥 Keep the momentum!" },
-      { condition: productivityScore >= 80, message: "Outstanding performance! You're crushing it! 🌟" },
-      { condition: taskCompletionRate >= 70, message: "Great progress today! Keep going! 💪" },
-      { condition: streak.current > 0, message: `${streak.current} day streak! Don't break it! 🎯` },
-      { condition: true, message: "Ready to make today productive? Let's go! 🚀" },
-    ];
-    return messages.find(m => m.condition)?.message || messages[messages.length - 1].message;
-  };
 
   // Upcoming deadlines (next 7 days)
   const upcomingDeadlines = recentTasks
@@ -928,122 +895,6 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner - Enhanced */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Card className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white border-0 overflow-hidden relative">
-          {/* Animated background elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-y-48 translate-x-48 animate-pulse" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full translate-y-32 -translate-x-32" />
-            <div className="absolute top-1/2 right-1/4 w-32 h-32 bg-white/5 rounded-full" />
-          </div>
-          
-          <CardContent className="p-4 sm:p-6 relative">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
-              <div className="flex-1">
-                <motion.h2 
-                  className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                >
-                  {greeting}, {user.name}! 👋
-                </motion.h2>
-                <motion.p 
-                  className="text-white/90 text-lg mb-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  {getMotivationalMessage()}
-                </motion.p>
-                
-                {/* Quick Stats Row */}
-                <div className="flex flex-wrap gap-4 mb-4">
-                  <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm">
-                    <span className="text-xl">🔥</span>
-                    <div>
-                      <p className="text-xs text-white/70">Streak</p>
-                      <p className="font-bold">{streak.current} days</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm">
-                    <span className="text-xl">⭐</span>
-                    <div>
-                      <p className="text-xs text-white/70">Productivity</p>
-                      <p className="font-bold">{productivityScore}%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm">
-                    <span className="text-xl">✅</span>
-                    <div>
-                      <p className="text-xs text-white/70">Tasks Done</p>
-                      <p className="font-bold">{stats?.tasks?.completed || 0}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Quick Actions */}
-                <div className="flex flex-wrap gap-2">
-                  {quickActions.map((action, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1 * index }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Button
-                        onClick={action.action}
-                        className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm gap-2"
-                      >
-                        <action.icon className="w-4 h-4" />
-                        {action.label}
-                      </Button>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Daily Goals Widget - Hidden on mobile, shown on large screens */}
-              <motion.div 
-                className="hidden lg:block lg:w-72 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Today's Goals
-                </h3>
-                <div className="space-y-3">
-                  {dailyGoals.map((goal, index) => (
-                    <div key={goal.id} className="flex items-center gap-3">
-                      <div className="relative">
-                        <ProgressRing 
-                          progress={(goal.current / goal.target) * 100} 
-                          size={40} 
-                          strokeWidth={4} 
-                          color={goal.color} 
-                        />
-                        <goal.icon className="w-3 h-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/70" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{goal.label}</p>
-                        <p className="text-xs text-white/60">{Math.min(goal.current, goal.target)}/{goal.target}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
       {/* Stats Grid - Enhanced */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatsCard
