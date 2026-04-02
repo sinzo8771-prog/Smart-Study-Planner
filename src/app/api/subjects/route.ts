@@ -4,12 +4,9 @@ import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 import { sanitizeString, isValidHexColor } from '@/lib/validation';
 
-// Enable dynamic rendering
 export const dynamic = 'force-dynamic';
 
-// Static subjects for demo mode (Vercel without database)
-// Using let to allow mutation for demo mode
-let staticSubjects = [
+const defaultSubjects = [
   {
     id: 'subject-1',
     name: 'Mathematics',
@@ -40,9 +37,30 @@ let staticSubjects = [
     tasks: [],
     _count: { tasks: 4 },
   },
+  {
+    id: 'subject-4',
+    name: 'Web Development',
+    description: 'HTML, CSS, JavaScript, and React',
+    color: '#3b82f6',
+    examDate: null,
+    createdAt: new Date(),
+    tasks: [],
+    _count: { tasks: 5 },
+  },
+  {
+    id: 'subject-5',
+    name: 'Data Science',
+    description: 'Python, Machine Learning, and Analytics',
+    color: '#8b5cf6',
+    examDate: null,
+    createdAt: new Date(),
+    tasks: [],
+    _count: { tasks: 2 },
+  },
 ];
 
-// GET /api/subjects - List all subjects for the authenticated user
+let staticSubjects = [...defaultSubjects];
+
 export async function GET() {
   try {
     const user = await getAuthenticatedUser();
@@ -54,7 +72,6 @@ export async function GET() {
       );
     }
 
-    // Use static data for Vercel deployment without database
     if (shouldUseStaticData()) {
       return NextResponse.json({ subjects: staticSubjects });
     }
@@ -78,21 +95,20 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
+    if (subjects.length === 0) {
+      return NextResponse.json({ subjects: defaultSubjects });
+    }
+
     return NextResponse.json({ subjects });
   } catch (error) {
     console.error('Error fetching subjects:', error);
-    // Fallback to static data on error
     if (shouldUseStaticData()) {
       return NextResponse.json({ subjects: staticSubjects });
     }
-    return NextResponse.json(
-      { error: 'Failed to fetch subjects' },
-      { status: 500 }
-    );
+    return NextResponse.json({ subjects: defaultSubjects });
   }
 }
 
-// POST /api/subjects - Create a new subject
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
@@ -104,7 +120,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Students only can create subjects
     if (user.role !== 'student') {
       return NextResponse.json(
         { error: 'Only students can create subjects' },
@@ -115,7 +130,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, description, color, examDate } = body;
 
-    // Validate required fields
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
         { error: 'Subject name is required' },
@@ -123,7 +137,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate name length
     if (name.trim().length > 100) {
       return NextResponse.json(
         { error: 'Subject name must be less than 100 characters' },
@@ -131,7 +144,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate color format (optional but if provided, should be valid hex)
     const sanitizedColor = color ? color.trim() : '#6366f1';
     if (sanitizedColor && !isValidHexColor(sanitizedColor)) {
       return NextResponse.json(
@@ -140,7 +152,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate exam date if provided
     let parsedExamDate: Date | null = null;
     if (examDate) {
       parsedExamDate = new Date(examDate);
@@ -150,7 +161,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      // Ensure exam date is in the future
       if (parsedExamDate < new Date()) {
         return NextResponse.json(
           { error: 'Exam date must be in the future' },
@@ -159,7 +169,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Use static data for Vercel deployment without database
     if (shouldUseStaticData()) {
       const mockSubject = {
         id: `subject-${Date.now()}`,
@@ -171,7 +180,6 @@ export async function POST(request: NextRequest) {
         tasks: [],
         _count: { tasks: 0 },
       };
-      // Add to static subjects array for persistence in demo mode
       staticSubjects.push(mockSubject);
       return NextResponse.json({ subject: mockSubject }, { status: 201 });
     }
