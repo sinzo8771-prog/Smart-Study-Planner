@@ -12,7 +12,6 @@ const SALT_ROUNDS = 12;
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // Create admin user
   let adminUser = await prisma.user.findUnique({
     where: { email: 'admin@smartstudy.com' }
   });
@@ -33,7 +32,6 @@ async function main() {
     console.log('⏭️ Admin user already exists');
   }
 
-  // Create student users
   const studentUsers = [
     { name: 'John Doe', email: 'john@example.com', password: 'Student@123' },
     { name: 'Jane Smith', email: 'jane@example.com', password: 'Student@123' },
@@ -58,7 +56,6 @@ async function main() {
     }
   }
 
-  // Clear existing data
   console.log('\n🗑️ Clearing existing data...');
   await prisma.moduleProgress.deleteMany();
   await prisma.courseProgress.deleteMany();
@@ -69,9 +66,9 @@ async function main() {
   await prisma.quiz.deleteMany();
   console.log('✅ Cleared existing data');
 
-  // Courses - Mix of Tech and Non-Tech with verified YouTube videos
+  
   const coursesData = [
-    // NON-TECH COURSES
+    
     {
       title: 'Calculus 1 Full Course',
       description: 'Learn calculus from scratch. Understand limits, derivatives, and integrals with clear explanations.',
@@ -130,8 +127,6 @@ Study the science of life.
       ]
     },
 
-
-
     {
       title: 'Psychology Full Course',
       description: 'Understand human behavior and the mind. Learn about cognitive processes and mental health.',
@@ -160,7 +155,7 @@ Explore the human mind and behavior.
         }
       ]
     },
-    // TECH COURSES
+    
     {
       title: 'HTML & CSS Full Course',
       description: 'Learn HTML and CSS from scratch. Build real websites and master responsive design.',
@@ -296,7 +291,6 @@ Master version control.
     }
   ];
 
-  // Create courses
   console.log('\n📚 Creating courses...');
   for (const courseData of coursesData) {
     const { modules, ...courseInfo } = courseData;
@@ -311,7 +305,6 @@ Master version control.
     console.log(`✅ Created: ${course.title}`);
   }
 
-  // Create quizzes
   console.log('\n📝 Creating quizzes...');
   const quizzesData = [
     {
@@ -330,7 +323,7 @@ Master version control.
         { question: 'Create flexbox container?', optionA: 'display: block', optionB: 'display: flex', optionC: 'display: grid', optionD: 'display: inline', correctAnswer: 'B', explanation: 'display: flex', points: 1, order: 5 }
       ]
     },
-    // ADDITIONAL QUIZZES
+    
     {
       title: 'Calculus Fundamentals Quiz',
       description: 'Test your calculus knowledge',
@@ -363,7 +356,6 @@ Master version control.
         { question: 'Basic unit of life?', optionA: 'Atom', optionB: 'Molecule', optionC: 'Cell', optionD: 'Organ', correctAnswer: 'C', explanation: 'The cell is the basic unit of life', points: 1, order: 5 }
       ]
     },
-
 
     {
       title: 'Psychology Fundamentals Quiz',

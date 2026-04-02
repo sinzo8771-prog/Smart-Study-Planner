@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import ZAI from 'z-ai-web-dev-sdk';
 
-
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -136,7 +135,6 @@ Requirements:
     });
   }
 }
-
 
 function generateFallbackQuestions(topic: string, count: number, difficulty: string = 'medium') {
   const difficultyMultiplier = difficulty === 'easy' ? 1 : difficulty === 'hard' ? 3 : 2;

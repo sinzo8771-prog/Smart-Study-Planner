@@ -4,7 +4,6 @@ import { getCurrentUser, isAdmin } from '@/lib/auth';
 import { db, runMigrations } from '@/lib/db';
 import { sanitizeString } from '@/lib/validation';
 
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,7 +31,6 @@ export async function GET(
     );
   }
 }
-
 
 export async function PUT(
   request: NextRequest,
@@ -126,7 +124,6 @@ export async function PUT(
     return NextResponse.json({ error: 'Failed to update quiz' }, { status: 500 });
   }
 }
-
 
 export async function DELETE(
   request: NextRequest,

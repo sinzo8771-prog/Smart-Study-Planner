@@ -14,9 +14,7 @@ interface LogEntry {
   };
 }
 
-
 const isProduction = process.env.NODE_ENV === 'production';
-
 
 function formatLogEntry(level: LogLevel, message: string, data?: Record<string, unknown>, error?: Error): LogEntry {
   const entry: LogEntry = {
@@ -40,13 +38,10 @@ function formatLogEntry(level: LogLevel, message: string, data?: Record<string, 
   return entry;
 }
 
-
 function output(entry: LogEntry): void {
   if (isProduction) {
-    
     console.log(JSON.stringify(entry));
   } else {
-    
     const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}]`;
     
     switch (entry.level) {
@@ -61,7 +56,6 @@ function output(entry: LogEntry): void {
     }
   }
 }
-
 
 class Logger {
   private context: string;
@@ -89,14 +83,11 @@ class Logger {
   }
 }
 
-
 export function createLogger(context: string): Logger {
   return new Logger(context);
 }
 
-
 export const logger = createLogger('App');
-
 
 export function logRequest(
   method: string,
@@ -116,11 +107,9 @@ export function logRequest(
   }));
 }
 
-
 export function logError(error: Error, context?: string): void {
   output(formatLogEntry('error', context || 'Unhandled error', undefined, error));
 }
-
 
 export function logAudit(
   action: string,

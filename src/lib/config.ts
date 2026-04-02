@@ -1,11 +1,9 @@
 
 
-
 const requiredEnvVars = [
   'JWT_SECRET',
   'DATABASE_URL',
 ] as const;
-
 
 const optionalEnvVars = {
   NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
@@ -17,7 +15,6 @@ const optionalEnvVars = {
   NEXTAUTH_SECRET: '',
   NEXT_PUBLIC_ENABLE_REGISTRATION: 'true',
 } as const;
-
 
 function validateEnv(): void {
   const missing: string[] = [];
@@ -36,22 +33,18 @@ function validateEnv(): void {
   }
 }
 
-
 export function getEnv<K extends keyof typeof optionalEnvVars>(
   key: K
 ): string {
   return process.env[key] || optionalEnvVars[key];
 }
 
-
 export function isFeatureEnabled(feature: string): boolean {
   const key = `NEXT_PUBLIC_ENABLE_${feature.toUpperCase()}` as keyof typeof optionalEnvVars;
   return getEnv(key) === 'true';
 }
 
-
 export const config = {
-  
   app: {
     url: getEnv('NEXT_PUBLIC_APP_URL'),
     name: 'Smart Study Planner',
@@ -59,14 +52,12 @@ export const config = {
     isProduction: process.env.NODE_ENV === 'production',
   },
 
-  
   auth: {
     jwtSecret: process.env.JWT_SECRET || '',
     nextAuthSecret: process.env.NEXTAUTH_SECRET || '',
-    sessionMaxAge: 7 * 24 * 60 * 60, 
+    sessionMaxAge: 7 * 24 * 60 * 60,
   },
 
-  
   email: {
     host: getEnv('SMTP_HOST'),
     port: parseInt(getEnv('SMTP_PORT')),
@@ -76,21 +67,18 @@ export const config = {
     isConfigured: !!(getEnv('SMTP_USER') && getEnv('SMTP_PASS')),
   },
 
-  
   features: {
     registration: isFeatureEnabled('REGISTRATION'),
   },
 
-  
   security: {
     rateLimit: {
-      windowMs: 60 * 1000, 
+      windowMs: 60 * 1000,
       maxRequests: 100,
     },
     bcryptSaltRounds: 12,
   },
 } as const;
-
 
 if (typeof window === 'undefined') {
   validateEnv();

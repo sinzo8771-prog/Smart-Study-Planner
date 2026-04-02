@@ -3,10 +3,8 @@ import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 
-
 const VALID_STATUSES = ['pending', 'in_progress', 'completed'];
 const VALID_PRIORITIES = ['low', 'medium', 'high'];
-
 
 let staticTasksStore: Array<{
   id: string;
@@ -20,7 +18,6 @@ let staticTasksStore: Array<{
   createdAt: Date;
   subject: { id: string; name: string; color: string };
 }> | null = null;
-
 
 function getStaticTasks() {
   if (!staticTasksStore) {
@@ -65,7 +62,6 @@ function getStaticTasks() {
   }
   return staticTasksStore;
 }
-
 
 export async function GET(
   request: NextRequest,
@@ -132,7 +128,6 @@ export async function GET(
     );
   }
 }
-
 
 export async function PUT(
   request: NextRequest,
@@ -282,7 +277,6 @@ export async function PUT(
     );
   }
 }
-
 
 export async function DELETE(
   request: NextRequest,

@@ -3,8 +3,6 @@ import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 
-
-
 let staticSubjectsStore: Array<{
   id: string;
   name: string;
@@ -15,7 +13,6 @@ let staticSubjectsStore: Array<{
   tasks: unknown[];
   _count: { tasks: number };
 }> | null = null;
-
 
 function getStaticSubjects() {
   if (!staticSubjectsStore) {
@@ -54,7 +51,6 @@ function getStaticSubjects() {
   }
   return staticSubjectsStore;
 }
-
 
 export async function GET(
   request: NextRequest,
@@ -118,7 +114,6 @@ export async function GET(
     );
   }
 }
-
 
 export async function PUT(
   request: NextRequest,
@@ -222,7 +217,6 @@ export async function PUT(
     );
   }
 }
-
 
 export async function DELETE(
   request: NextRequest,

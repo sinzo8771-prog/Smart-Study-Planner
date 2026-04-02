@@ -5,9 +5,7 @@ import { db, runMigrations } from '@/lib/db';
 import { sanitizeString, isValidCourseLevel } from '@/lib/validation';
 import { staticQuizzes } from '@/lib/static-data';
 
-
 export const dynamic = 'force-dynamic';
-
 
 export async function GET() {
   try {
@@ -62,7 +60,6 @@ export async function GET() {
     });
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {

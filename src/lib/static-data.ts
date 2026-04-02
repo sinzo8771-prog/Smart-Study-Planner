@@ -1,6 +1,5 @@
 
 
-
 export interface StaticUser {
   id: string;
   name: string;
@@ -70,7 +69,6 @@ export interface StaticQuestion {
   createdAt: Date;
 }
 
-
 export const staticUsers: StaticUser[] = [
   {
     id: 'admin-001',
@@ -121,7 +119,6 @@ export const staticUsers: StaticUser[] = [
     emailVerified: new Date(),
   },
 ];
-
 
 export const staticCourses: StaticCourse[] = [
   
@@ -203,9 +200,6 @@ Study the science of life.
       }
     ]
   },
-
-
-
 
   {
     id: 'course-psych-1',
@@ -427,7 +421,6 @@ Master version control.
     ]
   }
 ];
-
 
 export const staticQuizzes: StaticQuiz[] = [
   {
@@ -691,8 +684,6 @@ export const staticQuizzes: StaticQuiz[] = [
       }
     ]
   },
-
-
 
   {
     id: 'quiz-psych-1',
@@ -1125,7 +1116,6 @@ export const staticQuizzes: StaticQuiz[] = [
     ]
   }
 ];
-
 
 const registeredUsers = new Map<string, StaticUser>();
 

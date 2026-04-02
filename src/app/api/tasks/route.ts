@@ -4,10 +4,7 @@ import { db } from '@/lib/db';
 import { shouldUseStaticData } from '@/lib/data-service';
 import { sanitizeString, isValidTaskStatus, isValidTaskPriority } from '@/lib/validation';
 
-
 export const dynamic = 'force-dynamic';
-
-
 
 let staticTasks = [
   {
@@ -47,7 +44,6 @@ let staticTasks = [
     subject: { id: 'subject-3', name: 'Computer Science', color: '#10b981' },
   },
 ];
-
 
 export async function GET(request: NextRequest) {
   try {
@@ -156,7 +152,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {

@@ -3,7 +3,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { shouldUseStaticData, getCourseById } from '@/lib/data-service';
 import { db } from '@/lib/db';
 
-
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -143,7 +142,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch progress' }, { status: 500 });
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {

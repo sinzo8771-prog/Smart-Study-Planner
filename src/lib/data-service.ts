@@ -1,14 +1,11 @@
 
 
-
 import { db, runMigrations } from './db';
 import { shouldUseStaticData, staticCourses, staticQuizzes, staticUsers, addRegisteredUser, findUserByEmailFromAll, findUserByIdFromAll } from './static-data';
 import { cachedFetch, getCached, setCache, CACHE_KEYS, CACHE_TTL, invalidateCachePattern } from './cache';
 import { runCleanupInBackground } from './cleanup';
 
-
 export { shouldUseStaticData };
-
 
 export async function getCourses(filters?: { category?: string; level?: string }) {
   if (shouldUseStaticData()) {
@@ -148,7 +145,6 @@ export async function getModuleById(id: string) {
   );
 }
 
-
 export async function getQuizzes() {
   if (shouldUseStaticData()) {
     return staticQuizzes.filter(q => q.isPublished).map(q => ({
@@ -211,7 +207,6 @@ export async function getQuizById(id: string) {
     CACHE_TTL.MEDIUM
   );
 }
-
 
 export async function getUserByEmail(email: string) {
   if (shouldUseStaticData()) {
@@ -328,7 +323,6 @@ export async function updateUser(id: string, data: Record<string, unknown>) {
     return { id, ...data, updatedAt: new Date() };
   }
 }
-
 
 export async function getDashboardStats() {
   if (shouldUseStaticData()) {

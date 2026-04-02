@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-
 export function useReducedMotion(): boolean {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -33,19 +32,13 @@ export function useReducedMotion(): boolean {
   return prefersReducedMotion;
 }
 
-/**
- * Get animation props based on reduced motion preference
- * Use this to conditionally apply animations
- */
 export function useAnimationProps() {
   const prefersReducedMotion = useReducedMotion();
 
   return {
-    
     initial: prefersReducedMotion ? {} : { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     transition: prefersReducedMotion ? { duration: 0 } : { duration: 0.3 },
-    
     whileHover: prefersReducedMotion ? {} : { scale: 1.02 },
     whileTap: prefersReducedMotion ? {} : { scale: 0.98 },
   };

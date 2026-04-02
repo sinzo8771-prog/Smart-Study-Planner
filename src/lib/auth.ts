@@ -6,13 +6,9 @@ import { createLogger } from './logger';
 
 const logger = createLogger('Auth');
 
-
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
-
 const DEMO_SECRET = 'smart-study-planner-demo-secret-key-2024-secure';
-
 
 function getSecretKey(): string {
   const isStatic = shouldUseStaticData();
@@ -25,7 +21,6 @@ function getSecretKey(): string {
   
   return key;
 }
-
 
 const startupKey = getSecretKey();
 if (startupKey === DEMO_SECRET) {
@@ -40,7 +35,6 @@ export interface UserPayload {
   role: string;
 }
 
-
 export async function hashPassword(password: string): Promise<string> {
   if (!password || password.length < 8) {
     throw new Error('Password must be at least 8 characters');
@@ -48,14 +42,12 @@ export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
 }
 
-
 export async function comparePassword(password: string, hashedPassword: string): Promise<boolean> {
   if (!password || !hashedPassword) {
     return false;
   }
   return bcrypt.compare(password, hashedPassword);
 }
-
 
 export function generateToken(payload: UserPayload): string {
   const secretKey = getSecretKey();
@@ -75,7 +67,6 @@ export function generateToken(payload: UserPayload): string {
     }
   );
 }
-
 
 export function verifyToken(token: string): UserPayload | null {
   const secretKey = getSecretKey();
@@ -98,7 +89,6 @@ export function verifyToken(token: string): UserPayload | null {
     return null;
   }
 }
-
 
 export async function setAuthCookie(token: string) {
   const cookieStore = await cookies();
@@ -126,12 +116,10 @@ export async function setAuthCookie(token: string) {
   }));
 }
 
-
 export async function clearAuthCookie() {
   const cookieStore = await cookies();
   cookieStore.delete('auth_token');
 }
-
 
 export async function getCurrentUser(): Promise<UserPayload | null> {
   try {
@@ -200,12 +188,10 @@ export async function getCurrentUser(): Promise<UserPayload | null> {
   }
 }
 
-
 export async function getUserById(id: string) {
   if (!id) return null;
   return fetchUserById(id);
 }
-
 
 export async function createUser(data: {
   name: string;
@@ -232,17 +218,14 @@ export async function createUser(data: {
   });
 }
 
-
 export async function findUserByEmail(email: string) {
   if (!email) return null;
   return fetchUserByEmail(email.toLowerCase().trim());
 }
 
-
 export function isAdmin(user: UserPayload | null): boolean {
   return user?.role === 'admin';
 }
-
 
 export function isResourceOwner(user: UserPayload | null, resourceUserId: string): boolean {
   return user?.id === resourceUserId;

@@ -3,7 +3,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { shouldUseStaticData, getQuizById } from '@/lib/data-service';
 import { db, runMigrations } from '@/lib/db';
 
-
 const staticQuizAttempts: Map<string, Array<{
   id: string;
   quizId: string;
@@ -17,7 +16,6 @@ const staticQuizAttempts: Map<string, Array<{
   timeTaken: number;
   passed: boolean;
 }>> = new Map();
-
 
 export async function GET(request: NextRequest) {
   try {
@@ -92,7 +90,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {

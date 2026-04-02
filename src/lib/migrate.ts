@@ -1,12 +1,10 @@
 
 
-
 import { PrismaClient } from '@prisma/client';
 
 const globalForMigration = globalThis as unknown as {
   migrationRan: boolean;
 };
-
 
 export async function runMigrations(): Promise<void> {
   
@@ -58,7 +56,6 @@ export async function runMigrations(): Promise<void> {
     await prisma.$disconnect();
   }
 }
-
 
 let migrationPromise: Promise<void> | null = null;
 

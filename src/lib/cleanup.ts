@@ -1,7 +1,6 @@
 import { db } from '@/lib/db';
 import { isCleanupCompleted, markCleanupCompleted } from './cache';
 
-
 const COURSES_TO_REMOVE = [
   'Personal Finance Full Course',
   'World History Full Course',
@@ -11,7 +10,6 @@ const COURSES_TO_REMOVE = [
   'Physics Full Course',
   'Algebra Full Course',
 ];
-
 
 const QUIZZES_TO_SEED = [
   {
@@ -136,9 +134,7 @@ const QUIZZES_TO_SEED = [
   }
 ];
 
-
 let cleanupInProgress = false;
-
 
 export function runCleanupInBackground(): void {
   
@@ -158,7 +154,6 @@ export function runCleanupInBackground(): void {
       cleanupInProgress = false;
     });
 }
-
 
 export async function runCleanupIfNeeded(): Promise<void> {
   

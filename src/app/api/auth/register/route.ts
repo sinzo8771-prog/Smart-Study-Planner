@@ -3,7 +3,6 @@ import { createUser, findUserByEmail, generateToken } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/validation';
 import { shouldUseStaticData } from '@/lib/data-service';
 
-
 function createAuthResponse(data: object, token: string) {
   const response = NextResponse.json(data);
   response.cookies.set('auth_token', token, {

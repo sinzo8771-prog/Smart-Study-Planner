@@ -1,23 +1,19 @@
 
 
-
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
   ttl: number;
 }
 
-
 const globalCache = new Map<string, CacheEntry<unknown>>();
 
-
 export const CACHE_TTL = {
-  SHORT: 30 * 1000,      
-  MEDIUM: 2 * 60 * 1000, 
-  LONG: 5 * 60 * 1000,   
-  VERY_LONG: 15 * 60 * 1000, 
+  SHORT: 30 * 1000,
+  MEDIUM: 2 * 60 * 1000,
+  LONG: 5 * 60 * 1000,
+  VERY_LONG: 15 * 60 * 1000,
 };
-
 
 export async function cachedFetch<T>(
   key: string,
@@ -45,7 +41,6 @@ export async function cachedFetch<T>(
   return data;
 }
 
-
 export function getCached<T>(key: string): T | null {
   const cached = globalCache.get(key) as CacheEntry<T> | undefined;
   const now = Date.now();
@@ -57,7 +52,6 @@ export function getCached<T>(key: string): T | null {
   return null;
 }
 
-
 export function setCache<T>(key: string, data: T, ttl: number = CACHE_TTL.MEDIUM): void {
   globalCache.set(key, {
     data,
@@ -66,11 +60,9 @@ export function setCache<T>(key: string, data: T, ttl: number = CACHE_TTL.MEDIUM
   });
 }
 
-
 export function invalidateCache(key: string): void {
   globalCache.delete(key);
 }
-
 
 export function invalidateCachePattern(pattern: string): void {
   for (const key of globalCache.keys()) {
@@ -80,11 +72,9 @@ export function invalidateCachePattern(pattern: string): void {
   }
 }
 
-
 export function clearCache(): void {
   globalCache.clear();
 }
-
 
 let cleanupCompleted = false;
 
@@ -95,7 +85,6 @@ export function markCleanupCompleted(): void {
 export function isCleanupCompleted(): boolean {
   return cleanupCompleted;
 }
-
 
 export const CACHE_KEYS = {
   COURSES: 'courses',

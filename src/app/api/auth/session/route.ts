@@ -3,7 +3,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.config';
 
-
 export const dynamic = 'force-dynamic';
 
 export async function GET() {

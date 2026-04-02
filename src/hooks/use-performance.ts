@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -18,7 +17,6 @@ export function useDebounce<T>(value: T, delay: number): T {
 
   return debouncedValue;
 }
-
 
 export function useThrottle<T>(value: T, interval: number): T {
   const [throttledValue, setThrottledValue] = useState<T>(value);
@@ -43,7 +41,6 @@ export function useThrottle<T>(value: T, interval: number): T {
 
   return throttledValue;
 }
-
 
 export function useScrollPosition(throttleMs: number = 100) {
   const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
@@ -84,7 +81,6 @@ export function useScrollPosition(throttleMs: number = 100) {
   return scrollPosition;
 }
 
-
 export function useWindowSize(debounceMs: number = 150) {
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 0,
@@ -115,7 +111,6 @@ export function useWindowSize(debounceMs: number = 150) {
   return windowSize;
 }
 
-
 export function useConnectionSpeed() {
   const [isSlowConnection, setIsSlowConnection] = useState(false);
 
@@ -145,7 +140,6 @@ export function useConnectionSpeed() {
 
   return { isSlowConnection };
 }
-
 
 export function useRenderTime(componentName: string) {
   const renderStart = useRef<number>(0);

@@ -6,7 +6,6 @@ import { hashPassword } from '@/lib/auth';
 import { sanitizeString, isValidEmail, isValidPassword, isValidName, isValidRole } from '@/lib/validation';
 import bcrypt from 'bcryptjs';
 
-
 const staticUsersList = [
   {
     id: 'admin-001',
@@ -69,7 +68,6 @@ const staticUsersList = [
     },
   },
 ];
-
 
 export async function GET(request: NextRequest) {
   try {
@@ -237,7 +235,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -346,7 +343,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
   }
 }
-
 
 export async function PUT(request: NextRequest) {
   try {
@@ -484,7 +480,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
-
 
 export async function DELETE(request: NextRequest) {
   try {

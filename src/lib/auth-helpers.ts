@@ -1,6 +1,5 @@
 
 
-
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.config';
 import { getCurrentUser } from '@/lib/auth';
@@ -11,7 +10,6 @@ export interface AuthenticatedUser {
   name: string;
   role: string;
 }
-
 
 export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   console.log('[AuthHelper] getAuthenticatedUser called');

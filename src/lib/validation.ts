@@ -1,74 +1,58 @@
-
-
-
 export function sanitizeString(input: string): string {
   if (typeof input !== 'string') return '';
   
   let sanitized = input;
   let previous: string;
   
-  
-  
   do {
     previous = sanitized;
     sanitized = sanitized
-      .replace(/[<>]/g, '') 
-      .replace(/javascript:/gi, '') 
-      .replace(/on\w+=/gi, '') 
-      .replace(/data:/gi, '') 
-      .replace(/vbscript:/gi, '') 
-      .replace(/expression\s*\(/gi, '') 
-      .replace(/url\s*\(/gi, '') 
-      .replace(/&#/g, '') 
-      .replace(/&lt/gi, '') 
-      .replace(/&gt/gi, ''); 
+      .replace(/[<>]/g, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+=/gi, '')
+      .replace(/data:/gi, '')
+      .replace(/vbscript:/gi, '')
+      .replace(/expression\s*\(/gi, '')
+      .replace(/url\s*\(/gi, '')
+      .replace(/&#/g, '')
+      .replace(/&lt/gi, '')
+      .replace(/&gt/gi, '');
   } while (sanitized !== previous);
   
-  
   return sanitized
-    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '') 
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '')
     .trim();
 }
 
-
 export function isValidEmail(email: string): boolean {
-  
   if (!email || email.length > 254) {
     return false;
   }
 
-  
-  
   const atCount = (email.match(/@/g) || []).length;
   if (atCount !== 1) {
     return false;
   }
 
-  
   const [localPart, domain] = email.split('@');
-  
   
   if (!localPart || localPart.length > 64) {
     return false;
   }
 
-  
   if (!domain || domain.length > 253 || !domain.includes('.')) {
     return false;
   }
 
-  
   if (/\s/.test(email)) {
     return false;
   }
 
-  
   const domainParts = domain.split('.');
   if (domainParts.length < 2 || domainParts.some(part => part.length === 0)) {
     return false;
   }
 
-  
   const tld = domainParts[domainParts.length - 1];
   if (tld.length < 2) {
     return false;
@@ -76,7 +60,6 @@ export function isValidEmail(email: string): boolean {
 
   return true;
 }
-
 
 export function isValidPassword(password: string): { valid: boolean; error?: string } {
   if (!password || password.length < 8) {
@@ -98,7 +81,6 @@ export function isValidPassword(password: string): { valid: boolean; error?: str
   return { valid: true };
 }
 
-
 export function isValidName(name: string): { valid: boolean; error?: string } {
   if (!name || name.trim().length === 0) {
     return { valid: false, error: 'Name is required' };
@@ -111,8 +93,7 @@ export function isValidName(name: string): { valid: boolean; error?: string } {
   if (name.length > 100) {
     return { valid: false, error: 'Name must be less than 100 characters' };
   }
-  
-  
+
   if (!/^[a-zA-Z\s\-']+$/.test(name.trim())) {
     return { valid: false, error: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
   }
@@ -120,30 +101,18 @@ export function isValidName(name: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-/**
- * Validate hex color format
- */
 export function isValidHexColor(color: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(color);
 }
 
-/**
- * Validate ID (CUID or UUID format)
- */
 export function isValidId(id: string): boolean {
-  
   const cuidRegex = /^[a-z0-9]{25}$/;
-  
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  
   const staticIdRegex = /^(course|quiz|subject|task|mod|user|admin)-[\w-]+$/i;
   
   return cuidRegex.test(id) || uuidRegex.test(id) || staticIdRegex.test(id);
 }
 
-/**
- * Sanitize object by sanitizing all string values
- */
 export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   const result: Record<string, unknown> = {};
   
@@ -160,37 +129,22 @@ export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   return result as T;
 }
 
-/**
- * Validate role
- */
 export function isValidRole(role: string): boolean {
   return ['student', 'admin'].includes(role);
 }
 
-/**
- * Validate task status
- */
 export function isValidTaskStatus(status: string): boolean {
   return ['pending', 'in_progress', 'completed'].includes(status);
 }
 
-/**
- * Validate task priority
- */
 export function isValidTaskPriority(priority: string): boolean {
   return ['low', 'medium', 'high'].includes(priority);
 }
 
-/**
- * Validate course level
- */
 export function isValidCourseLevel(level: string): boolean {
   return ['beginner', 'intermediate', 'advanced'].includes(level);
 }
 
-/**
- * Rate limiting helper (simple in-memory implementation)
- */
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 export function checkRateLimit(
@@ -202,7 +156,6 @@ export function checkRateLimit(
   const record = rateLimitStore.get(key);
   
   if (!record || now > record.resetTime) {
-    
     rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
     return { allowed: true, remaining: maxRequests - 1, resetTime: now + windowMs };
   }
@@ -215,9 +168,6 @@ export function checkRateLimit(
   return { allowed: true, remaining: maxRequests - record.count, resetTime: record.resetTime };
 }
 
-/**
- * Clean up expired rate limit entries (call periodically)
- */
 export function cleanupRateLimits(): void {
   const now = Date.now();
   for (const [key, record] of rateLimitStore.entries()) {
@@ -226,7 +176,6 @@ export function cleanupRateLimits(): void {
     }
   }
 }
-
 
 if (typeof setInterval !== 'undefined') {
   setInterval(cleanupRateLimits, 5 * 60 * 1000);

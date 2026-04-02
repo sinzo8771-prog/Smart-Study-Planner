@@ -8,7 +8,6 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Courses to remove
 const COURSES_TO_REMOVE = [
   'Personal Finance Full Course',
   'World History Full Course',
@@ -21,7 +20,6 @@ async function cleanupCourses() {
   console.log('🧹 Running automatic course cleanup...\n');
 
   try {
-    // Try to connect to database
     await prisma.$queryRaw`SELECT 1`;
   } catch {
     console.log('⚠️  Database not available, skipping cleanup');
@@ -39,24 +37,24 @@ async function cleanupCourses() {
     if (course) {
       console.log(`Removing: ${courseTitle}`);
       
-      // Delete module progress
+      
       for (const courseModule of course.modules) {
         await prisma.moduleProgress.deleteMany({
           where: { moduleId: courseModule.id }
         }).catch(() => {});
       }
       
-      // Delete course progress
+      
       await prisma.courseProgress.deleteMany({
         where: { courseId: course.id }
       }).catch(() => {});
       
-      // Delete modules
+      
       await prisma.module.deleteMany({
         where: { courseId: course.id }
       }).catch(() => {});
       
-      // Delete related quizzes
+      
       const quizzes = await prisma.quiz.findMany({
         where: { courseId: course.id }
       });
@@ -74,7 +72,7 @@ async function cleanupCourses() {
         where: { courseId: course.id }
       }).catch(() => {});
       
-      // Delete the course
+      
       await prisma.course.delete({
         where: { id: course.id }
       });
@@ -95,5 +93,5 @@ async function cleanupCourses() {
 
 cleanupCourses().catch((e) => {
   console.error('Cleanup error (non-fatal):', e.message);
-  process.exit(0); // Exit 0 to not fail the build
+  process.exit(0); 
 });

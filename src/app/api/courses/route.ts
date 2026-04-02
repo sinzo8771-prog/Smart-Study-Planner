@@ -3,9 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { getCourses, shouldUseStaticData } from '@/lib/data-service';
 import { db } from '@/lib/db';
 
-
 export const dynamic = 'force-dynamic';
-
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,7 +27,6 @@ export async function GET(request: NextRequest) {
     });
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {

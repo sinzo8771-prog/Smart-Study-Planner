@@ -6,8 +6,6 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
-
-
 function useMounted() {
   return useSyncExternalStore(
     () => () => {},
@@ -56,10 +54,6 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart as RechartsLineChart, Line, Area, AreaChart, Legend } from 'recharts';
 import { Logo, LogoIcon } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-
-
-
-
 
 interface User {
   id: string;
@@ -280,10 +274,6 @@ interface Stats {
   recentUsers?: User[];
 }
 
-
-
-
-
 const SUBJECT_COLORS = [
   '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
   '#f43f5e', '#ef4444', '#f97316', '#f59e0b', '#eab308',
@@ -292,10 +282,6 @@ const SUBJECT_COLORS = [
 ];
 
 const CHART_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#22c55e', '#06b6d4'];
-
-
-
-
 
 const formatDate = (date: string | Date) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -348,10 +334,6 @@ const getLevelColor = (level: string) => {
     default: return 'bg-gray-100 text-gray-700';
   }
 };
-
-
-
-
 
 const API_TIMEOUT = 20000; 
 
@@ -464,10 +446,6 @@ const api = {
   },
 };
 
-
-
-
-
 const GradientIcon = ({ icon: Icon, className = '' }: { icon: LucideIcon; className?: string }) => (
   <div className={`relative ${className}`}>
     <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl blur-lg opacity-50" />
@@ -476,10 +454,6 @@ const GradientIcon = ({ icon: Icon, className = '' }: { icon: LucideIcon; classN
     </div>
   </div>
 );
-
-
-
-
 
 interface DashboardLayoutProps {
   user: User;
@@ -635,10 +609,6 @@ const DashboardLayout = ({ user, currentView, onViewChange, onLogout, children }
   );
 };
 
-
-
-
-
 interface AIChatWidgetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -752,15 +722,10 @@ const AIChatWidget = ({ isOpen, onClose }: AIChatWidgetProps) => {
   );
 };
 
-
-
-
-
 interface StudentDashboardProps {
   user: User;
   onViewChange: (view: string) => void;
 }
-
 
 const MiniSparkline = memo(({ data, color = '#6366f1', height = 30 }: { data: number[]; color?: string; height?: number }) => {
   const max = Math.max(...data, 1);
@@ -782,7 +747,6 @@ const MiniSparkline = memo(({ data, color = '#6366f1', height = 30 }: { data: nu
   );
 });
 MiniSparkline.displayName = 'MiniSparkline';
-
 
 const ProgressRing = memo(({ progress, size = 80, strokeWidth = 6, color = '#6366f1' }: { progress: number; size?: number; strokeWidth?: number; color?: string }) => {
   const { radius, circumference, offset } = useMemo(() => {
@@ -1043,10 +1007,6 @@ const StudentDashboard = ({ user, onViewChange }: StudentDashboardProps) => {
   );
 };
 
-
-
-
-
 interface StatsCardProps {
   title: string;
   value: string | number;
@@ -1140,10 +1100,6 @@ const StatsCard = memo(({ title, value, subtitle, icon: Icon, color, onClick, tr
   );
 });
 StatsCard.displayName = 'StatsCard';
-
-
-
-
 
 interface StudyPlannerProps {
   user: User;
@@ -2370,10 +2326,6 @@ const StudyPlanner = ({ user: _user }: StudyPlannerProps) => {
   );
 };
 
-
-
-
-
 interface CoursesModuleProps {
   user: User;
 }
@@ -2973,7 +2925,6 @@ const CoursesModule = ({ user }: CoursesModuleProps) => {
     </div>
   );
 };
-
 
 interface QuizModuleProps {
   user: User;
@@ -4168,7 +4119,6 @@ const QuizModule = ({ user }: QuizModuleProps) => {
   );
 };
 
-
 const DashboardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
     
@@ -4205,7 +4155,6 @@ const DashboardSkeleton = () => (
     </div>
   </div>
 );
-
 
 const AnimatedCounter = ({ value, suffix = '', duration = 2000 }: { value: number; suffix?: string; duration?: number }) => {
   const [count, setCount] = useState(0);
@@ -4250,7 +4199,6 @@ const AnimatedCounter = ({ value, suffix = '', duration = 2000 }: { value: numbe
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 };
 
-
 const FloatingParticles = () => {
   const particles = Array.from({ length: 15 }, (_, i) => ({
     id: i,
@@ -4289,7 +4237,6 @@ const FloatingParticles = () => {
   );
 };
 
-
 const MouseGlow = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const rafRef = useRef<number | null>(null);
@@ -4325,7 +4272,6 @@ const MouseGlow = () => {
     />
   );
 };
-
 
 const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index, image }: {
   icon: LucideIcon;
@@ -4378,7 +4324,6 @@ const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index, 
     </motion.div>
   );
 };
-
 
 const TestimonialCarousel = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -4456,7 +4401,6 @@ const TestimonialCarousel = () => {
     </div>
   );
 };
-
 
 const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -5195,7 +5139,6 @@ const DemoVideoModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-
 interface FooterPageModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -5891,7 +5834,6 @@ const BlogModal = ({ isOpen, onClose }: FooterPageModalProps) => {
     </motion.div>
   );
 };
-
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -6627,7 +6569,6 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
   );
 };
 
-
 interface AuthModalProps {
   mode: 'login' | 'register';
   onClose: () => void;
@@ -7179,7 +7120,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode, onSuccess }: AuthModalProps) =
     </motion.div>
   );
 };
-
 
 function PageContent() {
   const [user, setUser] = useState<User | null>(null);

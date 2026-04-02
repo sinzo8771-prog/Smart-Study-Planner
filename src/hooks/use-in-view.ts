@@ -8,7 +8,6 @@ interface UseInViewOptions {
   triggerOnce?: boolean;
 }
 
-
 export function useInView<T extends HTMLElement = HTMLElement>(
   options: UseInViewOptions = {}
 ): [RefObject<T | null>, boolean] {
@@ -50,7 +49,6 @@ export function useInView<T extends HTMLElement = HTMLElement>(
 
   return [ref, isInView];
 }
-
 
 export function useInViewItems<T extends HTMLElement = HTMLElement>(
   itemCount: number,

@@ -4,14 +4,12 @@ import { createLogger } from './logger';
 
 const logger = createLogger('API');
 
-
 export interface ApiErrorResponse {
   error: string;
   details?: string;
   code?: string;
   timestamp: string;
 }
-
 
 export class ApiError extends Error {
   constructor(
@@ -24,7 +22,6 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
-
 
 export const Errors = {
   Unauthorized: (message = 'Unauthorized') => new ApiError(message, 401, 'UNAUTHORIZED'),
@@ -40,7 +37,6 @@ export const Errors = {
   ),
   Internal: (message = 'Internal server error') => new ApiError(message, 500, 'INTERNAL_ERROR'),
 } as const;
-
 
 export function handleApiError(error: unknown): NextResponse {
   
@@ -109,16 +105,13 @@ export function handleApiError(error: unknown): NextResponse {
   return NextResponse.json(response, { status: 500 });
 }
 
-
 export function apiResponse<T>(data: T, status = 200): NextResponse {
   return NextResponse.json(data, { status });
 }
 
-
 export function createdResponse<T>(data: T): NextResponse {
   return NextResponse.json(data, { status: 201 });
 }
-
 
 export function noContentResponse(): NextResponse {
   return new NextResponse(null, { status: 204 });

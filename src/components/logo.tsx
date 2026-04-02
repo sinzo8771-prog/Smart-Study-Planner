@@ -39,31 +39,24 @@ export function Logo({ className, size = 'md', showText = true }: LogoProps) {
           </linearGradient>
         </defs>
         
-        {}
         <circle cx="32" cy="32" r="30" fill="url(#logoGradient)" opacity="0.15" />
         
-        {}
         <path d="M12 20 L32 14 L52 20 L52 48 L32 42 L12 48 Z" fill="url(#bookGradient)" opacity="0.9" />
         <path d="M12 20 L32 26 L32 42 L12 48 Z" fill="url(#bookGradient)" />
         <path d="M52 20 L32 26 L32 42 L52 48 Z" fill="url(#logoGradient)" opacity="0.8" />
         
-        {}
         <line x1="32" y1="14" x2="32" y2="42" stroke="#fff" strokeWidth="1" opacity="0.3" />
         
-        {}
         <path d="M32 8 L52 16 L32 24 L12 16 Z" fill="url(#logoGradient)" />
         
-        {}
         <path d="M32 24 L32 32" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" />
         <circle cx="32" cy="34" r="3" fill="#FBBF24" />
         
-        {}
         <line x1="18" y1="28" x2="28" y2="32" stroke="#fff" strokeWidth="1" opacity="0.5" />
         <line x1="18" y1="34" x2="28" y2="38" stroke="#fff" strokeWidth="1" opacity="0.5" />
         <line x1="36" y1="32" x2="46" y2="28" stroke="#fff" strokeWidth="1" opacity="0.5" />
         <line x1="36" y1="38" x2="46" y2="34" stroke="#fff" strokeWidth="1" opacity="0.5" />
         
-        {}
         <circle cx="52" cy="16" r="4" fill="#FBBF24" />
       </svg>
       
@@ -78,7 +71,6 @@ export function Logo({ className, size = 'md', showText = true }: LogoProps) {
     </div>
   );
 }
-
 
 export function LogoIcon({ className, size = 'md' }: Omit<LogoProps, 'showText'>) {
   const { icon: iconSize } = sizeMap[size];
@@ -102,19 +94,15 @@ export function LogoIcon({ className, size = 'md' }: Omit<LogoProps, 'showText'>
             </linearGradient>
           </defs>
           
-          {}
           <path d="M12 20 L32 14 L52 20 L52 48 L32 42 L12 48 Z" fill="url(#iconGradient)" opacity="0.9" />
           <path d="M12 20 L32 26 L32 42 L12 48 Z" fill="#fff" />
           <path d="M52 20 L32 26 L32 42 L52 48 Z" fill="url(#iconGradient)" opacity="0.8" />
           
-          {}
           <path d="M32 8 L52 16 L32 24 L12 16 Z" fill="#fff" />
           
-          {}
           <path d="M32 24 L32 32" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" />
           <circle cx="32" cy="34" r="3" fill="#FBBF24" />
           
-          {}
           <circle cx="52" cy="16" r="4" fill="#FBBF24" />
         </svg>
       </div>
