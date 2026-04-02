@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense, useSyncExternalStore, memo, useMemo } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
@@ -4273,16 +4272,14 @@ const MouseGlow = () => {
   );
 };
 
-const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index, image }: {
+const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index }: {
   icon: LucideIcon;
   title: string;
   description: string;
   color: string;
   index: number;
-  image?: string;
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [imageLoading, setImageLoading] = useState(true);
 
   return (
     <motion.div
@@ -4294,22 +4291,7 @@ const InteractiveFeatureCard = ({ icon: Icon, title, description, color, index, 
       className="relative group h-full"
     >
       <div className="feature-card h-full">
-        {image && (
-          <div className="relative h-44 sm:h-52 overflow-hidden bg-slate-100 dark:bg-slate-800">
-            {imageLoading && (
-              <div className="absolute inset-0 animate-pulse bg-slate-200 dark:bg-slate-700" />
-            )}
-            <Image
-              src={image}
-              alt={title}
-              fill
-              className={`object-cover transition-transform duration-500 group-hover:scale-110 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-              onLoad={() => setImageLoading(false)}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-slate-800 via-white/50 dark:via-slate-800/50 to-transparent" />
-          </div>
-        )}
-        <div className={`p-6 sm:p-8 relative z-10 ${image ? '-mt-16' : ''}`}>
+        <div className="p-6 sm:p-8 relative z-10">
           <div className="feature-icon">
             <Icon className="w-6 h-6 text-indigo-500" />
           </div>
@@ -6242,12 +6224,12 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps) => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { icon: Calendar, title: 'Study Planner', description: 'Organize subjects, set exam dates, and manage tasks with a clear overview of your schedule.', color: 'bg-indigo-500', image: '/images/landing/feature-planner.png' },
-              { icon: ClipboardList, title: 'Task Management', description: 'Create, edit, and track tasks with priority levels and due dates.', color: 'bg-slate-600', image: '/images/landing/feature-tasks.png' },
-              { icon: BookOpen, title: 'Course Library', description: 'Access comprehensive courses with structured modules and learning materials.', color: 'bg-amber-500', image: '/images/landing/feature-courses.png' },
-              { icon: Brain, title: 'Quiz Generator', description: 'Create quizzes to test your knowledge and track your progress.', color: 'bg-rose-500', image: '/images/landing/feature-quiz.png' },
-              { icon: BarChart3, title: 'Progress Analytics', description: 'Visualize your learning journey with detailed charts and statistics.', color: 'bg-indigo-500', image: '/images/landing/feature-analytics.png' },
-              { icon: MessageCircle, title: 'Study Assistant', description: 'Get help with your study questions whenever you need it.', color: 'bg-cyan-500', image: '/images/landing/feature-assistant.png' },
+              { icon: Calendar, title: 'Study Planner', description: 'Organize subjects, set exam dates, and manage tasks with a clear overview of your schedule.', color: 'bg-indigo-500' },
+              { icon: ClipboardList, title: 'Task Management', description: 'Create, edit, and track tasks with priority levels and due dates.', color: 'bg-slate-600' },
+              { icon: BookOpen, title: 'Course Library', description: 'Access comprehensive courses with structured modules and learning materials.', color: 'bg-amber-500' },
+              { icon: Brain, title: 'Quiz Generator', description: 'Create quizzes to test your knowledge and track your progress.', color: 'bg-rose-500' },
+              { icon: BarChart3, title: 'Progress Analytics', description: 'Visualize your learning journey with detailed charts and statistics.', color: 'bg-indigo-500' },
+              { icon: MessageCircle, title: 'Study Assistant', description: 'Get help with your study questions whenever you need it.', color: 'bg-cyan-500' },
             ].map((feature, index) => (
               <InteractiveFeatureCard key={index} {...feature} index={index} />
             ))}
